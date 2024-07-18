@@ -3,16 +3,7 @@ from rdkit import Chem
 from rdkit.Chem import Draw
 
 def substructure_search(mols, mol):
-    """
-    Find molecules that contain a specific substructure.
-
-    Args:
-        mols (list of str): List of molecules as SMILES strings.
-        mol (str): Substructure as a SMILES string.
-
-    Returns:
-        list of str: List of molecules that contain the substructure.
-    """
+   
     
     substructure = Chem.MolFromSmiles(mol)
   
