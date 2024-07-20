@@ -10,10 +10,12 @@ def generate_molecules(n):
         mols.append(mol)
     return mols
 
+
 def create_file(n, filename):
     mols = generate_molecules(n)
     with open(filename, "w") as f:
         for mol in mols:
             f.write(f"{mol}\n")
+
 
 create_file(10, "molecules.csv")
