@@ -1,4 +1,3 @@
-
 from fastapi import FastAPI, status, HTTPException, UploadFile
 from rdkit import Chem
 from src.repository import MoleculesRepository, InMemoryMoleculesRepository
@@ -75,7 +74,7 @@ def get_substructure_search(smiles: str) -> list[Molecule]:
 
     find_all = molecules_repository.find_all()
 
-    return [mol for mol in find_all if Chem.MolFromSmiles(mol.smiles).HasSubstructMatch(molecule)]
+    return [mol for mol in find_all if molecule.HasSubstructMatch(Chem.MolFromSmiles(mol.smiles))]
 
 
 @app.post("/upload_molecules", status_code=status.HTTP_201_CREATED)
