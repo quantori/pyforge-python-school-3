@@ -1,1 +1,2 @@
-src/*checkpoints/
+venv
+src/__pycache__

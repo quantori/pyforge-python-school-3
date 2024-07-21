@@ -1,5 +1,7 @@
-from rdkit import Chem
+from fastapi import FastAPI
 
-def substructure_search(mols, mol):
-    chem_mol = Chem.MolFromSmiles(mol)
-    return [m for m in mols if Chem.MolFromSmiles(m).HasSubstructMatch(chem_mol)]
+app = FastAPI()
+
+@app.get("/m")
+def a():
+    pass
