@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationInfo, field_validator
+from rdkit import Chem
 import random
 
 app = FastAPI()
@@ -9,6 +10,13 @@ db = []
 
 class Molecule(BaseModel):
     smile: str
+
+    @field_validator("smile")
+    def check_valid_smile(cls, v: str, info: ValidationInfo):
+        mol = Chem.MolFromSmiles(v)
+        if mol is None:
+            raise ValueError(f"{v} is not a valid SMILES string.")
+        return v
 
 
 def find_by_id(id: int):
