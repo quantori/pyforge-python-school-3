@@ -1,6 +1,5 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from typing import List
 import random
 
 app = FastAPI()
@@ -19,6 +18,13 @@ def find_by_id(id: int):
     return None
 
 
+def find_index_by_id(id: int):
+    for i, m in enumerate(db):
+        if m["id"] == id:
+            return i
+    return -1
+
+
 def delete_by_id(id: int):
     molecule = find_by_id(id)
     if molecule:
@@ -33,7 +39,15 @@ def get_all():
 
 
 def update_by_id(id: int, new_molecule: Molecule):
-    pass
+    index = find_index_by_id(id)
+
+    if index == -1:
+        return None
+
+    molecule = new_molecule.model_dump()
+    molecule["id"] = id
+    db[index] = molecule
+    return molecule
 
 
 @app.get("/molecules", tags=["molecules"])
@@ -61,7 +75,12 @@ def create_molecule(request: Molecule):
 
 @app.put("/molecules/{molecule_id}", tags=["molecules"])
 def update_molecule_by_id(molecule_id: int, request: Molecule):
-    pass
+    updated_molecule = update_by_id(molecule_id, request)
+    if not updated_molecule:
+        raise HTTPException(
+            status_code=404, detail=f"Molecule not found by id: {molecule_id}"
+        )
+    return updated_molecule
 
 
 @app.delete("/molecules/{molecule_id}", tags=["molecules"], status_code=204)
