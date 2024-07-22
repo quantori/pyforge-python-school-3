@@ -1,7 +1,4 @@
-import rdkit
 from rdkit import Chem
-# from rdkit.Chem import Draw
-
 
 def substructure_search(mols: list, mol: str) -> list:
     substructure = Chem.MolFromSmiles(mol)
@@ -11,6 +8,10 @@ def substructure_search(mols: list, mol: str) -> list:
         match = chem_mol.HasSubstructMatch(substructure)
         if match:
             matches.append(smiles)
-    print(matches)
+    return matches
 
-substructure_search(["CCO", "c1ccccc1", "CC(=O)O", "CC(=O)Oc1ccccc1C(=O)O"], "c1ccccc1")
+
+expected_matches = ['c1ccccc1', 'CC(=O)Oc1ccccc1C(=O)O']
+assert substructure_search(["CCO", "c1ccccc1", "CC(=O)O", "CC(=O)Oc1ccccc1C(=O)O"], "c1ccccc1") == expected_matches, f"Expected {expected_matches}, but got {substructure_search(["CCO", "c1ccccc1", "CC(=O)O", "CC(=O)Oc1ccccc1C(=O)O"], "c1ccccc1")}"
+print("All tests passed!")
+
