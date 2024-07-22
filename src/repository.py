@@ -30,6 +30,10 @@ class Repository(ABC, Generic[KEY, VAL]):
     def delete_by_id(self, obj_id: KEY) -> None:
         pass
 
+    @abstractmethod
+    def clear(self) -> None:
+        pass
+
 
 class InMemoryMoleculesRepository(Repository[int, Molecule]):
 
@@ -56,4 +60,7 @@ class InMemoryMoleculesRepository(Repository[int, Molecule]):
             del self._molecules[molecule_id]
         else:
             raise ValueError(f"Molecule with id {molecule_id} does not exist")
+
+    def clear(self) -> None:
+        self._molecules.clear()
 

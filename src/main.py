@@ -1,4 +1,6 @@
-from fastapi import FastAPI, status, HTTPException, UploadFile
+from typing import Annotated
+
+from fastapi import FastAPI, status, HTTPException, UploadFile, Query
 from rdkit import Chem
 from src.models import Molecule, AddMoleculeRequest, MoleculeResponse
 from src.repository import Repository, InMemoryMoleculesRepository
@@ -19,7 +21,7 @@ def add_molecule(add_molecule_request: AddMoleculeRequest) -> MoleculeResponse:
 
     :param add_molecule_request: The request body.
 
-    :return: The response containing the details of the added molecule.
+    :return MoleculeResponse: containing the details of the added molecule.
 
     :raises HTTPException: If the provided SMILES string is invalid.
     """
@@ -30,53 +32,119 @@ def add_molecule(add_molecule_request: AddMoleculeRequest) -> MoleculeResponse:
     return MoleculeResponse.from_molecule(molecule)
 
 
-# @app.get("/molecules{molecule_id}",
-#          status_code=status.HTTP_200_OK,
-#          responses={status.HTTP_200_OK: {"description": "Molecule found successfully"},
-#                     status.HTTP_404_NOT_FOUND: {"description": "Molecule with the provided ID is not found"}}
-#          )
-# def get_molecule(molecule_id: int) -> MoleculeResponse:
-#     if not molecules_repository.exists_by_id(molecule_id):
-#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-#                             detail=f"Molecule with the id {molecule_id} is not found")
-#
-#     molecule = molecules_repository.find_by_id(molecule_id)
-#     return MoleculeResponse.from_molecule(molecule)
+@app.get("/molecules/{molecule_id}",
+         status_code=status.HTTP_200_OK,
+         responses={status.HTTP_200_OK: {"description": "Molecule found successfully"},
+                    status.HTTP_404_NOT_FOUND: {"description": "Molecule with the provided ID is not found"}}
+         )
+def get_molecule(molecule_id: int) -> MoleculeResponse:
+    """
+    Get the details of a molecule by its ID.
 
-# @app.put("/molecules{molecule_id}", status_code=status.HTTP_200_OK)
-# async def update_molecule(molecule_id: str, update_molecule_request: UpdateMoleculeRequest) -> Molecule:
-#     if not molecules_repository.exists_by_id(molecule_id):
-#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-#                             detail=f"Molecule with the id {molecule_id} is not found")
-#
-#     mol = molecules_repository.find_by_id(molecule_id)
-#     mol.molecule_name = update_molecule_request.molecule_name
-#     mol.smiles = update_molecule_request.smiles
-#
-#     return mol
+    :param molecule_id: The ID of the molecule.
 
-#
-# @app.delete("/molecules{molecule_id}", status_code=status.HTTP_200_OK)
-# async def delete_molecule(molecule_id: str) -> None:
-#     if not molecules_repository.exists_by_id(molecule_id):
-#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-#                             detail=f"Molecule with the id {molecule_id} is not found")
-#
-#     molecules_repository.delete_by_id(molecule_id)
-#
-#     return
-#
-#
-# @app.get("/molecules", status_code=status.HTTP_200_OK)
-# async def list_molecules(skip: int = 0, limit: int = -1) -> list[Molecule]:
-#     find_all = molecules_repository.find_all()
-#
-#     if limit == -1:
-#         return find_all[skip:]
-#
-#     return find_all[skip:limit]
-#
-#
+    :return MoleculeResponse: containing the details of the molecule.
+
+    :raises HTTPException: If the molecule with the provided ID is not found.
+    """
+
+    print(molecule_id, molecules_repository.find_by_id(molecule_id))
+    if not molecules_repository.exists_by_id(molecule_id):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"Molecule with the id {molecule_id} is not found")
+
+    molecule = molecules_repository.find_by_id(molecule_id)
+    return MoleculeResponse.from_molecule(molecule)
+
+
+@app.put("/molecules/{molecule_id}",
+         status_code=status.HTTP_200_OK,
+         responses={status.HTTP_200_OK: {"description": "Molecule updated successfully"},
+                    status.HTTP_404_NOT_FOUND: {"description": "Molecule with the provided ID is not found"}})
+def update_molecule(molecule_id: int, update_molecule_request: AddMoleculeRequest) -> MoleculeResponse:
+    """
+    Update the details of a molecule by its ID.
+
+    Molecule with the provided ID in the path parameter is overwritten with the details provided in the request body,
+    except for the molecule_id.
+
+    molecule_id provided in the request body is ignored. It is not possible to update the
+    molecule_id of a molecule.
+
+    :param molecule_id: The ID of the molecule.
+
+    :param update_molecule_request: The request body.
+
+    :return MoleculeResponse: containing the details of the updated molecule.
+
+    :raises HTTPException: If the molecule with the provided ID in the path is not found.
+    """
+
+    if not molecules_repository.exists_by_id(molecule_id):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"Molecule with the id {molecule_id} is not found")
+
+    mol = molecules_repository.find_by_id(molecule_id)
+    mol.molecule_name = update_molecule_request.molecule_name
+    mol.smiles = update_molecule_request.smiles
+    mol.description = update_molecule_request.description
+
+    return MoleculeResponse.from_molecule(mol)
+
+
+@app.delete("/molecules/{molecule_id}",
+            status_code=status.HTTP_200_OK,
+            responses={status.HTTP_200_OK: {"description": "Molecule deleted successfully"},
+                       status.HTTP_404_NOT_FOUND: {"description": "Molecule with the provided ID is not found"}})
+def delete_molecule(molecule_id: int) -> None:
+    """
+    Delete a molecule by its ID.
+
+    :param molecule_id:
+
+    :raises HTTPException: If the molecule with the provided ID is not found.
+
+    :return: None
+    """
+
+    if not molecules_repository.exists_by_id(molecule_id):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"Molecule with the id {molecule_id} is not found")
+
+    molecules_repository.delete_by_id(molecule_id)
+    return
+
+
+@app.get("/molecules", status_code=status.HTTP_200_OK,
+         responses={status.HTTP_200_OK: {"description": "Molecules found successfully"},
+                    status.HTTP_400_BAD_REQUEST: {"description": "limit has to be greater or equal to skip"}}
+         )
+def list_molecules(skip: Annotated[int, Query(ge=0)] = 0,
+                   limit: Annotated[
+                       int, Query(ge=0, description="If 0, this parameter is ignored. Has to be >= skip")] = 0) \
+        -> list[MoleculeResponse]:
+    """
+    List all molecules in the repository.
+
+    :param skip: offset
+
+    :param limit: number of molecules to return
+
+    :return: list of MoleculeResponse
+
+    :raises HTTPException: If limit is less than skip
+    """
+
+    if limit < skip:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="limit has to be greater or equal to skip")
+
+    find_all = molecules_repository.find_all()
+
+    if limit == 0:
+        return [MoleculeResponse.from_molecule(mol) for mol in find_all]
+
+    return [MoleculeResponse.from_molecule(mol) for mol in find_all[skip:skip + limit]]
+
 # @app.get("/molecules/substructure_search")
 # async def get_substructure_search(smiles: str) -> list[Molecule]:
 #     molecule = Chem.MolFromSmiles(smiles)
