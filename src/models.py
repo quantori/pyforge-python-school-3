@@ -1,4 +1,16 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+
+BASE_URL = "http://localhost:8000"
+
+
+class Link(BaseModel):
+    href: str
+    rel: str
+    type: str
+
+
+class HATEOASResponse(BaseModel):
+    links: dict[str, Link]
 
 
 class AddMoleculeRequest(BaseModel):
@@ -19,16 +31,27 @@ class AddMoleculeRequest(BaseModel):
     }
 
 
-class MoleculeResponse(AddMoleculeRequest):
+class MoleculeResponse(AddMoleculeRequest, HATEOASResponse):
     molecule_id: int
-    smiles: str
-    molecule_name: str | None
-    description: str | None = None
+    links: dict[str, Link] = {}
 
     @staticmethod
     def from_molecule(molecule: 'Molecule') -> 'MoleculeResponse':
+        links = {
+            "self": Link(
+                href=f"{BASE_URL}/molecules/{molecule.molecule_id}",
+                rel="self",
+                type="GET"
+            ),
+            "substructure_search": Link(
+                href=f"{BASE_URL}/molecules/substructure_search?smiles={molecule.smiles}",
+                rel="substructure_search",
+                type="GET"
+            )
+        }
+
         return MoleculeResponse(molecule_id=molecule.molecule_id, smiles=molecule.smiles,
-                                molecule_name=molecule.molecule_name, description=molecule.description)
+                                molecule_name=molecule.molecule_name, description=molecule.description, links=links)
 
     model_config = {
         "json_schema_extra": {

@@ -9,3 +9,5 @@ def chem_from_smiles_http_error_if_invalid(smiles: str) -> Chem.Mol:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid smiles format: {smiles}")
 
     return chem_molecule
+
+

@@ -8,12 +8,14 @@ app = FastAPI()
 molecules_repository: Repository[int, Molecule] = InMemoryMoleculesRepository()
 
 
-@app.post("/molecules", status_code=status.HTTP_201_CREATED)
-async def add_molecule(add_molecule_request: AddMoleculeRequest) -> MoleculeResponse:
+@app.post("/molecules",
+          status_code=status.HTTP_201_CREATED,
+          responses={status.HTTP_201_CREATED: {"description": "Molecule added successfully"},
+                     status.HTTP_400_BAD_REQUEST: {"description": "Smiles string is invalid or missing"}}
+          )
+def add_molecule(add_molecule_request: AddMoleculeRequest) -> MoleculeResponse:
     """
     Add a new molecule to the repository.
-
-    This endpoint allows the addition of a new molecule to the repository.
 
     :param add_molecule_request: The request body.
 
@@ -28,14 +30,18 @@ async def add_molecule(add_molecule_request: AddMoleculeRequest) -> MoleculeResp
     return MoleculeResponse.from_molecule(molecule)
 
 
-# @app.get("/molecules{molecule_id}", status_code=status.HTTP_200_OK)
-# async def get_molecule(molecule_id: str) -> Molecule:
+# @app.get("/molecules{molecule_id}",
+#          status_code=status.HTTP_200_OK,
+#          responses={status.HTTP_200_OK: {"description": "Molecule found successfully"},
+#                     status.HTTP_404_NOT_FOUND: {"description": "Molecule with the provided ID is not found"}}
+#          )
+# def get_molecule(molecule_id: int) -> MoleculeResponse:
 #     if not molecules_repository.exists_by_id(molecule_id):
 #         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
 #                             detail=f"Molecule with the id {molecule_id} is not found")
 #
-#     return molecules_repository.find_by_id(molecule_id)
-
+#     molecule = molecules_repository.find_by_id(molecule_id)
+#     return MoleculeResponse.from_molecule(molecule)
 
 # @app.put("/molecules{molecule_id}", status_code=status.HTTP_200_OK)
 # async def update_molecule(molecule_id: str, update_molecule_request: UpdateMoleculeRequest) -> Molecule:
@@ -48,7 +54,7 @@ async def add_molecule(add_molecule_request: AddMoleculeRequest) -> MoleculeResp
 #     mol.smiles = update_molecule_request.smiles
 #
 #     return mol
-#
+
 #
 # @app.delete("/molecules{molecule_id}", status_code=status.HTTP_200_OK)
 # async def delete_molecule(molecule_id: str) -> None:
@@ -115,6 +121,3 @@ async def add_molecule(add_molecule_request: AddMoleculeRequest) -> MoleculeResp
 #     mol = Chem.MolFromSmiles(smiles)
 #     return mol is not None
 #
-
-
-
