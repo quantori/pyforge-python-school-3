@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, ValidationInfo, field_validator
-from rdkit import Chem
+from chem import substructure_search, valid_smile
 import random
 
 app = FastAPI()
@@ -13,8 +13,7 @@ class Molecule(BaseModel):
 
     @field_validator("smile")
     def check_valid_smile(cls, v: str, info: ValidationInfo):
-        mol = Chem.MolFromSmiles(v)
-        if mol is None:
+        if not valid_smile(v):
             raise ValueError(f"{v} is not a valid SMILES string.")
         return v
 
@@ -46,6 +45,10 @@ def get_all():
     return db
 
 
+def get_filtered(substructre: str):
+    return substructure_search(db, substructre)
+
+
 def update_by_id(id: int, new_molecule: Molecule):
     index = find_index_by_id(id)
 
@@ -59,7 +62,9 @@ def update_by_id(id: int, new_molecule: Molecule):
 
 
 @app.get("/molecules", tags=["molecules"])
-def get_all_molecules():
+def get_all_molecules(substructre: str | None = None):
+    if substructre:
+        return get_filtered(substructre)
     return get_all()
 
 
