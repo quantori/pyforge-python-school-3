@@ -1,7 +1,7 @@
 from rdkit import Chem
 from fastapi import FastAPI, HTTPException, UploadFile
 from pydantic import BaseModel
-import csv, io
+
 app = FastAPI()
 
 class Molecule (BaseModel):
