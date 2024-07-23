@@ -20,7 +20,7 @@ def valid_smile_string(smile: str | None = Query(None, example="CO")):
 
     if not valid_smile(smile):
         raise HTTPException(
-            status_code=422, detail=f"{smile} is not a valid SMILES string."
+            status_code=422, detail=f"'{smile}' is not a valid SMILES string."
         )
 
     return smile

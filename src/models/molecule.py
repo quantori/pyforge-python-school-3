@@ -9,7 +9,7 @@ class BaseMolecule(BaseModel):
     @field_validator("smile")
     def check_valid_smile(cls, v: str, info: ValidationInfo):
         if not valid_smile(v):
-            raise ValueError(f"{v} is not a valid SMILES string.")
+            raise ValueError(f"'{v}' is not a valid SMILES string.")
         return v
 
 
