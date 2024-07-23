@@ -1,6 +1,7 @@
-from src.utils.chem import substructure_search
-from src.models.molecule import Molecule
 from random import randint
+
+from src.utils.chem import substructure_search
+from src.models.molecule import RequestMolecule
 
 molecules_table = []
 
@@ -36,14 +37,14 @@ def get_filtered(substructre: str):
     return substructure_search(molecules_table, substructre)
 
 
-def create(new_molecule: Molecule):
+def create(new_molecule: RequestMolecule):
     molecule = new_molecule.model_dump()
-    molecule["id"] = randint(1, 10000)
+    molecule["id"] = randint(1, 10000)  # not perfect but works for now
     molecules_table.append(molecule)
     return molecule
 
 
-def update_by_id(id: int, new_molecule: Molecule):
+def update_by_id(id: int, new_molecule: RequestMolecule):
     index = find_index_by_id(id)
 
     if index == -1:
