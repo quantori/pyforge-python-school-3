@@ -8,8 +8,8 @@ def substructure_search(mols, mol):
     ]
 
 
-def valid_smile(str: str):
-    mol = Chem.MolFromSmiles(str)
+def valid_smile(s: str):
+    mol = Chem.MolFromSmiles(s)
     if mol is None:
         return False
     return True

@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Query, HTTPException
+from fastapi import APIRouter, Depends, Query, HTTPException
+
 from src.db.molecule import (
     get_filtered,
     get_all,
@@ -8,8 +9,21 @@ from src.db.molecule import (
     delete_by_id,
 )
 from src.models.molecule import RequestMolecule, ResponseMolecule
+from src.utils.chem import valid_smile
 
 router = APIRouter()
+
+
+def valid_smile_string(smile: str | None = Query(None, example="CO")):
+    if not smile:
+        return smile
+
+    if not valid_smile(smile):
+        raise HTTPException(
+            status_code=422, detail=f"{smile} is not a valid SMILES string."
+        )
+
+    return smile
 
 
 @router.get(
@@ -19,11 +33,14 @@ router = APIRouter()
                 containing a specfied substructre""",
 )
 async def get_all_molecules(
-    substructre: str | None = Query(None, example="CO")
+    substructre: str | None = Depends(valid_smile_string),
 ) -> list[ResponseMolecule]:
     if substructre:
+        if not valid_smile(substructre):
+            raise ValueError(f"{substructre} is not a valid SMILES string.")
         filtered_molecules = get_filtered(substructre)
         return [ResponseMolecule.model_validate(m) for m in filtered_molecules]
+
     molecules = get_all()
     return [ResponseMolecule.model_validate(m) for m in molecules]
 
@@ -32,7 +49,7 @@ async def get_all_molecules(
     "/{molecule_id}",
     summary="Get molecule by id",
     description="Get the molecule with the specifed id",
-    response_model_exclude=422
+    response_model_exclude=422,
 )
 async def get_molecule_by_id(molecule_id: int) -> ResponseMolecule:
     molecule = find_by_id(molecule_id)
