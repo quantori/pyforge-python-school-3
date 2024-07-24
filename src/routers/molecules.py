@@ -44,8 +44,6 @@ async def get_all_molecules(
     substructre: str | None = Depends(valid_smile_string),
 ) -> list[ResponseMolecule]:
     if substructre:
-        if not valid_smile(substructre):
-            raise ValueError(f"{substructre} is not a valid SMILES string.")
         filtered_molecules = get_filtered(substructre)
         return [ResponseMolecule.model_validate(m) for m in filtered_molecules]
 
