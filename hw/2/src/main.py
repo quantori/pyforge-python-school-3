@@ -1,6 +1,8 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from models import Molecules
 from rdkit import Chem
+import io
+import csv
 
 app = FastAPI()
 
@@ -87,3 +89,36 @@ def substructure_search():
 
     return results
 
+
+@app.post("/upload")
+async def upload_file(file: UploadFile = File(...)):
+    # Make sure to upload CSV with tab as delimiter
+    if not file.filename.endswith('.csv'):
+        raise HTTPException(status_code=400, detail="Only CSV files are supported")
+    
+    content = await file.read()
+    # Decodes the file
+    data = io.StringIO(content.decode("utf-8"))
+    
+    try:
+        csv_reader = csv.DictReader(data, delimiter='\t')
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to read CSV: {str(e)}")
+
+    added_smiles = []
+    
+    for row in csv_reader:
+        if 'identifier' not in row or 'smile' not in row:
+            raise HTTPException(status_code=400, detail="File must contain 'identifier' and 'smile' columns")
+        
+        identifier = row['identifier']
+        smile = row['smile']
+        molecule = Molecules(identifier=identifier, smile=smile)
+        
+        if any(mol.identifier == molecule.identifier for mol in molecules_db):
+            continue
+        
+        molecules_db.append(molecule)
+        added_smiles.append(molecule)
+    
+    return {"added_molecules": added_smiles}
