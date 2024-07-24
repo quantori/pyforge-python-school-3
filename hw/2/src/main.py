@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from models import Molecules
 
 app = FastAPI()
@@ -20,4 +20,11 @@ def read_root():
 def retrive_molecules():
     return molecules_db
 
+
+@app.get("/smiles/{identifier}")
+def retrieve_molecule(identifier: str):
+    for molecule in molecules_db:
+        if molecule.identifier == identifier:
+            return molecule
+    raise HTTPException(status_code=404, detail="Molecule not found")
 
