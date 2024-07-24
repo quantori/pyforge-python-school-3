@@ -48,3 +48,12 @@ def update_molecule(identifier:str, updated_smile: Molecules):
     raise HTTPException(status_code=404, detail="Molecule not found")
 
 
+@app.delete("/delete/{identifier}")
+def delete_molecule(identifier: str):
+    for index, molecule in enumerate(molecules_db):
+        if molecule.identifier == identifier:
+            molecules_db.pop(index)
+            return {"detail": "Molecule deleted"}
+    raise HTTPException(status_code=404, detail="Molecule not found")
+
+
