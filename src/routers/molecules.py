@@ -86,7 +86,7 @@ async def create_molecule(request: RequestMolecule) -> ResponseMolecule:
     description="""Upload a text file with SMILE's seperated
                    by commas to save them""",
 )
-async def upload_molecules(file: UploadFile):
+async def upload_molecules(file: UploadFile) -> UploadResponse:
     file_conetnt = await parse_text_file(file)
     result = create_in_bulk(file_conetnt)
 
