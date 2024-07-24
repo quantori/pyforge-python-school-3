@@ -17,14 +17,12 @@ router = APIRouter()
 
 
 def valid_smile_string(
-    smile: str | None = Query(
-        None,
+    smile: str = Query(
+        ...,
         description="A SMILES string representation of a molecule",
         example="CCO",
     )
 ):
-    if not smile:
-        return smile
 
     if not valid_smile(smile):
         raise HTTPException(
@@ -37,18 +35,25 @@ def valid_smile_string(
 @router.get(
     "",
     summary="Get all molecules",
-    description="""Get all molecules or seach for all
-                containing a specfied substructre""",
+    description="Get all molecules from db",
 )
-async def get_all_molecules(
-    substructre: str | None = Depends(valid_smile_string),
-) -> list[ResponseMolecule]:
-    if substructre:
-        filtered_molecules = get_filtered(substructre)
-        return [ResponseMolecule.model_validate(m) for m in filtered_molecules]
+async def get_all_molecules() -> list[ResponseMolecule]:
 
     molecules = get_all()
     return [ResponseMolecule.model_validate(m) for m in molecules]
+
+
+@router.get(
+    "/search",
+    summary="Get molecules by substructre",
+    description="Get all molecules that contain the specified substructure",
+)
+async def search_molecules_ny_substructure(
+    substructre: str = Depends(valid_smile_string),
+) -> list[ResponseMolecule]:
+
+    filtered_molecules = get_filtered(substructre)
+    return [ResponseMolecule.model_validate(m) for m in filtered_molecules]
 
 
 @router.get(
