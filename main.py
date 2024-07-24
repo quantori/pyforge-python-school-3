@@ -17,6 +17,8 @@ def add_molecule(molecule: Molecule):
     for mol in mol_db:
         if mol["mol_id"] == molecule.mol_id:
             raise HTTPException(status_code=400, detail="Molecule with this ID already exists")
+    if not Chem.MolFromSmiles(molecule.name):
+            raise HTTPException(status_code=400, detail=f"Invalid SMILES: {molecule.name}")
     mol_db.append(molecule)
     return molecule
 
@@ -37,7 +39,10 @@ def update_mol(mol_id: int, updated_mol: Molecule):
         if molecule["mol_id"] == mol_id:
             mol_db[index] = updated_mol.dict()
             return updated_mol.dict()
-    raise HTTPException(status_code=404, detail="Mol is not found")
+        raise HTTPException(status_code=404, detail="Mol is not found")
+    if not Chem.MolFromSmiles(molecule.name):
+            raise HTTPException(status_code=400, detail=f"Invalid SMILES: {molecule.name}")
+    
 
 @app.delete("/molecules/{mol_id}", status_code=status.HTTP_200_OK, tags=["Molecules"], response_description="Delete molecule by ID")
 def delete_mol(mol_id: int):
@@ -62,6 +67,7 @@ def substructure_search(substructure_name: str):
             matches.append(molecule)
     return {"molecules": matches}
 
+# optional
 @app.post("/upload_file/", status_code=status.HTTP_201_CREATED, tags=["File Upload"], response_description="File uploaded and molecules parsed successfully")
 def create_upload_file(file: UploadFile = File(...)):
     content = file.file.read().decode("utf-8")
