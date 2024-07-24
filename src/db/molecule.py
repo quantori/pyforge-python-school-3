@@ -1,6 +1,6 @@
 from random import randint
 
-from src.utils.chem import substructure_search
+from src.utils.chem import substructure_search, valid_smile
 from src.models.molecule import RequestMolecule
 
 molecules_table = []
@@ -54,3 +54,25 @@ def update_by_id(id: int, new_molecule: RequestMolecule):
     molecule["id"] = id
     molecules_table[index] = molecule
     return molecule
+
+
+def create_in_bulk(smiles: list[str]):
+    success = failed = 0
+    created_smile_ids = []
+    rejected_smiles = []
+
+    for smile in smiles:
+        if not valid_smile(smile):
+            rejected_smiles.append(smile)
+            failed += 1
+        else:
+            created_smile_ids.append(create(RequestMolecule(smile=smile))["id"])
+            success += 1
+
+    result = {
+        "success": success,
+        "failed": failed,
+        "created_smile_ids": created_smile_ids,
+        "rejected_smiles": rejected_smiles,
+    }
+    return result

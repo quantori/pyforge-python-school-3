@@ -1,20 +1,26 @@
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends, Query, HTTPException, UploadFile
+from src.utils.parser import parse_text_file
 
 from src.db.molecule import (
     get_filtered,
     get_all,
     find_by_id,
     create,
+    create_in_bulk,
     update_by_id,
     delete_by_id,
 )
-from src.models.molecule import RequestMolecule, ResponseMolecule
+from src.models.molecule import RequestMolecule, ResponseMolecule, UploadResponse
 from src.utils.chem import valid_smile
 
 router = APIRouter()
 
 
-def valid_smile_string(smile: str | None = Query(None, example="CO")):
+def valid_smile_string(
+    smile: str | None = Query(
+        None, description="A SMILES string representation of a molecule", example="CCO"
+    )
+):
     if not smile:
         return smile
 
@@ -69,6 +75,20 @@ async def get_molecule_by_id(molecule_id: int) -> ResponseMolecule:
 async def create_molecule(request: RequestMolecule) -> ResponseMolecule:
     created_molecule = create(request)
     return ResponseMolecule.model_validate(created_molecule)
+
+
+@router.post(
+    "/upload",
+    status_code=201,
+    summary="Uploaded molecule from a file",
+    description="""Upload a text file with SMILE's seperated
+                   by commas to save them""",
+)
+async def upload_molecules(file: UploadFile):
+    file_conetnt = await parse_text_file(file)
+    result = create_in_bulk(file_conetnt)
+
+    return UploadResponse.model_validate(result)
 
 
 @router.put(
