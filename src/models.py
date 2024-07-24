@@ -1,4 +1,5 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
+from src import utils
 
 BASE_URL = ""
 
@@ -17,6 +18,13 @@ class AddMoleculeRequest(BaseModel):
     smiles: str
     molecule_name: str | None = None
     description: str | None = None
+
+    # I understand that this validation step might take some extra time, which could be unnecessary for business
+    # requirements. Another way to handle this is to validate the SMILES string only when it is asked explicitly
+    # as a query parameter, but I will leave it as it is for now.
+    @field_validator("smiles")
+    def validate_smiles(cls, smiles: str) -> str:
+        return utils.validate_smiles(smiles)
 
     model_config = {
         "json_schema_extra": {
@@ -44,7 +52,7 @@ class MoleculeResponse(AddMoleculeRequest, HATEOASResponse):
                 type="GET"
             ),
             "substructure_search": Link(
-                href=f"{BASE_URL}/molecules/substructure_search?smiles={molecule.smiles}",
+                href=f"{BASE_URL}/molecules/{molecule.molecule_id}/substructure_search",
                 rel="substructure_search",
                 type="GET"
             )
@@ -83,5 +91,11 @@ class Molecule:
 
     @staticmethod
     def from_add_molecule_request(add_molecule_request: AddMoleculeRequest) -> 'Molecule':
+        """
+
+        :param add_molecule_request:
+        :return:
+
+        """
         return Molecule(smiles=add_molecule_request.smiles, molecule_name=add_molecule_request.molecule_name,
                         description=add_molecule_request.description)
