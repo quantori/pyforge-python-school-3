@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from models import Molecules
+from rdkit import Chem
 
 app = FastAPI()
 
@@ -56,4 +57,33 @@ def delete_molecule(identifier: str):
             return {"detail": "Molecule deleted"}
     raise HTTPException(status_code=404, detail="Molecule not found")
 
+
+@app.get("/substructures")
+def substructure_search():
+    # Checks if any of the Slimes are substructure of other Slimes. I hope this is what you meant.
+    results = []
+
+    for molecule in molecules_db:
+        identifier = molecule.identifier
+        smile = molecule.smile
+        mol = Chem.MolFromSmiles(smile)
+        if mol is None:
+            continue
+
+        substructures = []
+        for substructure in molecules_db:
+            if substructure.identifier == identifier:
+                continue
+
+            sub_mol = Chem.MolFromSmiles(substructure.smile)
+            if sub_mol and mol.HasSubstructMatch(sub_mol):
+                substructures.append({"identifier": substructure.identifier, "smile": substructure.smile})
+
+        if substructures:
+            results.append({
+                "identifier": identifier,
+                "substructures": substructures
+            })
+
+    return results
 
