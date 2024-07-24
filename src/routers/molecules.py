@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Query, HTTPException, UploadFile
-from src.utils.parser import parse_text_file
+from utils.parser import parse_text_file
 
-from src.db.molecule import (
+from db.molecule import (
     get_filtered,
     get_all,
     find_by_id,
@@ -10,8 +10,8 @@ from src.db.molecule import (
     update_by_id,
     delete_by_id,
 )
-from src.models.molecule import RequestMolecule, ResponseMolecule, UploadResponse
-from src.utils.chem import valid_smile
+from models.molecule import RequestMolecule, ResponseMolecule, UploadResponse
+from utils.chem import valid_smile
 
 router = APIRouter()
 
@@ -57,7 +57,6 @@ async def get_all_molecules(
     "/{molecule_id}",
     summary="Get molecule by id",
     description="Get the molecule with the specifed id",
-    response_model_exclude=422,
 )
 async def get_molecule_by_id(molecule_id: int) -> ResponseMolecule:
     molecule = find_by_id(molecule_id)
