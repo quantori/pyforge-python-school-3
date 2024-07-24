@@ -18,7 +18,9 @@ router = APIRouter()
 
 def valid_smile_string(
     smile: str | None = Query(
-        None, description="A SMILES string representation of a molecule", example="CCO"
+        None,
+        description="A SMILES string representation of a molecule",
+        example="CCO",
     )
 ):
     if not smile:
