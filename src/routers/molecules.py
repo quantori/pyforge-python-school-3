@@ -38,7 +38,6 @@ def valid_smile_string(
     description="Get all molecules from db",
 )
 async def get_all_molecules() -> list[ResponseMolecule]:
-
     molecules = get_all()
     return [ResponseMolecule.model_validate(m) for m in molecules]
 
@@ -48,10 +47,9 @@ async def get_all_molecules() -> list[ResponseMolecule]:
     summary="Get molecules by substructre",
     description="Get all molecules that contain the specified substructure",
 )
-async def search_molecules_ny_substructure(
+async def search_molecules_by_substructure(
     substructre: str = Depends(valid_smile_string),
 ) -> list[ResponseMolecule]:
-
     filtered_molecules = get_filtered(substructre)
     return [ResponseMolecule.model_validate(m) for m in filtered_molecules]
 
