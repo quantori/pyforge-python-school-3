@@ -391,13 +391,29 @@ I created a generate.py script that generates a CSV file with molecules. It has 
 what lines it generates and what are expected to happen, which lines will be parsed and which will not. Then upload it 
 using openapi. Here is the manual test and result: 
 Upload the ./molecules.csv Only 3 lines should be parsed successfully:
+
 ![img.png](../images/img.png)
+
 here is the response
+
 ![img.png](../images/img1.png)
+
 And now lets make the get request if those molecules are correclty uploaded:
+
 ![img.png](../images/img2.png)
+
 Yes it works
 
 ### Testing Repository
+I used pytest to test InMemoryMoleculesRepository. I tested all the methods. I used the @fixture decorator to create
+a repository instance for each test.
 
+### Testing Endpoints
+
+I used fastapi.testclient to test the endpoints. For this it is important to have httpx installed. 
+
+I like the tests I wrote it helped a lot, but  I could not mock the repository in the tests.
+ I just imported the repository from the main file in the tests.
+ Before each test, I cleared the repository.
+ I know it is not a good practice, but I could not find a better way for now.
 
