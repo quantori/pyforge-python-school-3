@@ -1,5 +1,7 @@
+import csv
+from io import StringIO
 from typing import Any
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile
 from rdkit import Chem
 
 
@@ -14,6 +16,22 @@ def substructure_search(structures_smiles: list[str], substructure_smiles: str) 
             search_result.append(structure_smiles)
 
     return search_result
+
+def load_molecules_db_from_file(file):
+    buffer = StringIO(file.read().decode('utf-8'))  # read file as bytes and decode bytes into text stream
+    reader = csv.DictReader(buffer)
+
+    molecules_db = {}
+
+    for row in reader:
+        molecule = {
+            'smiles': row['SMILES'],
+            'molecule_formula': row['FORMULA'],
+            'molecule_weight': int(row['WEIGHT']),
+        }
+        molecules_db[int(row['INDEX_ID'])] = molecule    
+
+    return molecules_db
 
 
 app = FastAPI()
@@ -84,4 +102,7 @@ def substructure_search_molecules(substructure_smiles: str):
 
 
 # [Optional] Upload file with molecules (the choice of format is yours).
-
+@app.post('/create_db/')
+async def upload_molecules_from_file(file: UploadFile):
+    molecules_db.update(load_molecules_db_from_file(file.file))
+    return molecules_db
