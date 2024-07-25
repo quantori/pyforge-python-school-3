@@ -21,10 +21,10 @@ def substructure_search(mols: list, mol: str) -> list:
         if element.HasSubstructMatch(smile_mol):
             match_list.append(element)
 
-    visualize(match_list)
+    # visualize(match_list)
 
     return match_list
 
 
-substructure_search(["CCO", "c1ccccc1", "CC(=O)O", "CC(=O)Oc1ccccc1C(=O)O"], "c1ccccc1")
-substructure_search(["CCO", "c1ccccc1", "CC(=O)O", "CC(=O)Oc1ccccc1C(=O)O"], "CCO")
+assert substructure_search(["CCO", "c1ccccc1", "CC(=O)O", "CC(=O)Oc1ccccc1C(=O)O"], "c1ccccc1")
+assert substructure_search(["CCO", "c1ccccc1", "CC(=O)O", "CC(=O)Oc1ccccc1C(=O)O"], "CCO")

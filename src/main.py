@@ -64,17 +64,21 @@ def delete_molecule(mol_id: int):
     raise HTTPException(status_code=404, detail="Molecule is not found")
 
 # Substructure search for all added molecules
-@app.get("/molecules/sub_search", tags=["molecules"])
+@app.post("/molecules/sub_search", tags=["molecules"], response_description='List of all matching molecules')
 def find_substructure(sub_str: str):
     '''
     Substructure search for all added molecules
+    - **sub_str** - a SMILE string to search within all molecules
     '''
     match_list = []
-    sub_mol = Chem.MolFromSmiles(sub_str)
-    for _, mol in enumerate(molecules):
-        smile_mol = Chem.MolFromSmiles(mol)
-        if smile_mol.HasSubstructMatch(sub_mol):
-            match_list.append(smile_mol)
-        print(match_list)
+    try:
+        sub_mol = Chem.MolFromSmiles(sub_str)
+        for id, mol in enumerate(molecules):
+            smile_mol = Chem.MolFromSmiles(mol["name"])
+            if smile_mol.HasSubstructMatch(sub_mol):
+                match_list.append(mol["name"])
         return match_list
+    except: 
+        raise HTTPException(status_code=422, detail="Provided string cannot be converted into molecule")
+    
 
