@@ -221,7 +221,7 @@ def test_substructure_search():
 
     #   search for aspirin substructures, which is response idx 3
 
-    get_response = client.get(responses[3]["links"]["substructure_search"]["href"])
+    get_response = client.get(responses[3]["links"]["substructures"]["href"])
     assert get_response.status_code == 200
 
     # all the molecules in the response should be the aspirin substructures,except for the octane
@@ -232,3 +232,5 @@ def test_substructure_search():
     assert all(mol["molecule_name"] != "Octane" for mol in get_response_data)
     assert all(mol["molecule_name"] in ["Aspirin", "Ethanol", "Benzene", "Acetic Acid", "Carbon"]
                for mol in get_response_data)
+
+

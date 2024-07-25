@@ -51,9 +51,9 @@ class MoleculeResponse(AddMoleculeRequest, HATEOASResponse):
                 rel="self",
                 type="GET"
             ),
-            "substructure_search": Link(
-                href=f"{BASE_URL}/molecules/{molecule.molecule_id}/substructure_search",
-                rel="substructure_search",
+            "substructures": Link(
+                href=f"{BASE_URL}/molecules/{molecule.molecule_id}/substructures",
+                rel="substructures",
                 type="GET"
             )
         }
@@ -91,11 +91,5 @@ class Molecule:
 
     @staticmethod
     def from_add_molecule_request(add_molecule_request: AddMoleculeRequest) -> 'Molecule':
-        """
-
-        :param add_molecule_request:
-        :return:
-
-        """
         return Molecule(smiles=add_molecule_request.smiles, molecule_name=add_molecule_request.molecule_name,
                         description=add_molecule_request.description)

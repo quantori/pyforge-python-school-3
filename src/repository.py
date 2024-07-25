@@ -43,6 +43,8 @@ class InMemoryMoleculesRepository(Repository[int, Molecule]):
     def find_by_id(self, molecule_id: int) -> Molecule | None:
         return self._molecules.get(molecule_id, None)
 
+    # notice that the retured molecules will be in the order of insertion.
+    # Since python 3.7, dict maintains insertion order of keys.
     def find_all(self) -> list[Molecule]:
         return list(self._molecules.values())
 

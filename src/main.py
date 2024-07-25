@@ -1,7 +1,5 @@
 from typing import Annotated
-
 from starlette.responses import JSONResponse
-
 import src.exception as exception
 from fastapi import FastAPI, status, HTTPException, UploadFile, Query, Path, Body
 from rdkit import Chem
@@ -95,9 +93,6 @@ def update_molecule(molecule_id: Annotated[int, Path(description="The ID of the 
     Molecule with the provided ID in the path parameter is overwritten with the details provided in the request body,
     except for the molecule_id.
 
-    molecule_id provided in the request body is ignored. It is not possible to update the
-    molecule_id of a molecule.
-
     :param molecule_id: The ID of the molecule.
 
     :param update_molecule_request: The request body.
@@ -171,15 +166,16 @@ def list_molecules(skip: Annotated[int, Query(ge=0)] = 0,
     return [MoleculeResponse.from_molecule(mol) for mol in find_all[skip:skip + limit]]
 
 
-@app.get("/molecules/{molecule_id}/substructure_search",
+@app.get("/molecules/{molecule_id}/substructures",
          status_code=status.HTTP_200_OK,
          responses={status.HTTP_200_OK: {"description": "Molecules found successfully"},
                     status.HTTP_400_BAD_REQUEST: {"description": "limit has to be greater or equal to skip"}
                     })
 def get_substructure_search(
         molecule_id: Annotated[int, Path(description="The ID of the molecule")],
-        skip: Annotated[int, Query(ge=0)] = 0,
-        limit: Annotated[int, Query(ge=0, description="If 0, this parameter is ignored. Has to be >= skip")] = 0,
+        skip: Annotated[int, Query(ge=0,description="Offset")] = 0,
+        limit: Annotated[int, Query(ge=0, description="Number of items to return. If 0, this parameter is ignored. "
+                                                      "Has to be >= skip")] = 0,
 ) -> list[MoleculeResponse]:
     """
     Find molecules in the that are substructures of given molecule.
@@ -215,7 +211,7 @@ def get_substructure_search(
 
 
 @app.post("/upload_molecules_csv", status_code=status.HTTP_201_CREATED)
-async def upload_molecules(file: UploadFile) :
+async def upload_molecules(file: UploadFile):
     """
     Upload a CSV file containing molecules to the repository.
 
@@ -260,3 +256,4 @@ async def upload_molecules(file: UploadFile) :
             print(f"Invalid SMILES string: {row['smiles']}")
 
     return {"number_of_molecules_added": number_of_molecules_added}
+
