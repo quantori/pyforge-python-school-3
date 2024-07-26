@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Query, HTTPException, UploadFile
-from utils.parser import parse_text_file
 
-from db.molecule import (
+from src.utils.parser import parse_text_file
+from src.db.molecule import (
     get_filtered,
     get_all,
     find_by_id,
@@ -10,8 +10,8 @@ from db.molecule import (
     update_by_id,
     delete_by_id,
 )
-from models.molecule import RequestMolecule, ResponseMolecule, UploadResponse
-from utils.chem import valid_smile
+from src.models.molecule import RequestMolecule, ResponseMolecule, UploadResponse
+from src.utils.chem import valid_smile
 
 router = APIRouter()
 

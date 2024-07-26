@@ -1,6 +1,6 @@
 from pydantic import BaseModel, ValidationInfo, Field, field_validator
 
-from utils.chem import valid_smile
+from src.utils.chem import valid_smile
 
 
 class BaseMolecule(BaseModel):
