@@ -67,7 +67,7 @@ def substructure_search(substructure_name: str):
             matches.append(molecule)
     return {"molecules": matches}
 
-# optional
+# In this function, it is assumed to attach a json file, which should include a list of moleculesn with the mol_id and name fields
 @app.post("/upload_file/", status_code=status.HTTP_201_CREATED, tags=["File Upload"], response_description="File uploaded and molecules parsed successfully")
 def create_upload_file(file: UploadFile = File(...)):
     content = file.file.read().decode("utf-8")
