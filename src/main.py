@@ -1,5 +1,6 @@
 import csv
 from io import StringIO
+import os
 from typing import Any
 from fastapi import FastAPI, HTTPException, UploadFile
 from rdkit import Chem
@@ -106,3 +107,9 @@ def substructure_search_molecules(substructure_smiles: str):
 async def upload_molecules_from_file(file: UploadFile):
     molecules_db.update(load_molecules_db_from_file(file.file))
     return molecules_db
+
+
+# [Optional] Load balancer. Add method to check balancing.
+@app.get('/check_balancing/')
+def get_server():
+    return {'server_id': os.getenv('SERVER_ID', 'UNKNOWN')}
