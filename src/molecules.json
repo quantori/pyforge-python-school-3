@@ -1,0 +1,12 @@
+[
+    {"mol_id": 1, "name": "CCO"},
+    {"mol_id": 2, "name": "OOO"},
+    {"mol_id": 3, "name": "CCN"},
+    {"mol_id": 4, "name": "CNC"},
+    {"mol_id": 5, "name": "NNN"},
+    {"mol_id": 6, "name": "CCCO"},
+    {"mol_id": 7, "name": "CCCC"},
+    {"mol_id": 8, "name": "CNO"},
+    {"mol_id": 9, "name": "CCOCC"},
+    {"mol_id": 10, "name": "NCCCC"}
+]
