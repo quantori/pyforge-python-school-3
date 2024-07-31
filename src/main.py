@@ -9,6 +9,7 @@ def substructure_search(mols, mol):
 
     for molecule in mols:
         list_mol = Chem.MolFromSmiles(molecule, sanitize=False)
+        list_mol = Chem.MolFromSmiles(molecule)
 
         if initial_mol.HasSubstructMatch(list_mol) \
                 or list_mol.HasSubstructMatch(initial_mol):
@@ -126,3 +127,4 @@ async def upload_molecules(molecules: UploadFile):
             continue
 
     return f'{status.HTTP_201_CREATED} OK - ADDED {added} molecule{'s' if added > 1 else ''}'
+
