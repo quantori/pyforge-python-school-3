@@ -9,7 +9,6 @@ def substructure_search(mols, mol):
 
     for molecule in mols:
         list_mol = Chem.MolFromSmiles(molecule, sanitize=False)
-        list_mol = Chem.MolFromSmiles(molecule)
 
         if initial_mol.HasSubstructMatch(list_mol) \
                 or list_mol.HasSubstructMatch(initial_mol):
