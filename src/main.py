@@ -257,3 +257,4 @@ async def upload_molecules(file: UploadFile):
 
     return {"number_of_molecules_added": number_of_molecules_added}
 
+
