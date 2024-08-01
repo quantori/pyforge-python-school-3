@@ -4,7 +4,10 @@ from rdkit import Chem
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
-app = FastAPI()
+app = FastAPI(
+    title="Molecule Management API",
+    version="1.1.0"
+)
 
 # Data structure to store molecules
 molecules = {}
@@ -27,13 +30,22 @@ def substructure_search(mols, mol):
     return matching_molecules
 
 
-@app.get("/")
+@app.get("/", summary="Get Server ID")
 def get_server():
+    """
+    Retrieve the server ID.
+    """
     return {"server_id": getenv("SERVER_ID", "1")}
 
 
-@app.post("/molecule")
+@app.post("/molecule", summary="Add Molecule")
 async def add_molecule(molecule: Molecule):
+    """
+    Add a new molecule to the collection.
+
+    - **identifier**: Unique identifier for the molecule.
+    - **smiles**: SMILES representation of the molecule.
+    """
     if molecule.identifier in molecules:
         raise HTTPException(status_code=400, detail="Molecule with this identifier already exists.")
     try:
@@ -46,15 +58,26 @@ async def add_molecule(molecule: Molecule):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.get("/molecule/{identifier}")
+@app.get("/molecule/{identifier}", summary="Get Molecule")
 async def get_molecule(identifier: str):
+    """
+    Retrieve a molecule by its identifier.
+
+    - **identifier**: Unique identifier of the molecule.
+    """
     if identifier not in molecules:
         raise HTTPException(status_code=404, detail="Molecule not found.")
     return {"identifier": identifier, "smiles": molecules[identifier]}
 
 
-@app.put("/molecule/{identifier}")
+@app.put("/molecule/{identifier}", summary="Update Molecule")
 async def update_molecule(identifier: str, molecule: Molecule):
+    """
+    Update an existing molecule's SMILES representation.
+
+    - **identifier**: Unique identifier of the molecule.
+    - **smiles**: New SMILES representation of the molecule.
+    """
     if identifier not in molecules:
         raise HTTPException(status_code=404, detail="Molecule not found.")
     try:
@@ -67,21 +90,34 @@ async def update_molecule(identifier: str, molecule: Molecule):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.delete("/molecule/{identifier}")
+@app.delete("/molecule/{identifier}", summary="Delete Molecule")
 async def delete_molecule(identifier: str):
+    """
+    Delete a molecule by its identifier.
+
+    - **identifier**: Unique identifier of the molecule.
+    """
     if identifier not in molecules:
         raise HTTPException(status_code=404, detail="Molecule not found.")
     del molecules[identifier]
     return {"message": "Molecule deleted successfully."}
 
 
-@app.get("/molecules/")
+@app.get("/molecules/", summary="List all Molecules")
 async def list_molecules():
+    """
+    List all molecules in the collection.
+    """
     return [{"identifier": identifier, "smiles": smiles} for identifier, smiles in molecules.items()]
 
 
-@app.post("/search/")
+@app.post("/search/", summary="Substructure Search")
 async def search_substructure(substructure: str):
+    """
+    Search for molecules containing a given substructure.
+
+    - **substructure**: SMILES representation of the substructure.
+    """
     try:
         sub_mol = Chem.MolFromSmiles(substructure)
         if sub_mol is None:
