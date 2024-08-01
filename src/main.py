@@ -1,3 +1,5 @@
+from os import getenv
+
 from rdkit import Chem
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
@@ -14,10 +16,20 @@ class Molecule(BaseModel):
 
 
 def substructure_search(mols, mol):
+    """
+    :param mols: list of molecules
+    :param mol: substructure
+    :return: matching molecules
+    """
     # List to store molecules that contain the substructure (mol)
     matching_molecules = [smiles for smiles in mols if
                           Chem.MolFromSmiles(smiles).HasSubstructMatch(Chem.MolFromSmiles(mol))]
     return matching_molecules
+
+
+@app.get("/")
+def get_server():
+    return {"server_id": getenv("SERVER_ID", "1")}
 
 
 @app.post("/molecule")
