@@ -1,3 +1,5 @@
+from os import getenv
+
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List, Dict
@@ -69,3 +71,6 @@ def substructure_search():
             results[smiles] = match_list
 
     return results
+@app.get("/")
+def get_server():
+    return {"server_id": getenv("SERVER_ID", "1")}
