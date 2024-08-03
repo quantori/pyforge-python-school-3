@@ -1,3 +1,4 @@
+from os import getenv
 from rdkit import Chem
 from fastapi import FastAPI, HTTPException, UploadFile
 from pydantic import BaseModel
@@ -9,6 +10,10 @@ class Molecule (BaseModel):
     smiles: str
 
 database = []
+
+@app.get("/")
+def get_server():
+    return {"server_id": getenv("SERVER_ID", "1")}
 
 #Add molecule (smiles) and its identifier
 @app.post("/molecules", status_code=201, tags=["Molecules"], summary="Add new molecules to the DB", response_description="Molecule added successfully")
