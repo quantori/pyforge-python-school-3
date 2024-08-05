@@ -4,8 +4,6 @@ services:
     build: .
     volumes:
       - ./src:/app
-    ports:
-      - "8000:8000"
     environment:
       SERVER_ID: SERVER-1
 

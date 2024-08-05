@@ -30,17 +30,17 @@ def load_molecules_db_from_file(file):
             'molecule_formula': row['FORMULA'],
             'molecule_weight': int(row['WEIGHT']),
         }
-        molecules_db[int(row['INDEX_ID'])] = molecule    
+        molecules_db[row['INDEX_ID']] = molecule    
 
     return molecules_db
 
 
 app = FastAPI()
 
-molecules_db: dict[int, dict[str, Any]] = {
-    1: {'smiles': 'CCO', 'molecule_formula': 'C2H5OH', 'molecule_weight': 25},
-    2: {'smiles': 'c1ccccc1', 'molecule_formula': 'C6H6', 'molecule_weight': 78},
-    3: {'smiles': 'CC(=O)Oc1ccccc1C(=O)O', 'molecule_formula': 'C9H8O4', 'molecule_weight': 180},
+molecules_db: dict[str, dict[str, Any]] = {
+    '1': {'smiles': 'CCO', 'molecule_formula': 'C2H5OH', 'molecule_weight': 25},
+    '2': {'smiles': 'c1ccccc1', 'molecule_formula': 'C6H6', 'molecule_weight': 78},
+    '3': {'smiles': 'CC(=O)Oc1ccccc1C(=O)O', 'molecule_formula': 'C9H8O4', 'molecule_weight': 180},
 }
 
 # Add molecule (smiles) and its identifier.
@@ -52,7 +52,7 @@ def add_molecule(molecule: dict):
 
 # Get molecule by identifier.
 @app.get('/molecules/{molecule_id}')
-def retrieve_molecule(molecule_id: int):
+def retrieve_molecule(molecule_id: str):
     if molecule_id in molecules_db:
         return molecules_db[molecule_id]
     else:
@@ -61,7 +61,7 @@ def retrieve_molecule(molecule_id: int):
 
 # Updating a molecule by identifier.
 @app.put('/molecules/{molecule_id}')
-def update_molecule(molecule_id: int, updated_molecule: dict[str, Any]):
+def update_molecule(molecule_id: str, updated_molecule: dict[str, Any]):
     if molecule_id in molecules_db:
         molecules_db[molecule_id].update(updated_molecule)
     else:
@@ -70,7 +70,7 @@ def update_molecule(molecule_id: int, updated_molecule: dict[str, Any]):
 
 # Delete a molecule by identifier.
 @app.delete('/molecules/{molecule_id}')
-def delete_molecule(molecule_id: int):
+def delete_molecule(molecule_id: str):
     if molecule_id in molecules_db:
         del molecules_db[molecule_id]
     else:
@@ -89,14 +89,13 @@ def substructure_search_molecules(substructure_smiles: str):
     smiles_from_db = []
     smiles_x_db_index = {}
     
+    # Collect all smiles from DB and create smiles-index mapping.
     for index, molecule in molecules_db.items():
         smiles_from_db.append(molecule['smiles'])
-        smiles_x_db_index[molecule['smiles']] = index
+        smiles_x_db_index[molecule['smiles']] = index    
     
-    smiles_search = substructure_search(smiles_from_db, substructure_smiles)
-    
-    smiles_indexes = [smiles_x_db_index[smiles] for smiles in smiles_search]
-    
+    found_structures = substructure_search(smiles_from_db, substructure_smiles)
+    smiles_indexes = [smiles_x_db_index[smiles] for smiles in found_structures]  # Get indexes for interested structures. 
     result = {smiles_index: molecules_db[smiles_index] for smiles_index in smiles_indexes}
 
     return result
@@ -104,7 +103,7 @@ def substructure_search_molecules(substructure_smiles: str):
 
 # [Optional] Upload file with molecules (the choice of format is yours).
 @app.post('/create_db/')
-async def upload_molecules_from_file(file: UploadFile):
+def upload_molecules_from_file(file: UploadFile):
     molecules_db.update(load_molecules_db_from_file(file.file))
     return molecules_db
 
