@@ -13,7 +13,7 @@ from src.db.molecule import (
 from src.models.molecule import RequestMolecule, ResponseMolecule, UploadResponse
 from src.utils.chem import valid_smile
 
-router = APIRouter()
+router = APIRouter(prefix="/molecules", tags=["molecules"])
 
 
 def valid_smile_string(
