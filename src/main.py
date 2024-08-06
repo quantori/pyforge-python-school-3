@@ -19,6 +19,7 @@ print(substructure_search(molecules, mol))
 
 # additional problem I try to solve using rdkit
 # here I count the descriptors of the given smiles molecules
+# 1
 ''' 
 from rdkit import Chem
 from rdkit.Chem import Descriptors
