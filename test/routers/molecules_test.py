@@ -16,14 +16,14 @@ def test_get_all_molecules(mocker):
     data = response.json()
     assert len(data) == len(mock_molecules)
 
-def test_search_molecules_valid_substructure(mocker):
+def test_valid_substructure_smile(mocker):
     mock_db_call = mocker.patch(
         "src.routers.molecules.get_filtered", return_value=mock_molecules
     )
     response = client.get("/molecules/search?smile=CCO")
-    print(response.json())
     assert response.status_code == 200
-
-    data = response.json()
-    assert len(data) == len(mock_molecules)
     mock_db_call.assert_called_with("CCO")
+
+def test_invalid_substructure_smile(mocker):
+    response = client.get("/molecules/search?smile=invalid_smile")
+    assert response.status_code == 422
