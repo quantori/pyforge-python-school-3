@@ -20,7 +20,7 @@ def valid_smile_string(
     smile: str = Query(
         ...,
         description="A SMILES string representation of a molecule",
-        example="CCO",
+        examples=["CCO"],
     )
 ):
 
@@ -48,9 +48,9 @@ async def get_all_molecules() -> list[ResponseMolecule]:
     description="Get all molecules that contain the specified substructure",
 )
 async def search_molecules_by_substructure(
-    substructre: str = Depends(valid_smile_string),
+    substructure: str = Depends(valid_smile_string),
 ) -> list[ResponseMolecule]:
-    filtered_molecules = get_filtered(substructre)
+    filtered_molecules = get_filtered(substructure)
     return [ResponseMolecule.model_validate(m) for m in filtered_molecules]
 
 
