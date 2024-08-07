@@ -14,3 +14,4 @@ class Molecule(RepositoryItem[int]):
 
     def set_id(self, new_id: int) -> None:
         self.molecule_id = new_id
+
