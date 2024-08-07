@@ -17,6 +17,7 @@ mols = [
         ("C1CCCCC1", True),
         ("nothing", False),
         ("C1CCC3000CC1", False),
+        (1, False),
         (None, False),
     ],
 )
@@ -32,6 +33,8 @@ def test_valid_smile(smile, expected):
         ("C1CCCCC1", [{"smile": "C1CCCCC1"}]),
         ("CCO", [{"smile": "CCO"}, {"smile": "CCOCC"}]),
         ("CNC", []),
+        (None, []),
+        (1, []),
     ],
 )
 def test_substructure_search(query, expected):

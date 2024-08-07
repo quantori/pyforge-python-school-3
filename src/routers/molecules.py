@@ -17,13 +17,16 @@ router = APIRouter(prefix="/molecules", tags=["molecules"])
 
 
 def valid_smile_string(
-    smile: str = Query(
-        ...,
+    smile: str | None= Query(
+        None,
         description="A SMILES string representation of a molecule",
         examples=["CCO"],
     )
 ):
-
+    if not smile:
+        raise HTTPException(
+            status_code=422, detail="SMILES is not specified."
+        )
     if not valid_smile(smile):
         raise HTTPException(
             status_code=422, detail=f"'{smile}' is not a valid SMILES string."
