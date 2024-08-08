@@ -16,7 +16,7 @@ class AddMoleculeRequest(BaseModel):
         if mol is None:
             raise InvalidSmilesException(smiles)
         return smiles
-    
+
     model_config = {
         "json_schema_extra": {
             "examples": [
@@ -45,3 +45,4 @@ class MoleculeResponse(AddMoleculeRequest, HATEOASResponse):
             ]
         }
     }
+

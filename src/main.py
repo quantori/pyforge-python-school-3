@@ -1,7 +1,8 @@
 from fastapi import FastAPI
+from src.api.routes import molecule_routes
 
 app = FastAPI()
-
+app.include_router(molecule_routes.router, prefix="/molecules", tags=["molecules"])
 
 
 # asd

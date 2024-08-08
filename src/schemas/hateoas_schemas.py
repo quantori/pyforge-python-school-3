@@ -8,4 +8,4 @@ class Link(BaseModel):
 
 
 class HATEOASResponse(BaseModel):
-    links: dict[str, Link]
+    links: dict[str, Link] = {}

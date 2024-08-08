@@ -4,6 +4,11 @@ from src.exception import RepositoryItemNotFountException
 from src.repository.molecule_repositories import InMemoryMoleculesRepository
 
 
+"""
+Here are my Unit tests for the InMemoryMoleculesRepository class.
+"""
+
+
 @pytest.fixture
 def repository():
     return InMemoryMoleculesRepository()
@@ -34,10 +39,10 @@ def test_find_all(repository):
     assert repository.find_all() == [mol1, mol2, mol3]
 
 
-def test_exists_by_id_true(repository):
-    mol = sample_data.molecule_model_aspirin()
-    repository.add(mol)
-    assert repository.exists_by_id(mol.get_id())
+@pytest.mark.parametrize("molecule", [sample_data.molecule_model_aspirin(), sample_data.molecule_model_carbon_no_name_no_description()])
+def test_exists_by_id_true(repository, molecule):
+    repository.add(molecule)
+    assert repository.exists_by_id(molecule.get_id())
 
 
 def test_exists_by_id_false(repository):
