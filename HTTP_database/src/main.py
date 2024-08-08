@@ -1,9 +1,33 @@
 from fastapi import FastAPI, Depends
+from fastapi.exceptions import HTTPException
+from HTTP_database.src.exception import CollectionAlreadyExistsException, NoSuchCollectionException, \
+    NoSuchDocumentException, \
+    ValidationException
 from HTTP_database.src.schemas import CreateCollection, CreateDocument
 from HTTP_database.src.service import CollectionService
 from HTTP_database.src.dependencies import get_service
 
 app = FastAPI()
+
+
+@app.exception_handler(CollectionAlreadyExistsException)
+async def collection_already_exists_exception_handler(request, exc: CollectionAlreadyExistsException):
+    raise HTTPException(status_code=409, detail=exc.message)
+
+
+@app.exception_handler(NoSuchCollectionException)
+async def no_such_collection_exception_handler(request, exc: NoSuchCollectionException):
+    raise HTTPException(status_code=404, detail=exc.message)
+
+
+@app.exception_handler(NoSuchDocumentException)
+async def no_such_document_exception_handler(request, exc: NoSuchDocumentException):
+    raise HTTPException(status_code=404, detail=exc.message)
+
+
+@app.exception_handler(ValidationException)
+async def validation_exception_handler(request, exc: ValidationException):
+    raise HTTPException(status_code=400, detail=exc.message)
 
 
 @app.get("/")

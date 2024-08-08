@@ -6,6 +6,7 @@ class CreateCollection(BaseModel):
     name: str
 
     @field_validator("name")
+    @classmethod
     def validate_name(cls, name):
         if not name:
             raise ValidationException("Name cannot be empty.")
