@@ -1,4 +1,4 @@
-name: test app with pytest
+name: Testing app with pytest
 on:
   push:
     branches: [main]
