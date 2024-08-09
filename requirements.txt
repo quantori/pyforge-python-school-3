@@ -4,3 +4,4 @@ pytest
 flake8
 rdkit
 python-multipart
+httpx
