@@ -1,16 +1,19 @@
 class UnknownIdentifierException(Exception):
+    """This exception is raised at the API level when an unknown identifier is provided."""
     def __init__(self, identifier):
         super().__init__(f"Unknown identifier: {identifier}")
         self.identifier = identifier
 
 
 class RepositoryItemNotFountException(Exception):
+    """This exception is raised at the repository/service level when an item with the provided key is not found."""
     def __init__(self, key):
         super().__init__(f"Repository item with the key: {key} is not found")
         self.key = key
 
 
 class RepositoryItemAlreadyExistsException(Exception):
+    """This exception is raised at the repository/service level when an item with the provided key is not found."""
     def __init__(self, key):
         super().__init__(f"Repository item with the key: {key} already exists")
         self.key = key
