@@ -1,0 +1,2 @@
+2024-08-10 11:55:18,618 - DEBUG - Adding molecule: <src.models.molecule_models.MoleculeInDB object at 0x7f790678c470>
+2024-08-10 11:55:18,618 - DEBUG - Repo type: <class 'fastapi.params.Depends'>

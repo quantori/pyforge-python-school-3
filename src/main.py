@@ -1,12 +1,18 @@
-from fastapi import FastAPI
-from src.api.routes import molecule_routes
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+from src.api.routes.molecule_routes import router as molecule_router
+import src.exceptions as exceptions
+import src.exception_handlers as handlers
 
 app = FastAPI()
-app.include_router(molecule_routes.router, prefix="/molecules", tags=["molecules"])
+app.include_router(molecule_router, prefix="/molecules", tags=["molecules"])
 
 
-# asd
-
+app.add_exception_handler(exceptions.InvalidSmilesException, handlers.invalid_smiles_exception_handler)
+app.add_exception_handler(exceptions.UnknownIdentifierException, handlers.unknown_identifier_exception_handler)
+# @app.exception_handler(exceptions.InvalidSmilesException)
+# async def invalid_smiles_exception_handler(request: Request, exc: exceptions.InvalidSmilesException) -> JSONResponse:
+#     return JSONResponse(status_code=400, content={"message": exc.message})
 
 # from typing import Annotated
 # from starlette.responses import JSONResponse
@@ -258,5 +264,3 @@ app.include_router(molecule_routes.router, prefix="/molecules", tags=["molecules
 #             print(f"Invalid SMILES string: {row['smiles']}")
 #
 #     return {"number_of_molecules_added": number_of_molecules_added}
-#
-#

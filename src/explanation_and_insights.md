@@ -1,3 +1,6 @@
+# This is to be updated and does not reflect the current state of the project
+
+
 ## Molecule Model
 
 I've created the Molecule model, which will be the only model stored. Apart from the required `smiles` and `id` attributes, I've added optional `name` and `description` attributes to make things a bit more interesting.

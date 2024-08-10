@@ -1,6 +1,7 @@
 import csv
 
 
+
 # function to generate csv file for testing later
 # smiles,name,description
 # below method generates a file with the following content:
@@ -42,3 +43,4 @@ def generate_csv():
 
 
 generate_csv()
+

@@ -1,7 +1,7 @@
 from pydantic import BaseModel, field_validator
 from rdkit import Chem
 
-from src.exception import InvalidSmilesException
+from src.exceptions import InvalidSmilesException
 from src.schemas.hateoas_schemas import HATEOASResponse
 
 

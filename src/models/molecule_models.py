@@ -1,7 +1,6 @@
-from src.repository.abstract_repository import RepositoryItem
 
 
-class MoleculeInDB(RepositoryItem[int]):
+class MoleculeInDB:
     def __init__(self, smiles: str, molecule_name: str | None = None, description: str | None = None,
                  molecule_id: int = 0):
         self.molecule_id = molecule_id
