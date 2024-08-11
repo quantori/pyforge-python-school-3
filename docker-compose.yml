@@ -1,10 +1,8 @@
 services:
   web1:
-    build: 
-      context: ./src
-      dockerfile: Dockerfile
+    build: ./src
     volumes:
-      - .:/app
+      - ./src:/app
     environment:
       SERVER_ID: SERVER-1
     networks:
@@ -13,11 +11,9 @@ services:
       - "8011:8000"
 
   web2:
-    build: 
-      context: ./src
-      dockerfile: Dockerfile
+    build: ./src
     volumes:
-      - .:/app
+      - ./src:/app
     environment:
       SERVER_ID: SERVER-2
     networks:
