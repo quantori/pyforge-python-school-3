@@ -31,7 +31,7 @@ jobs:
             ${{ runner.os }}-build-
       - run: docker-compose up -d
 
-      - run: docker-compose exec -T app pip install -r src/requirements.txt
+      - run: docker-compose exec -T web1 pip install -r requirements.txt
 
       - run: docker-compose exec -T web1 pytest -v tests/test.py
 
