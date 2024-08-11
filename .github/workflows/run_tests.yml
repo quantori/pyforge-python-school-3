@@ -30,6 +30,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-build-
       - run: docker-compose up -d
+             docker-compose ps
 
       - run: docker-compose exec -T app pip install -r src/requirements.txt
 
