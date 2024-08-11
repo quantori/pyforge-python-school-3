@@ -23,8 +23,21 @@ jobs:
 
       - run: docker-compose up -d
 
+      - run: |
+          for i in {1..10}; do
+            if curl -s http://localhost:8011/; then
+              echo "web1 is ready"
+              break
+            fi
+            echo "Waiting for web1..."
+            sleep 5
+          done
+        timeout-minutes: 3
+
       - run: docker-compose exec -T web1 pip install -r requirements.txt
 
-      - run: docker-compose exec -T web1 pytest tests/test.py
+      - run: |
+          docker-compose exec -T web1 pytest tests/test.py --maxfail=3 --disable-warnings --capture=tee-sys
+        timeout-minutes: 10
 
       - run: docker-compose down
