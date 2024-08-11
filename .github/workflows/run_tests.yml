@@ -5,6 +5,7 @@ on:
     branches:
       - main  
       - develop
+      - feature/3
 
 jobs:
   run-tests:
