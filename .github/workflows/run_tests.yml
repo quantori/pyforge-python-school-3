@@ -30,11 +30,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-build-
       - run: docker-compose up -d
-             docker-compose ps
 
-      - run: docker-compose exec -T app pip install -r src/requirements.txt
+      - run: docker-compose exec -T web1 pip install -r src/requirements.txt
 
-      - run: docker-compose exec -T app pytest -v tests/test.py
+      - run: docker-compose exec -T web1 pytest -v tests/test.py
 
         if: always()
       - run: docker-compose down
