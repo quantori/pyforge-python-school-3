@@ -21,21 +21,11 @@ jobs:
           sudo curl -L "https://github.com/docker/compose/releases/download/v2.20.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
           sudo chmod +x /usr/local/bin/docker-compose
 
-
-      - uses: actions/cache@v3
-        with:
-          path: |
-            **/docker-compose.yml
-            **/Dockerfile
-          key: ${{ runner.os }}-build-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-build-
       - run: docker-compose up -d
 
-      - run: docker-compose exec -T web1 pip install -r requirements.txt
+      - run: docker-compose exec -T web1 pip install -r /app/requirements.txt
 
-      - run: docker-compose exec -T web1 pytest tests/test.py
+      - run: docker-compose exec -T web1 pytest /app/tests/test.py
 
-        if: always()
       - run: docker-compose down
 
