@@ -4,3 +4,4 @@ rdkit
 numpy>=1.24.0  
 python-multipart
 pytest
+requests
