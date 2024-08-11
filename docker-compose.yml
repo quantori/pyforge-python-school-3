@@ -3,7 +3,6 @@ services:
     build: ./src
     volumes:
       - ./src:/app
-      - ./tests:/app/tests
     environment:
       SERVER_ID: SERVER-1
     networks:
@@ -15,7 +14,6 @@ services:
     build: ./src
     volumes:
       - ./src:/app
-      - ./tests:/app/tests
     environment:
       SERVER_ID: SERVER-2
     networks:
