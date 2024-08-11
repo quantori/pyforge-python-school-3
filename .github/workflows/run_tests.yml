@@ -23,7 +23,7 @@ jobs:
 
       - run: docker-compose up -d
 
-      - run: docker-compose exec -T web1 pip install -r requirements.txt
+      - run: docker-compose exec -T web1 pip install -r /app/requirements.txt
 
       - run: docker-compose exec -T web1 pytest /app/tests/test.py
 
