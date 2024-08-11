@@ -21,22 +21,22 @@ app.dependency_overrides[get_molecule_repository] = override_get_molecule_reposi
 
 
 @pytest.fixture
-def client() -> TestClient:
+def test_client() -> TestClient:
     return TestClient(app)
 
 
 @pytest.mark.parametrize("molecule", [sample_data.schema_aspirin(),
                                       sample_data.schema_methane_no_description_custom_id(),
                                       sample_data.schema_methane_no_description_custom_id()])
-def test_add_get_molecule(client, molecule):
+def test_add_get_molecule(test_client, molecule):
     request_dict = molecule.dict()
-    response = client.post("/molecules/", json=request_dict)
+    response = test_client.post("/molecules/", json=request_dict)
     response_dict = dict(response.json())
     assert response.status_code == 201
     assert response_dict.get("smiles", None) == request_dict.get("smiles", None)
     assert response_dict.get("molecule_name", None) == request_dict.get("molecule_name", None)
     assert response_dict.get("description", None) == request_dict.get("description", None)
-    get_request = client.get(response_dict["links"]["self"]["href"])
+    get_request = test_client.get(response_dict["links"]["self"]["href"])
     get_response_dict = dict(get_request.json())
     assert get_request.status_code == 200
     assert get_response_dict.get("smiles", None) == request_dict.get("smiles", None)
@@ -45,28 +45,28 @@ def test_add_get_molecule(client, molecule):
     repo.clear()
 
 
-def test_add_molecule_invalid_smiles(client):
-    response = client.post("/molecules/",
-                           json={"smiles": "SMOIL", "molecule_name": "Aspirin", "description": "A common painkiller"})
+def test_add_molecule_invalid_smiles(test_client):
+    response = test_client.post("/molecules/",
+                                json={"smiles": "SMOIL", "molecule_name": "Aspirin", "description": "A common painkiller"})
     assert response.status_code == 400
     repo.clear()
 
 
-def test_get_molecule_not_found(client):
-    response = client.get("/molecules/100")
+def test_get_molecule_not_found(test_client):
+    response = test_client.get("/molecules/100")
     assert response.status_code == 404
     repo.clear()
 
 
-def test_update_get_molecule(client):
-    response = client.post("/molecules/", json=sample_data.schema_aspirin().dict())
+def test_update_get_molecule(test_client):
+    response = test_client.post("/molecules/", json=sample_data.schema_aspirin().dict())
     response_dict = dict(response.json())
     assert response.status_code == 201
     update_request = {"molecule_name": "Aspirin_Updated", "description": "A common painkiller",
                       "smiles": "CC(=O)Oc1ccccc1C(=O)O"}
-    put_response = client.put(response_dict["links"]["self"]["href"], json=update_request)
+    put_response = test_client.put(response_dict["links"]["self"]["href"], json=update_request)
     assert put_response.status_code == 200
-    get_request = client.get(response_dict["links"]["self"]["href"])
+    get_request = test_client.get(response_dict["links"]["self"]["href"])
     get_response_dict = dict(get_request.json())
     assert get_request.status_code == 200
     assert get_response_dict.get("smiles", None) == update_request.get("smiles", None)
@@ -75,19 +75,19 @@ def test_update_get_molecule(client):
     repo.clear()
 
 
-def test_update_molecule_invalid_smiles(client):
-    response = client.post("/molecules/", json=sample_data.schema_aspirin().dict())
+def test_update_molecule_invalid_smiles(test_client):
+    response = test_client.post("/molecules/", json=sample_data.schema_aspirin().dict())
     response_dict = dict(response.json())
     assert response.status_code == 201
     update_request = {"molecule_name": "Aspirin_Updated", "description": "A common painkiller", "smiles": "SMOIL"}
-    put_response = client.put(response_dict["links"]["self"]["href"], json=update_request)
+    put_response = test_client.put(response_dict["links"]["self"]["href"], json=update_request)
     assert put_response.status_code == 400
     repo.clear()
 
 
-def test_update_molecule_not_found(client):
+def test_update_molecule_not_found(test_client):
     update_request = {"molecule_name": "Aspirin_Updated", "smiles": "CC(=O)Oc1ccccc1C(=O)O"}
-    put_response = client.put("/molecules/100", json=update_request)
+    put_response = test_client.put("/molecules/100", json=update_request)
     assert put_response.status_code == 404
     repo.clear()
 
@@ -95,28 +95,28 @@ def test_update_molecule_not_found(client):
 @pytest.mark.parametrize("molecule", [sample_data.schema_aspirin(),
                                       sample_data.schema_methane_no_description_custom_id(),
                                       sample_data.schema_methane_no_description_custom_id()])
-def test_delete_get_molecule(client, molecule):
+def test_delete_get_molecule(test_client, molecule):
     request_dict = molecule.dict()
-    response = client.post("/molecules/", json=request_dict)
+    response = test_client.post("/molecules/", json=request_dict)
     response_dict = dict(response.json())
     assert response.status_code == 201
-    delete_request = client.delete(response_dict["links"]["self"]["href"])
+    delete_request = test_client.delete(response_dict["links"]["self"]["href"])
     assert delete_request.status_code == 200
     repo.clear()
 
 
-def test_delete_molecule_not_found(client):
-    delete_request = client.delete("/molecules/100")
+def test_delete_molecule_not_found(test_client):
+    delete_request = test_client.delete("/molecules/100")
     assert delete_request.status_code == 404
     repo.clear()
 
 
-def test_get_all(client):
+def test_get_all(test_client):
     mol = sample_data.schema_aspirin()
     #     add this 8 times
     for _ in range(8):
-        client.post("/molecules/", json=mol.dict())
-    response = client.get("/molecules/")
+        test_client.post("/molecules/", json=mol.dict())
+    response = test_client.get("/molecules/")
     response_body = response.json()
     assert response.status_code == 200
     assert len(response_body) == 8
@@ -130,24 +130,24 @@ def test_get_all(client):
                                                          (3, 0, 5),
                                                          (3, 3, 3),
                                                          (5, 0, 3), ])
-def test_get_all_pagination(client, skip, limit, expected_count):
+def test_get_all_pagination(test_client, skip, limit, expected_count):
     repo.clear()
     mol = sample_data.schema_aspirin()
     for _ in range(8):
-        client.post("/molecules/", json=mol.dict())
+        test_client.post("/molecules/", json=mol.dict())
 
-    response = client.get(f"/molecules/?limit={limit}&skip={skip}")
+    response = test_client.get(f"/molecules/?limit={limit}&skip={skip}")
     response_body = response.json()
     assert response.status_code == 200
     assert len(response_body) == expected_count
     repo.clear()
 
 
-def test_substructure_search_one_molecule_in_db(client):
+def test_substructure_search_one_molecule_in_db(test_client):
     mol = sample_data.schema_aspirin()
-    post_response = client.post("/molecules/", json=mol.dict())
+    post_response = test_client.post("/molecules/", json=mol.dict())
     mol_adress = post_response.json()["links"]["self"]["href"]
-    response = client.get(f"{mol_adress}/substructures")
+    response = test_client.get(f"{mol_adress}/substructures")
     response_body = response.json()
     assert response.status_code == 200
     assert len(response_body) == 1
@@ -155,13 +155,13 @@ def test_substructure_search_one_molecule_in_db(client):
     repo.clear()
 
 
-def test_substructure_search_no_molecule_in_db(client):
-    response = client.get("/molecules/100/substructures")
+def test_substructure_search_no_molecule_in_db(test_client):
+    response = test_client.get("/molecules/100/substructures")
     assert response.status_code == 404
     repo.clear()
 
 
-def test_substructure_search(client):
+def test_substructure_search(test_client):
     # this is test from the homework 1 readme file
 
     aspirin_schema = sample_data.schema_aspirin()
@@ -171,7 +171,7 @@ def test_substructure_search(client):
     toluene_schema = sample_data.schema_toluene()
 
     # post aspirin and remmember its substructure address
-    post_response = client.post("/molecules/", json=aspirin_schema.dict())
+    post_response = test_client.post("/molecules/", json=aspirin_schema.dict())
     aspirin_substructures = post_response.json()["links"]["substructures"]["href"]
     aspirin_id = post_response.json()["molecule_id"]
 
@@ -180,12 +180,12 @@ def test_substructure_search(client):
     # remmember the ids of the molecules
     ids_of_mols = [aspirin_id]
     for mol in mols:
-        mol_resp = client.post("/molecules/", json=mol.dict())
+        mol_resp = test_client.post("/molecules/", json=mol.dict())
         ids_of_mols.append(mol_resp.json()["molecule_id"])
 
 
     # get the substructures of aspirin
-    response = client.get(aspirin_substructures)
+    response = test_client.get(aspirin_substructures)
 
     # check that the response is 200
     assert response.status_code == 200

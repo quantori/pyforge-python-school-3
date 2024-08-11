@@ -3,9 +3,9 @@ import os
 import uuid
 
 import pytest
-import HTTP_database.src.exception as exception
 from .service import CollectionService
 from pytest_mock import MockerFixture
+from .exception import NoSuchCollectionException, NoSuchDocumentException, CollectionAlreadyExistsException
 
 
 @pytest.fixture
@@ -80,7 +80,7 @@ def test_create_collection(collection_service):
 def test_create_collection_already_exists(collection_service):
     # Test for creating a collection that already exists
     collection_service.create_collection("collection1")
-    with pytest.raises(exception.CollectionAlreadyExistsException):
+    with pytest.raises(CollectionAlreadyExistsException):
         collection_service.create_collection("collection1")
 
 
@@ -102,7 +102,7 @@ def test_get_collection_not_found(collection_service):
     # Test for getting a non-existing collection
     collection_service.create_collection("collection1")
     collection_service.create_collection(" my savings ")
-    with pytest.raises(exception.NoSuchCollectionException):
+    with pytest.raises(NoSuchCollectionException):
         collection_service.get_collection("my savings")
 
 
@@ -125,7 +125,7 @@ def test_delete_collection(collection_service):
 def test_delete_collection_not_found(collection_service):
     # Test for deleting a non-existing collection
     collection_service.create_collection("collection1")
-    with pytest.raises(exception.NoSuchCollectionException):
+    with pytest.raises(NoSuchCollectionException):
         collection_service.delete_collection("collection2")
 
 
@@ -144,7 +144,7 @@ def test_update_collection(collection_service):
 def test_update_collection_not_found(collection_service):
     # Test for updating a non-existing collection
     collection_service.create_collection("collection1")
-    with pytest.raises(exception.NoSuchCollectionException):
+    with pytest.raises(NoSuchCollectionException):
         collection_service.update_collection("collection2", {"name": "collection3", "size": 1})
 
 
@@ -178,7 +178,7 @@ def test_exists_document_not_found(collection_service, mocker: MockerFixture):
 
 def test_exists_document_collection_not_found(collection_service):
     # Test for checking if a document exists in a non-existing collection
-    with pytest.raises(exception.NoSuchCollectionException):
+    with pytest.raises(NoSuchCollectionException):
         collection_service.exists_document("collection1", str(uuid.uuid4()))
 
 
@@ -201,8 +201,9 @@ def test_add_document(collection_service):
 
 def test_add_document_collection_not_found(collection_service):
     # Test for adding a document to a non-existing collection
-    with pytest.raises(exception.NoSuchCollectionException):
+    with pytest.raises(NoSuchCollectionException):
         collection_service.add_document("collection1", {"data": {"name": "doc1"}})
+
 
 
 # parametrize the test for (doc,expected)
@@ -222,7 +223,7 @@ def test_get_document_not_found(collection_service):
     # Test for getting a non-existing document from a collection
     collection_service.create_collection("collection1")
     collection_service.add_document("collection1", {"data": {"name": "doc1"}})
-    with pytest.raises(exception.NoSuchDocumentException):
+    with pytest.raises(NoSuchDocumentException):
         collection_service.get_document("collection1", str(uuid.uuid4()))
 
 
@@ -238,7 +239,7 @@ def test_get_documents(collection_service):
 
 def test_get_documents_not_found(collection_service):
     # Test for getting all documents from a non-existing collection
-    with pytest.raises(exception.NoSuchCollectionException):
+    with pytest.raises(NoSuchCollectionException):
         collection_service.get_documents("collection1")
 
 
@@ -259,13 +260,13 @@ def test_delete_document_not_found(collection_service):
     # Test for deleting a non-existing document from a collection
     collection_service.create_collection("collection1")
     collection_service.add_document("collection1", {"data": {"name": "doc1"}})
-    with pytest.raises(exception.NoSuchDocumentException):
+    with pytest.raises(NoSuchDocumentException):
         collection_service.delete_document("collection1", str(uuid.uuid4()))
 
 
 def test_delete_document_collection_not_found(collection_service):
     # Test for deleting a document from a non-existing collection
-    with pytest.raises(exception.NoSuchCollectionException):
+    with pytest.raises(NoSuchCollectionException):
         collection_service.delete_document("collection1", str(uuid.uuid4()))
 
 
@@ -284,12 +285,45 @@ def test_update_document_not_found(collection_service):
     # Test for updating a non-existing document in a collection
     collection_service.create_collection("collection1")
     collection_service.add_document("collection1", {"data": {"name": "doc1"}})
-    with pytest.raises(exception.NoSuchDocumentException):
+    with pytest.raises(NoSuchDocumentException):
         collection_service.update_document("collection1", str(uuid.uuid4()), {"data": {"name": "doc3"}})
 
 
 def test_update_document_collection_not_found(collection_service):
     # Test for updating a document in a non-existing collection
-    with pytest.raises(exception.NoSuchCollectionException):
+    with pytest.raises(NoSuchCollectionException):
         collection_service.update_document("collection1", str(uuid.uuid4()), {"data": {"name": "doc3"}})
+
+
+def test_clean_up(collection_service):
+    # Test for cleaning up the collections directory and collections.json remaining empty
+    collection_service.create_collection("collection1")
+    collection_service.create_collection("collection2")
+    collection_service.add_document("collection1", {"data": {"name": "doc1"}})
+
+    collection_service.clean_up()
+    assert collection_service.get_collections() == []
+    # assert that the files collection1.json and collection2.json are deleted, but collections.json is not
+    assert not (os.path.exists(os.path.join(collection_service.base_path, "collections", "collection1.json")))
+    assert not (os.path.exists(os.path.join(collection_service.base_path, "collections", "collection2.json")))
+    assert os.path.exists(os.path.join(collection_service.base_path, "collections", "collections.json"))
+
+
+def test_find_documents_by_field(collection_service):
+    # Test for finding documents by a field in a collection
+    collection_service.create_collection("molecules")
+    collection_service.add_document("molecules", {"data": {"name": "Methane", "smiles": "C"}})
+    collection_service.add_document("molecules", {"data": {"smiles": "CCO"}})
+    collection_service.add_document("molecules", {"data": {"name": "Ethanol", "smiles": "CCO"}})
+    collection_service.add_document("molecules", {"data": {"name": "Methane"}})
+    collection_service.add_document("molecules", {"data": {"description": "stupid document"}})
+
+    get_all = collection_service.get_documents("molecules")
+    # find by name = Methane
+    found = collection_service.find_documents_by_field("molecules", "name", "Methane")
+    assert len(found) == 2
+    assert {"name": "Methane", "smiles": "C"} in [doc["data"] for doc in found]
+    assert {"name": "Methane"} in [doc["data"] for doc in found]
+#
+
 

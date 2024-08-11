@@ -1,11 +1,13 @@
+import logging
+
 from fastapi import FastAPI, Depends
 from fastapi.exceptions import HTTPException
-from HTTP_database.src.exception import CollectionAlreadyExistsException, NoSuchCollectionException, \
+from .exception import CollectionAlreadyExistsException, NoSuchCollectionException, \
     NoSuchDocumentException, \
     ValidationException
-from HTTP_database.src.schemas import CreateCollection, CreateDocument
-from HTTP_database.src.service import CollectionService
-from HTTP_database.src.dependencies import get_service
+from .schemas import CreateCollection, CreateDocument
+from .service import CollectionService
+from .dependencies import get_service
 
 app = FastAPI()
 
@@ -67,8 +69,9 @@ def update_collection(collection_name: str, new_collection: CreateCollection,
 @app.post("/collections/{collection_name}/documents", status_code=201)
 def create_document(collection_name: str, document: CreateDocument,
                     service: CollectionService = Depends(get_service)) -> dict:
-    document_id = service.add_document(collection_name, document.__dict__)
-    return {"message": "Document created successfully", "document_id": document_id}
+    print(str(document.dict()) + "asdasdasdasd")
+    document_id = service.add_document(collection_name, document.dict())
+    return {"message": "Document created successfully", "_document_id": document_id}
 
 
 @app.get("/collections/{collection_name}/documents/{document_id}", status_code=200)
@@ -77,7 +80,11 @@ def get_document(collection_name: str, document_id: str, service: CollectionServ
 
 
 @app.get("/collections/{collection_name}/documents", status_code=200)
-def get_documents(collection_name: str, service: CollectionService = Depends(get_service)) -> dict:
+def get_documents(collection_name: str,
+                  field=None, value=None,
+                  service: CollectionService = Depends(get_service)) -> dict:
+    if field and value:
+        return {"documents": service.find_documents_by_field(collection_name, field, value)}
     return {"documents": service.get_documents(collection_name)}
 
 
@@ -92,3 +99,9 @@ def update_document(collection_name: str, document_id: str, new_document: Create
                     service: CollectionService = Depends(get_service)) -> dict:
     service.update_document(collection_name, document_id, new_document.dict())
     return {"message": "Document updated successfully"}
+
+
+@app.delete("/collections", status_code=200)
+def clean_up(service: CollectionService = Depends(get_service)) -> dict:
+    service.clean_up()
+    return {"message": "All collections deleted successfully"}

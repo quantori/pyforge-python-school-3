@@ -5,6 +5,14 @@ from .exception import ValidationException
 class CreateCollection(BaseModel):
     name: str
 
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "name": "molecules"
+            }
+        }
+
+
     @field_validator("name")
     @classmethod
     def validate_name(cls, name):
@@ -12,11 +20,22 @@ class CreateCollection(BaseModel):
             raise ValidationException("Name cannot be empty.")
         if not name.isalnum():
             raise ValidationException("Name can only contain alphanumeric characters.")
+        if name == "collections":
+            raise ValidationException("Name cannot be 'collections'.")
         return name
 
 
 class CreateDocument(BaseModel):
     data: dict
 
-
-
+    class Config:
+        extra = "forbid"
+        json_schema_extra = {
+            "example": {
+                "data": {
+                    "name": "Methane",
+                    "smiles": "C",
+                    "description": "Simplest alkane"
+                }
+            }
+        }

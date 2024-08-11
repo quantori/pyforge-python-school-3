@@ -1,10 +1,8 @@
 import json
 
 from fastapi import Depends
-from src import exceptions
+from src.exceptions import RepositoryItemNotFountException, HTTPClientException
 from HTTP_database_client.src.database_client import HTTPDatabaseClient
-
-import logging
 from abc import ABC, abstractmethod
 from src.models.molecule_models import MoleculeInDB
 
@@ -70,7 +68,7 @@ class InMemoryMoleculesRepository(AbstractMoleculeRepository):
         :return:  Model object if found, None otherwise.
         """
         if not self.exists_by_id(obj_id):
-            raise exception.RepositoryItemNotFountException(obj_id)
+            raise RepositoryItemNotFountException(obj_id)
         return self.molecules.get(obj_id)
 
     def find_all(self) -> list[MoleculeInDB]:
@@ -96,7 +94,7 @@ class InMemoryMoleculesRepository(AbstractMoleculeRepository):
         :raises RepositoryItemNotFountException: If the object with the provided id does not exist.
         """
         if not self.exists_by_id(obj_id):
-            raise exception.RepositoryItemNotFountException(obj_id)
+            raise RepositoryItemNotFountException(obj_id)
         del self.molecules[obj_id]
 
     def size(self):
@@ -117,7 +115,7 @@ class HTTPMoleculeRepository(AbstractMoleculeRepository):
         response = self.__client.create_collection("molecules")
 
         if response.status not in [201, 400]:
-            raise exception.HTTPClientException(response)
+            raise HTTPClientException(response)
 
     def find_by_id(self, obj_id: int) -> MoleculeInDB:
         pass
@@ -125,7 +123,7 @@ class HTTPMoleculeRepository(AbstractMoleculeRepository):
     def find_all(self) -> list[MoleculeInDB]:
         response = self.__client.get_documents("molecules")
         if response.status != 200:
-            raise exception.HTTPClientException(response)
+            raise HTTPClientException(response)
         documents = json.loads(response.read())
         return [MoleculeInDB(**document) for document in documents]
 
