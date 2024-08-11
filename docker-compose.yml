@@ -1,6 +1,8 @@
 services:
   web1:
-    build: ./src
+    build:
+      context: ./src
+      dockerfile: Dockerfile
     volumes:
       - ./src:/app
     environment:
@@ -11,7 +13,9 @@ services:
       - "8011:8000"
 
   web2:
-    build: ./src
+    build:
+      context: ./src
+      dockerfile: Dockerfile
     volumes:
       - ./src:/app
     environment:
