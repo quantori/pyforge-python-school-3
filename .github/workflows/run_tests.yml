@@ -34,7 +34,7 @@ jobs:
 
       - run: docker-compose exec -T web1 pip install -r requirements.txt
 
-      - run: docker-compose exec -T pytest tests/test.py
+      - run: docker-compose exec -T web1 pytest tests/test.py
 
         if: always()
       - run: docker-compose down

@@ -7,7 +7,7 @@ WORKDIR /app
 COPY . /app
 
 RUN conda create --name myenv python=3.8 -y && \
-    conda run -n myenv pip install --no-cache-dir -r /app/requirements.txt && \
+    conda run -n myenv pip install --no-cache-dir -r requirements.txt && \
     conda run -n myenv conda install -y -c conda-forge rdkit
 
 EXPOSE 8000
