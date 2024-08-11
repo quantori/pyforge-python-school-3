@@ -5,7 +5,7 @@ import json
 ENDPOINT = "http://localhost:8011"  
 
 def upload_molecules_json():
-    files = {'file': ('molecules.json', open('src/molecules.json', 'rb'), 'application/json')}
+    files = {'file': ('molecules.json', open('app/molecules.json', 'rb'), 'application/json')}
     response = requests.post(ENDPOINT + "/upload_file/", files=files)
     assert response.status_code == 201
     assert response.json() == {"message": "File uploaded and molecules parsed successfully", "num_molecules": 10}
