@@ -5,7 +5,7 @@ import json
 ENDPOINT = "http://localhost:8000"  
 
 def upload_molecules_json():
-    files = {'file': ('molecules.json', open('app/molecules.json', 'rb'), 'application/json')}
+    files = {'file': ('molecules.json', open('src/molecules.json', 'rb'), 'application/json')}
     response = requests.post(ENDPOINT + "/upload_file/", files=files)
     assert response.status_code == 201
     assert response.json() == {"message": "File uploaded and molecules parsed successfully", "num_molecules": 10}
@@ -65,7 +65,7 @@ def test_substructure_search_large_data():
         json.dump(large_molecule_list, file)
     
     with open('src/large_molecules.json', 'rb') as file:
-        files = {'file': ('large_molecules.json', file, 'application/json')}
+        files = {'file': ('src/large_molecules.json', file, 'application/json')}
         response = requests.post(ENDPOINT + "/upload_file/", files=files)
         assert response.status_code == 201
 
