@@ -5,21 +5,10 @@ import json
 ENDPOINT = "http://localhost:8011"  
 
 def upload_molecules_json():
-    file_path = 'src/molecules.json'
-    try:
-        with open(file_path, 'rb') as f:
-            print(f"Successfully opened {file_path}")
-            files = {'file': ('molecules.json', f, 'application/json')}
-            response = requests.post(ENDPOINT + "/upload_file/", files=files)
-            print(f"Response status code: {response.status_code}")
-            print(f"Response content: {response.json()}")
-            assert response.status_code == 201
-            assert response.json() == {"message": "File uploaded and molecules parsed successfully", "num_molecules": 10}
-    except FileNotFoundError:
-        print(f"File not found: {file_path}")
-    except Exception as e:
-        print(f"An error occurred: {e}")
-
+    files = {'file': ('molecules.json', open('app/src/molecules.json', 'rb'), 'application/json')}
+    response = requests.post(ENDPOINT + "/upload_file/", files=files)
+    assert response.status_code == 201
+    assert response.json() == {"message": "File uploaded and molecules parsed successfully", "num_molecules": 10}
 
 def test_get_server():
     response = requests.get(ENDPOINT)
