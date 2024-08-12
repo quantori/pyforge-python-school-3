@@ -69,8 +69,11 @@ def update_collection(collection_name: str, new_collection: CreateCollection,
 @app.post("/collections/{collection_name}/documents", status_code=201)
 def create_document(collection_name: str, document: CreateDocument,
                     service: CollectionService = Depends(get_service)) -> dict:
-    print(str(document.dict()) + "asdasdasdasd")
     document_id = service.add_document(collection_name, document.dict())
+    """
+    :param document: should be of the form {"data": {"field1": "value1", "field2": "value2"}}
+                    so "data" dictionary is a required field
+    """
     return {"message": "Document created successfully", "_document_id": document_id}
 
 

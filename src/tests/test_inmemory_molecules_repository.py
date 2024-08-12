@@ -79,3 +79,4 @@ def test_clear(repository):
     repository.add(mol1)
     repository.clear()
     assert repository.find_all() == []
+

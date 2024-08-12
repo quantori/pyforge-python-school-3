@@ -10,9 +10,11 @@ from fastapi.testclient import TestClient
 This file contains the Integration tests for the Molecule Routes.
 """
 
-# Override the persistant repository with the in-memory repository that is cleared after each test
-# Do not forget to clear the repository after each test, could not find a way to do it automatically with fixtures or yield
+# Override the persistant repository with the in-memory repository that is cleared after each test Do not forget to
+# clear the repository after each test, could not find a way to do it automatically with fixtures or yield
 repo = InMemoryMoleculesRepository()
+
+
 def override_get_molecule_repository():
     return repo
 
@@ -47,7 +49,8 @@ def test_add_get_molecule(test_client, molecule):
 
 def test_add_molecule_invalid_smiles(test_client):
     response = test_client.post("/molecules/",
-                                json={"smiles": "SMOIL", "molecule_name": "Aspirin", "description": "A common painkiller"})
+                                json={"smiles": "SMOIL", "molecule_name": "Aspirin",
+                                      "description": "A common painkiller"})
     assert response.status_code == 400
     repo.clear()
 
@@ -163,14 +166,13 @@ def test_substructure_search_no_molecule_in_db(test_client):
 
 def test_substructure_search(test_client):
     # this is test from the homework 1 readme file
-
     aspirin_schema = sample_data.schema_aspirin()
     methanol_schema = sample_data.schema_methanol()
     benzene_schema = sample_data.schema_benzene()
     acetic_acid_schema = sample_data.schema_acetic_acid()
     toluene_schema = sample_data.schema_toluene()
 
-    # post aspirin and remmember its substructure address
+    # post aspirin and remember its substructure address
     post_response = test_client.post("/molecules/", json=aspirin_schema.dict())
     aspirin_substructures = post_response.json()["links"]["substructures"]["href"]
     aspirin_id = post_response.json()["molecule_id"]
@@ -183,7 +185,6 @@ def test_substructure_search(test_client):
         mol_resp = test_client.post("/molecules/", json=mol.dict())
         ids_of_mols.append(mol_resp.json()["molecule_id"])
 
-
     # get the substructures of aspirin
     response = test_client.get(aspirin_substructures)
 
@@ -194,4 +195,3 @@ def test_substructure_search(test_client):
     # assert that the response contains all the molecules
     for mol in response_body:
         assert mol["molecule_id"] in ids_of_mols
-

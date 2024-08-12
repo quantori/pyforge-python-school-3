@@ -32,6 +32,12 @@ class HTTPDatabaseClient:
         conn.close()
         return custom_response
 
+    def get_collections(self) -> CustomResponse:
+        return self.request("GET", "/collections")
+
+    def get_collection(self, collection_name: str) -> CustomResponse:
+        return self.request("GET", f"/collections/{collection_name}")
+
     def create_collection(self, collection_name: str) -> CustomResponse:
         return self.request("POST", "/collections", {"name": collection_name})
 
@@ -39,6 +45,10 @@ class HTTPDatabaseClient:
         return self.request("DELETE", f"/collections/{collection_name}")
 
     def add_document(self, collection_name: str, document: dict) -> CustomResponse:
+        """
+        :param document: should be of the form {"data": {"field1": "value1", "field2": "value2"}}
+                        so "data" dictionary is a required field
+        """
         return self.request("POST", f"/collections/{collection_name}/documents", document)
 
     def update_document(self, collection_name: str, document_id: str, document: dict) -> CustomResponse:
@@ -48,6 +58,16 @@ class HTTPDatabaseClient:
         return self.request("DELETE", f"/collections/{collection_name}/documents/{document_id}")
 
     def get_documents(self, collection_name, field=None, value=None) -> CustomResponse:
+        """
+        Response is of a form
+        {"documents": [
+        ...
+        {data:{field1: value1, field2: value2}, _document_id: 123},
+        {data:{field1: value1, field2: value2}, _document_id: 124},
+        ...
+        ]
+        }
+        """
         if field and value:
             return self.request("GET", f"/collections/{collection_name}/documents?field={field}&value={value}")
         return self.request("GET", f"/collections/{collection_name}/documents")

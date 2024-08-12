@@ -204,13 +204,14 @@ class CollectionService:
             file.write("")
 
     def find_documents_by_field(self, collection_name: str, field: str, value):
+
+        print(f"Finding documents by field {field} with value {value}", type(value))
         if not self.exists_by_name(collection_name):
             raise NoSuchCollectionException(collection_name)
-
         documents = self.get_documents(collection_name)
         found_documents = []
         for document in documents:
-            if field in document["data"] and document["data"][field] == value:
+            if field in document["data"] and str(document["data"][field]) == value:
                 found_documents.append(document)
         return found_documents
 

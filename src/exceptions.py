@@ -33,7 +33,7 @@ class InvalidSmilesException(Exception):
 
 
 class HTTPClientException(Exception):
-    def __init__(self, response):
-        self.message = f"HTTP Client Exception: {response}"
-        self.response = response
+    def __init__(self, response_code, info=None):
+        self.message = f"HTTP Client Exception: {response_code}"
+        self.response_code = response_code
         super().__init__(self.message)

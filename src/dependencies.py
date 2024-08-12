@@ -5,10 +5,14 @@ from fastapi import status
 import src.repository.molecule_repositories as molecule_repositories
 
 
+def get_http_repo_url():
+    return "localhost:6900"
+
+
 # singleton molecule repository
 def get_molecule_repository() -> molecule_repositories.AbstractMoleculeRepository:
     if not hasattr(get_molecule_repository, "repository"):
-        get_molecule_repository.repository = molecule_repositories.InMemoryMoleculesRepository()
+        get_molecule_repository.repository = molecule_repositories.HTTPMoleculeRepository(get_http_repo_url())
     return get_molecule_repository.repository
 
 

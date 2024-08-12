@@ -84,8 +84,6 @@ def test_get_documents(database_client: HTTPDatabaseClient):
     assert document2["data"] in [document["data"] for document in documents]
 
 
-#
-#
 def test_delete_collection(database_client: HTTPDatabaseClient):
     database_client.clean_up()
     database_client.create_collection("collection1")
@@ -100,21 +98,32 @@ def test_delete_collection(database_client: HTTPDatabaseClient):
     assert response.status == 404
 
 
-def test_find_documents_by_field(database_client: HTTPDatabaseClient):
+def test_find_documents_by_field_1(database_client: HTTPDatabaseClient):
     database_client.clean_up()
     database_client.create_collection("molecules")
-    database_client.add_document("molecules", {"data": {"name": "Methane", "smiles": "C"}})
-    database_client.add_document("molecules", {"data": {"smiles": "CCO"}})
-    database_client.add_document("molecules", {"data": {"name": "Ethanol", "smiles": "CCO"}})
-    database_client.add_document("molecules", {"data": {"name": "Methane"}})
-    database_client.add_document("molecules", {"data": {"description": "stupid document"}})
+    database_client.add_document("molecules", {"data": {"name": "Methane", "smiles": "C", "molecule_id": 1}})
+    database_client.add_document("molecules", {"data": {"smiles": "CCO", "molecule_id": 2}})
+    database_client.add_document("molecules", {"data": {"name": "Ethanol", "smiles": "CCO", "molecule_id": 3}})
+    database_client.add_document("molecules", {"data": {"name": "Methane", "molecule_id": 4}})
+    database_client.add_document("molecules", {"data": {"description": "stupid document", "molecule_id": 5}})
     response = database_client.get_documents("molecules", "name", "Methane")
-    print(response.body)
     assert len(response.body["documents"]) == 2
     assert response.status == 200
-    assert {"name": "Methane", "smiles": "C"} in [document["data"] for document in response.body["documents"]]
-    assert {"name": "Methane"} in [document["data"] for document in response.body["documents"]]
+    assert {"name": "Methane", "smiles": "C", "molecule_id": 1} in [document["data"] for document in
+                                                                    response.body["documents"]]
+    assert {"name": "Methane", "molecule_id": 4} in [document["data"] for document in response.body["documents"]]
+    database_client.clean_up()
 
 
-
-
+def test_find_documents_by_field_2(database_client: HTTPDatabaseClient):
+    database_client.clean_up()
+    database_client.create_collection("molecules")
+    database_client.add_document("molecules", {"data": {"name": "Methane", "smiles": "C", "molecule_id": 1}})
+    database_client.add_document("molecules", {"data": {"smiles": "CCO", "molecule_id": 2}})
+    database_client.add_document("molecules", {"data": {"name": "Ethanol", "smiles": "CCO", "molecule_id": 3}})
+    database_client.add_document("molecules", {"data": {"name": "Methane", "molecule_id": 4}})
+    database_client.add_document("molecules", {"data": {"description": "stupid document", "molecule_id": 5}})
+    response = database_client.get_documents("molecules", "molecule_id", 1)
+    assert len(response.body["documents"]) == 1
+    assert response.status == 200
+    database_client.clean_up()

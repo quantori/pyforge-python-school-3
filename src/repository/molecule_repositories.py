@@ -1,6 +1,3 @@
-import json
-
-from fastapi import Depends
 from src.exceptions import RepositoryItemNotFountException, HTTPClientException
 from HTTP_database_client.src.database_client import HTTPDatabaseClient
 from abc import ABC, abstractmethod
@@ -104,8 +101,61 @@ class InMemoryMoleculesRepository(AbstractMoleculeRepository):
         self.molecules.clear()
 
 
+"""
+DefaultIdGenerator is very bad because it starts from 0 when the application restarts.
+So, lets implement persistent one using HTTP database
+"""
+
+
+class ExternalPersistentIdGenerator(IDGenerator):
+    """
+    Create the collection in the database with the provided name. That collection will only contain one document,
+    of the form {data: {"next_id": 0}, _document_id: xxxxxxxx}
+    That document will be read and updated every time get_next_id is called.
+    """
+
+    def __init__(self, base_url: str, generator_name: str = "defaultidgenerator"):
+        self.__client = HTTPDatabaseClient(base_url)
+        self.__base_url = base_url
+        self.__generator_name = generator_name
+
+        # initialize the repository by creating the generator_name collection in the database.
+        # If the collection already exists it will not be overwritten
+        response = self.__client.create_collection(generator_name)
+        if response.status not in [201, 400]:
+            raise HTTPClientException(response)
+
+        # add the first document to the collection, if it does not exist
+        response = self.__client.get_documents(generator_name)
+        if response.status != 200:
+            raise HTTPClientException(response)
+
+        if len(response.body["documents"]) != 0:
+            return
+
+        response = self.__client.add_document(generator_name, {"data": {"next_id": 0}})
+        if response.status != 201:
+            raise HTTPClientException(response)
+
+    def get_next_id(self) -> int:
+        """
+        sends two requests to the server, one to get the current next_id and the other to update it.
+        """
+        response = self.__client.get_documents(self.__generator_name)
+        if response.status != 200:
+            raise HTTPClientException(response)
+        next_id = response.body["documents"][0]["data"]["next_id"]
+        response = self.__client.update_document(self.__generator_name, response.body["documents"][0]["_document_id"],
+                                                 {"data": {"next_id": next_id + 1}})
+        if response.status != 200:
+            raise HTTPClientException(response)
+        return next_id
+
+
 class HTTPMoleculeRepository(AbstractMoleculeRepository):
-    def __init__(self, base_url: str = Depends, id_generator: IDGenerator= DefaultMoleculeIDGenerator()):
+    def __init__(self, base_url: str, id_generator: IDGenerator = None):
+        if id_generator is None:
+            id_generator = ExternalPersistentIdGenerator(base_url)
         super().__init__(id_generator)
         self.__client = HTTPDatabaseClient(base_url)
         self.__base_url = base_url
@@ -118,26 +168,65 @@ class HTTPMoleculeRepository(AbstractMoleculeRepository):
             raise HTTPClientException(response)
 
     def find_by_id(self, obj_id: int) -> MoleculeInDB:
-        pass
+        if not self.exists_by_id(obj_id):
+            raise RepositoryItemNotFountException(obj_id)
+
+        response = self.__client.get_documents("molecules", field="molecule_id", value=obj_id)
+        if response.status != 200:
+            raise HTTPClientException(response.status)
+
+        # our invariant is that molecule_id is unique, assert that invariant
+        assert len(response.body["documents"]) <= 1
+
+        document_data = response.body["documents"][0]["data"]
+
+        return MoleculeInDB(**document_data)
 
     def find_all(self) -> list[MoleculeInDB]:
         response = self.__client.get_documents("molecules")
         if response.status != 200:
-            raise HTTPClientException(response)
-        documents = json.loads(response.read())
-        return [MoleculeInDB(**document) for document in documents]
+            raise HTTPClientException(response.status)
+
+        documents = response.body["documents"]
+        return [MoleculeInDB(**document["data"]) for document in documents]
 
     def exists_by_id(self, obj_id: int) -> bool:
-        pass
+        response = self.__client.get_documents("molecules", field="molecule_id", value=obj_id)
+        if response.status != 200:
+            raise HTTPClientException(response.status)
+        return len(response.body["documents"]) > 0
 
     def add(self, obj: MoleculeInDB) -> MoleculeInDB:
-        pass
+        next_id = self._id_generator.get_next_id()
+        obj.set_id(next_id)
+        document = obj.dict()
+        response = self.__client.add_document("molecules", {"data": document})
+        if response.status != 201:
+            raise HTTPClientException(response.status)
+        return obj
 
     def delete_by_id(self, obj_id: int) -> None:
-        pass
+        # Let's not use exists_by_id because it will result in one more request to the server
+        response = self.__client.get_documents("molecules", field="molecule_id", value=obj_id)
+        if response.status != 200:
+            raise HTTPClientException(response.status)
+
+        if len(response.body["documents"]) == 0:
+            raise RepositoryItemNotFountException(obj_id)
+
+        document_id = response.body["documents"][0]["_document_id"]
+        response = self.__client.delete_document("molecules", document_id)
+        if response.status != 200:
+            raise HTTPClientException(response.status)
 
     def size(self) -> int:
-        pass
+        response = self.__client.get_collection("molecules")
+        return response.body["size"]
 
     def clear(self) -> None:
-        pass
+        response = self.__client.delete_collection("molecules")
+        if response.status != 200:
+            raise HTTPClientException(response.status)
+        response = self.__client.create_collection("molecules")
+        if response.status != 201:
+            raise HTTPClientException(response.status)

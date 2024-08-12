@@ -71,9 +71,11 @@ We don't want to ask for the id
    
 ```json
 {  
-  "field1": "value1",
-  "field2": "value2",
-  "field3": "value3"
+  "data": {
+    "field1": "value1",
+    "field2": "value2",
+    "field3": "value3"
+  }
 }  
 ```
    
@@ -82,7 +84,7 @@ We don't want to ask for the id
 ```json
 {
   "object_id": "unique_id",
-  "fields": {
+  "data": {
     "field1": "value1",
     "field2": "value2",
     "field3": "value3"

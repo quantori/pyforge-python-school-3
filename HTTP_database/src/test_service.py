@@ -205,7 +205,6 @@ def test_add_document_collection_not_found(collection_service):
         collection_service.add_document("collection1", {"data": {"name": "doc1"}})
 
 
-
 # parametrize the test for (doc,expected)
 @pytest.mark.parametrize("doc,expected", [
     ({"data": {"name": "doc1"}}, {"data": {"name": "doc1"}}),
@@ -324,6 +323,15 @@ def test_find_documents_by_field(collection_service):
     assert len(found) == 2
     assert {"name": "Methane", "smiles": "C"} in [doc["data"] for doc in found]
     assert {"name": "Methane"} in [doc["data"] for doc in found]
-#
 
 
+def test_find_documents_by_field_integer_field(collection_service):
+    # Test for finding documents by a field in a collection
+    collection_service.create_collection("molecules")
+    collection_service.add_document("molecules", {"data": {"name": "Methane", "smiles": "C", "molecule_id": 1}})
+
+    found = collection_service.find_documents_by_field("molecules", "molecule_id", 1)
+
+    assert len(found) == 1
+
+    assert {"name": "Methane", "smiles": "C", "molecule_id": 1} in [doc["data"] for doc in found]
