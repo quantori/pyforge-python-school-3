@@ -61,10 +61,10 @@ def test_substructure_search_special_characters():
 
 def test_substructure_search_large_data():
     large_molecule_list = [{"mol_id": i, "name": "CC" * (i % 10)} for i in range(1000)]
-    with open('src/large_molecules.json', 'w') as file:
+    with open('large_molecules.json', 'w') as file:
         json.dump(large_molecule_list, file)
     
-    with open('src/large_molecules.json', 'rb') as file:
+    with open('large_molecules.json', 'rb') as file:
         files = {'file': ('large_molecules.json', file, 'application/json')}
         response = requests.post(ENDPOINT + "/upload_file/", files=files)
         assert response.status_code == 201
