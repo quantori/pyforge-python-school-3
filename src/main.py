@@ -20,10 +20,14 @@ def get_server():
         tags=["Molecules"], 
         response_description="Molecule added successfully"
 )
+
 def add_molecule(molecule: Molecule):
     for mol in mol_db:
         if mol["mol_id"] == molecule.mol_id:
-            raise HTTPException(status_code=400, detail="Molecule with this ID already exists")
+            raise HTTPException(
+                status_code=400, 
+                detail="Molecule with this ID already exists"
+            )
     if not Chem.MolFromSmiles(molecule.name):
             raise HTTPException(status_code=400, detail=f"Invalid SMILES: {molecule.name}")
     mol_db.append(molecule)
@@ -36,6 +40,7 @@ def add_molecule(molecule: Molecule):
         status_code=status.HTTP_200_OK, 
         response_description="List of all molecules"
 )
+
 def retrieve_molecules():
     return mol_db
 
@@ -46,6 +51,7 @@ def retrieve_molecules():
         status_code=status.HTTP_200_OK, 
         response_description="Get molecule by ID"
 )
+
 def get_mol_by_id(item_id: int):
     for molecule in mol_db:
         if molecule["mol_id"] == item_id:
@@ -59,6 +65,7 @@ def get_mol_by_id(item_id: int):
         tags=["Molecules"], 
         response_description="Update molecule by ID"
 )
+
 def update_mol(mol_id: int, updated_mol: Molecule):
     for index, molecule in enumerate(mol_db):
         if molecule["mol_id"] == mol_id:
@@ -75,6 +82,7 @@ def update_mol(mol_id: int, updated_mol: Molecule):
         tags=["Molecules"], 
         response_description="Delete molecule by ID"
 )
+
 def delete_mol(mol_id: int):
     for index, molecule in enumerate(mol_db):
         if molecule["mol_id"] == mol_id:
@@ -89,6 +97,7 @@ def delete_mol(mol_id: int):
         status_code=status.HTTP_200_OK, 
         response_description="Search for molecules with a specific substructure"
 )
+
 def substructure_search(substructure_name: str):
     if not substructure_name:
         raise HTTPException(status_code=400, detail="Invalid substructure SMILES")
@@ -112,6 +121,7 @@ def substructure_search(substructure_name: str):
         tags=["File Upload"], 
         response_description="File uploaded and molecules parsed successfully"
 )
+
 async def create_upload_file(file: UploadFile = File(...)):
     content = file.file.read().decode("utf-8")
     try:
@@ -126,7 +136,10 @@ async def create_upload_file(file: UploadFile = File(...)):
             raise HTTPException(status_code=400, detail=f"Invalid SMILES: {molecule['name']}")
         mol_db.append(molecule)
 
-    return {"message": "File uploaded and molecules parsed successfully", "num_molecules": len(molecules)}
+    return {
+        "message": "File uploaded and molecules parsed successfully", 
+        "num_molecules": len(molecules)
+    }
 
 
 if __name__ == "__main__":

@@ -7,7 +7,10 @@ def upload_molecules_json():
     files = {'file': ('molecules.json', open('molecules.json', 'rb'), 'application/json')}
     response = requests.post(ENDPOINT + "/upload_file/", files=files)
     assert response.status_code == 201
-    assert response.json() == {"message": "File uploaded and molecules parsed successfully", "num_molecules": 10}
+    assert response.json() == {
+        "message": "File uploaded and molecules parsed successfully", 
+        "num_molecules": 10
+    }
 
 def test_get_server():
     response = requests.get(ENDPOINT)
@@ -23,7 +26,10 @@ def test_get_molecule_by_id():
     assert response.json() == {"mol_id": 4, "name": "CNC"}
 
 def test_update_molecule():
-    response = requests.put(ENDPOINT + "/molecules/2", json={"mol_id": 2, "name": "CNO"})
+    response = requests.put(
+        ENDPOINT + "/molecules/2", 
+        json={"mol_id": 2, "name": "CNO"}
+    )
     assert response.status_code == 200
     assert response.json() == {"mol_id": 2, "name": "CNO"}
 
@@ -34,7 +40,10 @@ def test_delete_molecule():
 
 def test_substructure_search_valid_smiles():
     upload_molecules_json()
-    response = requests.get(ENDPOINT + "/substructure_search/", params={"substructure_name": "C"})
+    response = requests.get(
+        ENDPOINT + "/substructure_search/", 
+        params={"substructure_name": "C"}
+    )
     assert response.status_code == 200
     data = response.json()
     assert "molecules" in data
@@ -42,19 +51,28 @@ def test_substructure_search_valid_smiles():
 
 def test_substructure_search_invalid_smiles():
     upload_molecules_json()
-    response = requests.get(ENDPOINT + "/substructure_search/", params={"substructure_name": "INVALID"})
+    response = requests.get(
+        ENDPOINT + "/substructure_search/", 
+        params={"substructure_name": "INVALID"}
+    )
     assert response.status_code == 400
     assert response.json() == {"detail": "Invalid substructure SMILES"}
 
 def test_substructure_search_empty_smiles():
     upload_molecules_json()
-    response = requests.get(ENDPOINT + "/substructure_search/", params={"substructure_name": ""})
+    response = requests.get(
+        ENDPOINT + "/substructure_search/", 
+        params={"substructure_name": ""}
+    )
     assert response.status_code == 400
     assert response.json() == {"detail": "Invalid substructure SMILES"}
 
 def test_substructure_search_special_characters():
     upload_molecules_json()
-    response = requests.get(ENDPOINT + "/substructure_search/", params={"substructure_name": "CCO$"})
+    response = requests.get(
+        ENDPOINT + "/substructure_search/", 
+        params={"substructure_name": "CCO"}
+    )
     assert response.status_code == 400
     assert response.json() == {"detail": "Invalid substructure SMILES"}
 
@@ -68,7 +86,10 @@ def test_substructure_search_large_data():
         response = requests.post(ENDPOINT + "/upload_file/", files=files)
         assert response.status_code == 201
 
-    response = requests.get(ENDPOINT + "/substructure_search/", params={"substructure_name": "CC"})
+    response = requests.get(
+        ENDPOINT + "/substructure_search/", 
+        params={"substructure_name": "CC"}
+    )
     assert response.status_code == 200
     data = response.json()
     assert len(data["molecules"]) > 0
