@@ -128,23 +128,25 @@ def substructure_search(substructure_name: str):
     response_description="File uploaded and molecules parsed successfully"
 )
 async def create_upload_file(file: UploadFile = File(...)):
-    content = await file.read()
-    content = content.decode("utf-8")
-    try:
-        molecules = json.loads(content)
-    except json.JSONDecodeError:
-        raise HTTPException(status_code=400, detail="Invalid JSON file")
-    for molecule in molecules:
-        if not Chem.MolFromSmiles(molecule["name"]):
-            raise HTTPException(
-                status_code=400,
-                detail=f"Invalid SMILES: {molecule['name']}"
-            )
-        mol_db.append(molecule)
-    return {
-        "message": "File uploaded and molecules parsed successfully",
-        "num_molecules": len(molecules)
-    }
+        content = await file.read()
+        content = content.decode("utf-8")
+        try:
+            molecules = json.loads(content)
+        except json.JSONDecodeError:
+            raise HTTPException(status_code=400, detail="Invalid JSON file")
+
+        for molecule in molecules:
+            if not Chem.MolFromSmiles(molecule["name"]):
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid SMILES: {molecule['name']}"
+                )
+            mol_db.append(molecule)
+
+        return {
+            "message": "File uploaded and molecules parsed successfully",
+            "num_molecules": len(molecules)
+        }
 
 
 if __name__ == "__main__":
