@@ -107,7 +107,6 @@ def test_substructure_search_large_data():
     ]
     with open('large_molecules.json', 'w') as file:
         json.dump(large_molecule_list, file)
-
     response = upload_molecules_json('large_molecules.json')
     assert response.status_code == 201
     response = requests.get(
