@@ -6,8 +6,6 @@ on:
       - main  
       - develop
       - feature/3
-    tags:
-      - 'v*'
 
 jobs:
   run-tests:
@@ -15,46 +13,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
-      
-      - name: Create GitHub Release
-        id: create-release
-        uses: actions/create-release@v1
-        with:
-          tag_name: ${{ github.ref_name }}
-          release_name: Initial Release with Molecules CRUD, File Upload, Substructure Search and Load Balancing ${{ github.ref_name }}
-          body: |
-            I'm excited to announce the initial release of my Molecules Application!
-            This release marks the debut of our application designed to perform CRUD (Create, Read, Update, Delete), upload_file, and substructure_search operations on molecular data. This version includes essential features for managing molecular data, testing, and Docker support for seamless deployment.
-
-            ###New Features:
-
-            - **CRUD Operations:** Implemented functionality to create, read, update, and delete molecular records.
-            - **File Upload:** Added capability to upload files (e.g., JSON) containing molecular data for processing and management.
-            - **Substructure Search:** Introduced a feature for searching molecular data based on substructures
-            - **Docker Support:** Configured Docker and Docker Compose to containerize the application, making it easy to deploy and run in various environments.
-            - **Load Balancing:** Configured a load-balancing mechanism to distribute requests between two application containers, web1 and web2
-            - **Automated Testing:** Set up GitHub Actions for continuous integration, including running tests in Docker containers to ensure code quality and reliability.
-
-            ### Installation & Setup:
-            1. **Clone the Repository:**
-            ```bash
-            git clone https://github.com/adellyadrian/pyforge-python-school-3
-            cd pyforge-python-school-3
-            ```
-          draft: false
-          prerelease: false
-
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        
-      - name: Upload Release Assets
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.create-release.outputs.upload_url }}
-          asset_path: ./path/to/your/asset.zip
-          asset_name: asset.zip
-          asset_content_type: application/zip
+        uses: actions/checkout@v4
 
       - name: Set up Python 3.8
         uses: actions/setup-python@v5
