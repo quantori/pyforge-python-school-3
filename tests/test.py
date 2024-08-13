@@ -110,7 +110,6 @@ def test_substructure_search_large_data():
 
     response = upload_molecules_json('large_molecules.json')
     assert response.status_code == 201
-    
     response = requests.get(
         ENDPOINT + "/substructure_search/",
         params={"substructure_name": "CC"}

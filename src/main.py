@@ -30,8 +30,7 @@ def add_molecule(molecule: Molecule):
     if not Chem.MolFromSmiles(molecule.name):
             raise HTTPException(
                 status_code=400, 
-                detail=f"Invalid SMILES: 
-                {molecule.name}"
+                detail=f"Invalid SMILES: {molecule.name}"
             )
     mol_db.append(molecule)
     return molecule
