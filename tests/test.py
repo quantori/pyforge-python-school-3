@@ -1,5 +1,4 @@
 import requests
-import pytest
 import json
  
 ENDPOINT = "http://localhost:8000"  

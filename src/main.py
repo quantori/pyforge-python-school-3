@@ -13,6 +13,7 @@ mol_db = []
 def get_server():
     return {"server_id": getenv("SERVER_ID", "1")}
 
+
 @app.post("/molecules", status_code=status.HTTP_201_CREATED, tags=["Molecules"], response_description="Molecule added successfully")
 def add_molecule(molecule: Molecule):
     for mol in mol_db:
@@ -23,9 +24,11 @@ def add_molecule(molecule: Molecule):
     mol_db.append(molecule)
     return molecule
 
+
 @app.get("/molecules", tags=["Molecules"], status_code=status.HTTP_200_OK, response_description="List of all molecules")
 def retrieve_molecules():
     return mol_db
+
 
 @app.get("/molecules/{item_id}", tags=["Molecules"], status_code=status.HTTP_200_OK, response_description="Get molecule by ID")
 def get_mol_by_id(item_id: int):
@@ -33,6 +36,7 @@ def get_mol_by_id(item_id: int):
         if molecule["mol_id"] == item_id:
             return molecule
     raise HTTPException(status_code=404, detail="Molecule not found")
+
 
 @app.put("/molecules/{mol_id}", status_code=status.HTTP_200_OK, tags=["Molecules"], response_description="Update molecule by ID")
 def update_mol(mol_id: int, updated_mol: Molecule):
@@ -44,6 +48,7 @@ def update_mol(mol_id: int, updated_mol: Molecule):
             return updated_mol.dict()
     raise HTTPException(status_code=404, detail="Mol is not found")
 
+
 @app.delete("/molecules/{mol_id}", status_code=status.HTTP_200_OK, tags=["Molecules"], response_description="Delete molecule by ID")
 def delete_mol(mol_id: int):
     for index, molecule in enumerate(mol_db):
@@ -51,6 +56,7 @@ def delete_mol(mol_id: int):
             deleted_mol = mol_db.pop(index)
             return deleted_mol
     raise HTTPException(status_code=404, detail="Mol is not found")
+
 
 @app.get("/substructure_search/", tags=["Molecules"], status_code=status.HTTP_200_OK, response_description="Search for molecules with a specific substructure")
 def substructure_search(substructure_name: str):
@@ -68,6 +74,7 @@ def substructure_search(substructure_name: str):
         if each_mol and each_mol.HasSubstructMatch(substructure_mol):
             matches.append(molecule)
     return {"molecules": matches}
+
 
 # In this function, it is assumed to attach a json file, which should include a list of moleculesn with the mol_id and name fields
 @app.post("/upload_file/", status_code=status.HTTP_201_CREATED, tags=["File Upload"], response_description="File uploaded and molecules parsed successfully")
