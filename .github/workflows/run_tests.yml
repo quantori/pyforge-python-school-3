@@ -11,6 +11,9 @@ jobs:
   run-tests:
     runs-on: ubuntu-latest
 
+    env:
+      CI_CD_WORKFLOW_TOKEN: ${{ secrets.CI_CD_WORKFLOW_TOKEN }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
