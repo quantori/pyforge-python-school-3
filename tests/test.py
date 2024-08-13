@@ -3,6 +3,7 @@ import json
 
 ENDPOINT = "http://localhost:8000"
 
+
 def upload_molecules_json(filename='molecules.json'):
     """Helper function to upload a molecules JSON file."""
     with open(filename, 'rb') as file:
@@ -10,11 +11,13 @@ def upload_molecules_json(filename='molecules.json'):
         response = requests.post(ENDPOINT + "/upload_file/", files=files)
     return response
 
+
 def test_get_server():
     """Test to check if the server is up and running."""
     response = requests.get(ENDPOINT)
     assert response.status_code == 200
     assert "server_id" in response.json()
+
 
 def test_upload_file_success():
     """Test successful file upload."""
@@ -25,11 +28,13 @@ def test_upload_file_success():
         "num_molecules": 10
     }
 
+
 def test_get_molecule_by_id():
     """Test retrieving a molecule by ID."""
     response = requests.get(ENDPOINT + "/molecules/4")
     assert response.status_code == 200
     assert response.json() == {"mol_id": 4, "name": "CNC"}
+
 
 def test_update_molecule():
     """Test updating a molecule."""
@@ -40,11 +45,13 @@ def test_update_molecule():
     assert response.status_code == 200
     assert response.json() == {"mol_id": 2, "name": "CNO"}
 
+
 def test_delete_molecule():
     """Test deleting a molecule."""
     response = requests.delete(ENDPOINT + "/molecules/5")
     assert response.status_code == 200
     assert response.json() == {"mol_id": 5, "name": "NNN"}
+
 
 def test_substructure_search_valid_smiles():
     """Test substructure search with valid SMILES."""
@@ -58,6 +65,7 @@ def test_substructure_search_valid_smiles():
     assert "molecules" in data
     assert len(data["molecules"]) > 0
 
+
 def test_substructure_search_invalid_smiles():
     """Test substructure search with invalid SMILES."""
     upload_molecules_json()
@@ -67,6 +75,7 @@ def test_substructure_search_invalid_smiles():
     )
     assert response.status_code == 400
     assert response.json() == {"detail": "Invalid substructure SMILES"}
+
 
 def test_substructure_search_empty_smiles():
     """Test substructure search with empty SMILES."""
@@ -78,6 +87,7 @@ def test_substructure_search_empty_smiles():
     assert response.status_code == 400
     assert response.json() == {"detail": "Invalid substructure SMILES"}
 
+
 def test_substructure_search_special_characters():
     """Test substructure search with special characters."""
     upload_molecules_json()
@@ -87,6 +97,7 @@ def test_substructure_search_special_characters():
     )
     assert response.status_code == 400
     assert response.json() == {"detail": "Invalid substructure SMILES"}
+
 
 def test_substructure_search_large_data():
     """Test substructure search with a large dataset."""
@@ -107,6 +118,7 @@ def test_substructure_search_large_data():
     assert response.status_code == 200
     data = response.json()
     assert len(data["molecules"]) > 0
+
 
 def test_upload_file_invalid_json():
     """Test uploading an invalid JSON file."""
