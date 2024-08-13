@@ -136,8 +136,6 @@ async def create_upload_file(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="Invalid JSON file")
 
     for molecule in molecules:
-        if not {"mol_id", "name"} <= molecule.keys():
-            raise HTTPException(status_code=400, detail="Invalid molecule format")
         if not Chem.MolFromSmiles(molecule["name"]):
             raise HTTPException(
                 status_code=400,
