@@ -93,7 +93,7 @@ def test_substructure_search_special_characters():
     upload_molecules_json()
     response = requests.get(
         ENDPOINT + "/substructure_search/",
-        params={"substructure_name": "CCO"}
+        params={"substructure_name": "CCO$"}
     )
     assert response.status_code == 400
     assert response.json() == {"detail": "Invalid substructure SMILES"}
@@ -123,7 +123,7 @@ def test_upload_file_invalid_json():
     files = {
         'file': (
             'molecules.json',
-            '{"mol_id": 5, "name": "C1=CC=CC=C1"}',
+            '{"mol_id": 5, "name": "C1=CC=CC=C1"',
             'application/json'
         )
     }
