@@ -1,6 +1,6 @@
-from src.models.molecule_models import MoleculeInDB
-from src.schemas.hateoas_schemas import Link
-from src.schemas.molecule_schemas import AddMoleculeRequest, MoleculeResponse
+from .models.molecule_models import MoleculeInDB
+from .schemas.hateoas_schemas import Link
+from .schemas.molecule_schemas import AddMoleculeRequest, MoleculeResponse
 
 
 def molecule_request_to_model(request: AddMoleculeRequest) -> MoleculeInDB:

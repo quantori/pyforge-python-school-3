@@ -1,4 +1,3 @@
-import logging
 
 from fastapi import FastAPI, Depends
 from fastapi.exceptions import HTTPException

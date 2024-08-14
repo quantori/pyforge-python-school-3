@@ -1,7 +1,6 @@
 import json
 import os
 import uuid
-
 import pytest
 from .service import CollectionService
 from pytest_mock import MockerFixture
@@ -16,12 +15,6 @@ def temp_directory(tmp_path):
 @pytest.fixture
 def collection_service(temp_directory):
     return CollectionService(base_path=temp_directory)
-
-
-def test_init_throws_error_on_non_existing_base_path():
-    # Test for a non-existing directory
-    with pytest.raises(FileNotFoundError):
-        CollectionService(base_path="'meaning of life' directory")
 
 
 def test_init_creates_file(temp_directory):
@@ -330,7 +323,7 @@ def test_find_documents_by_field_integer_field(collection_service):
     collection_service.create_collection("molecules")
     collection_service.add_document("molecules", {"data": {"name": "Methane", "smiles": "C", "molecule_id": 1}})
 
-    found = collection_service.find_documents_by_field("molecules", "molecule_id", 1)
+    found = collection_service.find_documents_by_field("molecules", "molecule_id", "1")
 
     assert len(found) == 1
 

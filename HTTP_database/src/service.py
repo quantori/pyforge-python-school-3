@@ -19,9 +19,9 @@ class CollectionService:
         self.collections_dir_path = os.path.join(self.base_path, "collections")
         self.collections_file_path = os.path.join(self.collections_dir_path, "collections.json")
 
-        # Ensure the given base path exists
+        # Ensure the given base path exists, if not create it
         if not os.path.exists(self.base_path):
-            raise FileNotFoundError(f"The directory {self.base_path} does not exist.")
+            os.makedirs(self.base_path)
 
         # Create the collections directory if it doesn't exist
         if not os.path.exists(self.collections_dir_path):

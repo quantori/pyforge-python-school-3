@@ -1,32 +1,29 @@
-import os
-from dotenv import load_dotenv
-
-path_to_dotenv = os.path.join("HTTP_database", ".env")
-load_dotenv(dotenv_path=path_to_dotenv)
+from pydantic import field_validator
+from pydantic_settings import BaseSettings
 
 
-# if BASE_DIRECTORY_CREATE_TYPE == "create" should recreate the directory, if it exists,
-# if BASE_DIRECTORY_CREATE_TYPE == "update" should create the directory if it does not exist
+class Config(BaseSettings):
+    """Configuration settings for the application.
+    Base directory is the directory where the files are stored.
+    The BASE_DIRECTORY_CREATE_TYPE defines how the base directory is created. If it is set to "update", the directory
+    is updated with the new files. If it is set to "create", the directory is replaced with the new files every time
+    the application starts.
 
-class Config:
-    def __init__(self):
-        self.BASE_DIRECTORY = None
-        if not os.environ.get("BASE_DIRECTORY"):
-            self.BASE_DIRECTORY = os.path.join(os.getcwd(), "HTTP_database", "var", "data")
-        else:
-            self.BASE_DIRECTORY = os.environ.get("BASE_DIRECTORY")
-        self.BASE_DIRECTORY_CREATE_TYPE = os.environ.get("BASE_DIRECTORY_CREATE_TYPE", "update")
-        self.init()
+    These settings are supposed to be provided as environment variables or in a .env file. Environment variables always
+    override the values in the .env file(Because of how BaseSettings is implemented in pydantic_settings).
+    """
+    BASE_DIRECTORY: str
+    BASE_DIRECTORY_CREATE_TYPE: str = "update"
 
-    def init(self):
-        if self.BASE_DIRECTORY_CREATE_TYPE == "create":
-            if os.path.exists(self.BASE_DIRECTORY):
-                os.rmdir(self.BASE_DIRECTORY)
-            os.makedirs(self.BASE_DIRECTORY)
+    model_config = {
+        "env_file": "HTTP_database/.env"
+    }
 
-        if self.BASE_DIRECTORY_CREATE_TYPE == "update":
-            if not os.path.exists(self.BASE_DIRECTORY):
-                os.makedirs(self.BASE_DIRECTORY)
+    @classmethod
+    @field_validator('BASE_DIRECTORY_CREATE_TYPE')
+    def validate_create_type(cls, v):
+        if v not in {'update', 'replace'}:
+            raise ValueError('Invalid BASE_DIRECTORY_CREATE_TYPE')
+        return v
 
-        if self.BASE_DIRECTORY_CREATE_TYPE not in ["create", "update"]:
-            raise ValueError("Invalid value for BASE_DIRECTORY_CREATE_TYPE")
+

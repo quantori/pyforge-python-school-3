@@ -1,0 +1,48 @@
+version: '3.7'
+services:
+  http_database:
+#    I have pushed this image to Docker Hub
+    image: gaiozi/http_database_fastapi
+    ports:
+      - "6900:6900"
+    environment:
+      - BASE_DIRECTORY=/data_files
+    networks:
+      - webnet
+    volumes:
+      - ./data_files:/data_files
+
+  web1:
+    build: .
+    environment:
+      SERVER_ID: SERVER-1
+      DATABASE_URL: http://http_database:6900
+    networks:
+      - webnet
+    depends_on:
+      - http_database
+
+  web2:
+    build: .
+    environment:
+      SERVER_ID: SERVER-2
+      DATABASE_URL: http://http_database:6900
+    networks:
+      - webnet
+    depends_on:
+        - http_database
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
+    depends_on:
+      - web1
+      - web2
+    networks:
+      - webnet
+
+networks:
+  webnet:

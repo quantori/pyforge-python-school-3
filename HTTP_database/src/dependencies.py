@@ -1,18 +1,13 @@
-import HTTP_database.src.config as config
-import HTTP_database.src.service as service
+from functools import lru_cache
+from .config import Config
+from .service import CollectionService
 
 
-# singleton config
-
+@lru_cache
 def get_config():
-    if not hasattr(get_config, "config"):
-        get_config.config = config.Config()
-    return get_config.config
+    return Config()
 
 
-# singleton service
-
+@lru_cache
 def get_service():
-    if not hasattr(get_service, "service"):
-        get_service.service = service.CollectionService(get_config().BASE_DIRECTORY)
-    return get_service.service
+    return CollectionService(get_config().BASE_DIRECTORY)

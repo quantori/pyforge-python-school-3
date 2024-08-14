@@ -1,3 +1,5 @@
+import logging
+
 from src.exceptions import RepositoryItemNotFountException, HTTPClientException
 from HTTP_database_client.src.database_client import HTTPDatabaseClient
 from abc import ABC, abstractmethod
@@ -154,6 +156,7 @@ class ExternalPersistentIdGenerator(IDGenerator):
 
 class HTTPMoleculeRepository(AbstractMoleculeRepository):
     def __init__(self, base_url: str, id_generator: IDGenerator = None):
+        logging.info(f"trying to connect to {base_url} ")
         if id_generator is None:
             id_generator = ExternalPersistentIdGenerator(base_url)
         super().__init__(id_generator)

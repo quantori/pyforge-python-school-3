@@ -2,17 +2,19 @@ from typing import Annotated
 
 from fastapi import HTTPException, Query
 from fastapi import status
-import src.repository.molecule_repositories as molecule_repositories
+from .repository.molecule_repositories import AbstractMoleculeRepository, HTTPMoleculeRepository
+from .config import Config
 
 
-def get_http_repo_url():
-    return "localhost:6900"
+def get_config() -> Config:
+    if not hasattr(get_config, "config"):
+        get_config.config = Config()
+    return get_config.config
 
 
-# singleton molecule repository
-def get_molecule_repository() -> molecule_repositories.AbstractMoleculeRepository:
+def get_molecule_repository() -> AbstractMoleculeRepository:
     if not hasattr(get_molecule_repository, "repository"):
-        get_molecule_repository.repository = molecule_repositories.HTTPMoleculeRepository(get_http_repo_url())
+        get_molecule_repository.repository = HTTPMoleculeRepository(get_config().DATABASE_URL)
     return get_molecule_repository.repository
 
 
@@ -24,4 +26,3 @@ def get_common_query_parameters(skip: Annotated[int, Query(description="Offset t
     if limit < 0:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="limit has to be greater or equal to zero")
     return {"skip": skip, "limit": limit}
-

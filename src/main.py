@@ -1,15 +1,21 @@
-from fastapi import FastAPI, Request
-from src.api.routes.molecule_routes import router as molecule_router
-import src.exceptions as exceptions
-import src.exception_handlers as handlers
+from os import getenv
+
+from fastapi import FastAPI
+from .api.routes.molecule_routes import router as molecule_router
+from .exceptions import InvalidSmilesException, UnknownIdentifierException
+from .exception_handlers import invalid_smiles_exception_handler, unknown_identifier_exception_handler
 
 app = FastAPI()
 app.include_router(molecule_router, prefix="/molecules", tags=["molecules"])
 
 
-app.add_exception_handler(exceptions.InvalidSmilesException, handlers.invalid_smiles_exception_handler)
-app.add_exception_handler(exceptions.UnknownIdentifierException, handlers.unknown_identifier_exception_handler)
+@app.get("/")
+def get_server():
+    return {"server_id": getenv("SERVER_ID", "1")}
 
+
+app.add_exception_handler(InvalidSmilesException, invalid_smiles_exception_handler)
+app.add_exception_handler(UnknownIdentifierException, unknown_identifier_exception_handler)
 
 # @app.post("/upload_molecules_csv", status_code=status.HTTP_201_CREATED)
 # async def upload_molecules(file: UploadFile):
