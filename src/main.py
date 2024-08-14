@@ -142,7 +142,6 @@ async def create_upload_file(file: UploadFile = File(...)):
                 detail=f"Invalid SMILES: {molecule['name']}"
             )
         mol_db.append(molecule)
-        
     return {
         "message": "File uploaded and molecules parsed successfully",
         "num_molecules": len(molecules)

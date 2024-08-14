@@ -123,7 +123,7 @@ def test_upload_file_invalid_json():
     files = {
         'file': (
             'molecules.json',
-            '{"mol_id": 5, "name": "C1=CC=CC=C1"',  
+            '{"mol_id": 5, "name": "C1=CC=CC=C1"}',  
             'application/json'
         )
     }
