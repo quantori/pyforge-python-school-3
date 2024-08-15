@@ -5,7 +5,7 @@ on :
     branches:
 #      at the point let's leave it as the current branch for testing reasons
 #      obviously this will be changed to the main branch, but for now let's leave it as is
-      - feature/add-workflows
+      - '**'
 
 jobs:
   run_tests:
