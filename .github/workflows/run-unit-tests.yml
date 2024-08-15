@@ -16,10 +16,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: list packages
-        run: ls
-
-
       # Set up Miniconda and create environment from environment.yml
       - name: Set up Miniconda
         uses: conda-incubator/setup-miniconda@v3
@@ -27,6 +23,13 @@ jobs:
           activate-environment: my-rdkit-env
           environment-file: environment.yml
           auto-activate-base: false
+
+      - name: Install flake8
+        run: conda run -n my-rdkit-env pip install flake8
+
+      # Run flake8 for static analysis
+      - name: Run flake8
+        run: conda run -n my-rdkit-env flake8 src/
 
 
       # For some reason i could not activate the environment, so I had to use conda run
