@@ -1,17 +1,10 @@
 from rdkit import Chem
-from src.exception import InvalidSmilesException
 
 
-def validate_smiles(smiles: str) -> str:
+def fund_substructures(mol, mols):
     """
-    Validate the SMILES string. If the SMILES string is invalid, raise an InvalidSmilesException.
-
-    :param smiles: The SMILES string.
-
-    :return: The validated SMILES string.
-
-    :raises InvalidSmilesException: If the SMILES string is invalid or empty.
+    I will rely on duck typing here, parameters can be  anything that has a SMILES attribute.
     """
-    if not smiles or Chem.MolFromSmiles(smiles) is None:
-        raise InvalidSmilesException(smiles=smiles)
-    return smiles
+
+    return [m for m in mols if Chem.MolFromSmiles(mol.smiles).HasSubstructMatch(Chem.MolFromSmiles(m.smiles))]
+
