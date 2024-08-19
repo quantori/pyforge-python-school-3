@@ -1,44 +1,26 @@
-from typing import Annotated
-
-from fastapi import HTTPException, Query
-from fastapi import status
-from .repository.molecule_repositories import (
-    AbstractMoleculeRepository,
-    HTTPMoleculeRepository,
-)
-from .config import Config
+from functools import lru_cache
+from src.configs import Settings
+from src.repositories import MoleculeRepository
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from src.service import MoleculeService
 
 
-def get_config() -> Config:
-    if not hasattr(get_config, "config"):
-        get_config.config = Config()
-    return get_config.config
+@lru_cache
+def get_database_url():
+    return Settings().database_url
 
 
-def get_molecule_repository() -> AbstractMoleculeRepository:
-    if not hasattr(get_molecule_repository, "repository"):
-        get_molecule_repository.repository = HTTPMoleculeRepository(
-            get_config().DATABASE_URL
-        )
-    return get_molecule_repository.repository
+@lru_cache
+def get_session_factory():
+    return sessionmaker(bind=create_engine(get_database_url()))
 
 
-def get_common_query_parameters(
-    skip: Annotated[
-        int,
-        Query(
-            description="Offset to retrieve molecules in the order of "
-            "their insertion"
-        ),
-    ] = 0,
-    limit: Annotated[
-        int,
-        Query(description="The number of items to return. limit = 0 " "means no limit"),
-    ] = 0,
-) -> dict:
-    if limit < 0:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="limit has to be greater or equal to zero",
-        )
-    return {"skip": skip, "limit": limit}
+@lru_cache()
+def get_molecule_repository():
+    return MoleculeRepository(get_session_factory())
+
+
+@lru_cache
+def get_molecule_service():
+    return MoleculeService(get_molecule_repository())
