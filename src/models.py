@@ -11,4 +11,4 @@ class Molecule(Base):
     name: Mapped[Annotated[Optional[str], mapped_column()]]
 
     def __repr__(self):
-        return f"Molecule(molecule_id={self.molecule_id}, smiles={self.smiles})"
+        return f"Molecule(molecule_id={self.molecule_id}, smiles={self.smiles}, name={self.name})"

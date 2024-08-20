@@ -3,6 +3,7 @@ from src.schemas import MoleculeRequest, MoleculeResponse
 from src.dependencies import get_molecule_service
 from src.service import MoleculeService
 
+
 app = FastAPI()
 
 
