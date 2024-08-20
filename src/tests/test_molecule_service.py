@@ -53,7 +53,9 @@ def test_find_by_id_when_molecule_does_not_exist(molecule_service, mock_reposito
         molecule_service.find_by_id(1)
 
 
-def test_save_molecule(molecule_service, mock_repository):
+def test_save_molecule(molecule_service, mock_repository, mocker):
+    # implementation has to filter by smiles to check for duplicates, so we need to mock the filter method
+    mock_repository.filter = mocker.Mock(return_value=[])
     ethane_request = alkanes["ethane"].copy()
     del ethane_request["molecule_id"]
     molecule_request = MoleculeRequest(**ethane_request)

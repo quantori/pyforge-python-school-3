@@ -41,10 +41,12 @@ class MoleculeResponse(MoleculeRequest):
     molecule_id: Annotated[
         int, Field(..., description="Unique identifier for the molecule")
     ]
-    # created_at: Annotated[
-    #     datetime.datetime, Field(description="Timestamp when the molecule was created")
-    # ]
-
+    created_at: Annotated[
+        datetime.datetime, Field(description="Timestamp when the molecule was created")
+    ]
+    updated_at: Annotated[
+        datetime.datetime, Field(description="Timestamp when the molecule was updated")
+    ]
 
     model_config = {
         "json_schema_extra": {

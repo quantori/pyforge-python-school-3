@@ -2,6 +2,8 @@ class BadRequestException(Exception):
     """
     I did not introduce my own status codes, so 400 is thrown for all bad requests.
     This is like a generic class and makes handling exceptions easier.
+
+    This class is inherited by exceptions like InvalidSmilesException and DuplicateSmilesException
     """
 
     def __init__(self, message):

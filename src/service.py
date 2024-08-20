@@ -39,7 +39,7 @@ class MoleculeService:
         :return: Saved molecule
         """
         same_smiles = self._repository.filter(smiles=molecule_request.smiles)
-        if same_smiles:
+        if len(same_smiles) > 0:
             raise DuplicateSmilesException(molecule_request.smiles)
         return self._repository.save(molecule_request.dict())
 

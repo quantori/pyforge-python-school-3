@@ -16,7 +16,8 @@ class Molecule(Base):
         return f"Molecule(molecule_id={self.molecule_id}, smiles={self.smiles}, name={self.name})"
 
     def to_response(self) -> MoleculeResponse:
-        return MoleculeResponse(molecule_id=self.molecule_id, smiles=self.smiles, name=self.name)
+        return MoleculeResponse(**self.__dict__)
 
     def to_chem(self):
         return Chem.MolFromSmiles(self.smiles)
+
