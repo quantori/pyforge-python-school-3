@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import FastAPI, Depends, status, Body, Path, Request
+from fastapi import FastAPI, Depends, status, Body, Path, Request, Query
 from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
 
@@ -122,3 +122,17 @@ def delete_molecule(
     service: Annotated[MoleculeService, Depends(get_molecule_service)],
 ):
     return service.delete(molecule_id)
+
+
+@app.get("/substructure_search")
+def substructure_search(
+    smiles: Annotated[
+        str,
+        Query(..., description="SMILES string to search for substructures"),
+    ],
+    service: Annotated[MoleculeService, Depends(get_molecule_service)],
+) -> list[MoleculeResponse]:
+    return service.get_substructures(smiles)
+
+
+

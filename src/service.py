@@ -1,6 +1,7 @@
 from src.exceptions import UnknownIdentifierException, DuplicateSmilesException
 from src.repositories import MoleculeRepository
-from src.schemas import MoleculeRequest
+from src.schemas import MoleculeRequest, MoleculeResponse
+from src.utils import get_chem_molecule_from_smiles_or_raise_exception
 
 
 class MoleculeService:
@@ -30,7 +31,7 @@ class MoleculeService:
             raise UnknownIdentifierException(obj_id)
         return self._repository.find_by_id(obj_id)
 
-    def save(self, molecule_request: MoleculeRequest):
+    def save(self, molecule_request: MoleculeRequest) :
         """
         Simply save a new molecule to the database. If the smiles is not unique, the database will raise an exception.
 
@@ -77,3 +78,23 @@ class MoleculeService:
         if not self.exists_by_id(obj_id):
             raise UnknownIdentifierException(obj_id)
         return self._repository.delete(obj_id)
+
+    def get_substructures(self, smiles: str) -> list[MoleculeResponse]:
+        """
+        Find all molecules that are substructures of the given smiles.
+
+        :param smiles: smiles string
+        :return: List of molecules that are substructures of the given smiles
+        :raises InvalidSmilesException: if the smiles does not represent a valid molecule
+        """
+
+        mol = get_chem_molecule_from_smiles_or_raise_exception(smiles)
+        find_all = self._repository.find_all()
+        substructures = []
+        for molecule in find_all:
+            if mol.HasSubstructMatch(molecule.to_chem()):
+                substructures.append(molecule.to_response())
+
+        return substructures
+
+

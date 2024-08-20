@@ -1,3 +1,4 @@
+import datetime
 from typing import Annotated
 
 from black.linegen import Optional
@@ -40,6 +41,10 @@ class MoleculeResponse(MoleculeRequest):
     molecule_id: Annotated[
         int, Field(..., description="Unique identifier for the molecule")
     ]
+    # created_at: Annotated[
+    #     datetime.datetime, Field(description="Timestamp when the molecule was created")
+    # ]
+
 
     model_config = {
         "json_schema_extra": {

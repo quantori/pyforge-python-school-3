@@ -1,6 +1,8 @@
 from typing import Annotated, Optional
 from sqlalchemy.orm import Mapped, mapped_column
 from src.database import Base
+from src.schemas import MoleculeResponse
+from rdkit import Chem
 
 
 class Molecule(Base):
@@ -12,3 +14,9 @@ class Molecule(Base):
 
     def __repr__(self):
         return f"Molecule(molecule_id={self.molecule_id}, smiles={self.smiles}, name={self.name})"
+
+    def to_response(self) -> MoleculeResponse:
+        return MoleculeResponse(molecule_id=self.molecule_id, smiles=self.smiles, name=self.name)
+
+    def to_chem(self):
+        return Chem.MolFromSmiles(self.smiles)

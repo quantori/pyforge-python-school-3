@@ -157,3 +157,13 @@ def test_find_all_delete_by_id(init_db_3_alkanes):
     response_json = response.json()
     assert response.status_code == 200
     assert len(response_json) == 0
+
+
+def test_substructure_search(init_db_3_alkanes):
+    response = client.get("/substructure_search?smiles=CC")
+    response_json = response.json()
+    assert response.status_code == 200
+    assert len(response_json) == 2
+    assert is_equal_dict_without_id(response_json[0], alkanes["methane"])
+    assert is_equal_dict_without_id(response_json[1], alkanes["ethane"])
+
