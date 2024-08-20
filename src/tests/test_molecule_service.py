@@ -70,3 +70,15 @@ def test_update_molecule(molecule_service, mock_repository):
     mock_repository.update.assert_called_once_with(101, ethane_request)
 
 
+def test_delete_molecule(molecule_service, mock_repository):
+    mock_repository.delete.return_value = True
+    result = molecule_service.delete(1)
+    assert result is True
+    mock_repository.delete.assert_called_once_with(1)
+
+
+def test_delete_molecule_that_does_not_exist(molecule_service, mock_repository):
+    mock_repository.delete.return_value = False
+    result = molecule_service.delete(1)
+    assert result is False
+    mock_repository.delete.assert_called_once_with(1)

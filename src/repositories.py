@@ -9,8 +9,6 @@ from src.models import Molecule
 
 class SQLAlchemyRepository:
     """
-    TODO : add pagination support
-
     Base class for all repositories that use SQLAlchemy.
     Updates should be done at the service level.
     https://docs.sqlalchemy.org/en/20/tutorial/orm_data_manipulation.html#updating-orm-objects-using-the-unit-of-work-pattern

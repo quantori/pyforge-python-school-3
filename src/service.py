@@ -1,4 +1,4 @@
-from src.exceptions import UnknownIdentifierException
+from src.exceptions import UnknownIdentifierException, DuplicateSmilesException
 from src.repositories import MoleculeRepository
 from src.schemas import MoleculeRequest
 
@@ -32,11 +32,14 @@ class MoleculeService:
 
     def save(self, molecule_request: MoleculeRequest):
         """
-        Simply save a new molecule to the database.
+        Simply save a new molecule to the database. If the smiles is not unique, the database will raise an exception.
+
         :param molecule_request: Molecule data
         :return: Saved molecule
         """
-
+        same_smiles = self._repository.filter(smiles=molecule_request.smiles)
+        if same_smiles:
+            raise DuplicateSmilesException(molecule_request.smiles)
         return self._repository.save(molecule_request.dict())
 
     def update(self, obj_id: int, molecule_request: MoleculeRequest):
@@ -62,3 +65,15 @@ class MoleculeService:
         :return: List of all molecules
         """
         return self._repository.find_all(page, page_size)
+
+    def delete(self, obj_id: int):
+        """
+        Delete a molecule with the given id. If the molecule does not exist, raise an exception.
+
+        :param obj_id: Identifier of the molecule to be deleted
+        :return: True
+        :raises UnknownIdentifierException: if the molecule with the given id does not exist
+        """
+        if not self.exists_by_id(obj_id):
+            raise UnknownIdentifierException(obj_id)
+        return self._repository.delete(obj_id)

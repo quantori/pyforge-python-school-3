@@ -14,7 +14,7 @@ from src.repositories import MoleculeRepository
 from src.models import Molecule
 from src.tests.sample_data import alkanes, is_equal
 
-engine = create_engine("sqlite:///:memory:", echo=True)
+engine = create_engine("sqlite:///:memory:")
 session_factory = sessionmaker(bind=engine)
 molecule_repository = MoleculeRepository(session_factory)
 
