@@ -9,6 +9,30 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
     ports:
-      - "${DB_PORT}:5432"
+      - ${DB_PORT}:5432
 
+  web1:
+    build: .
+    environment:
+      SERVER_ID: SERVER-1
+    depends_on:
+      - postgres
+    entrypoint: ["/bin/sh", "-c", "alembic revision --autogenerate && alembic upgrade head && fastapi run src/main.py"]
+
+  web2:
+    build: .
+    environment:
+      SERVER_ID: SERVER-2
+    depends_on:
+      - postgres
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
+    depends_on:
+      - web1
+      - web2
 

@@ -124,18 +124,23 @@ def delete_molecule(
     return service.delete(molecule_id)
 
 
-@app.get("/substructure_search",
-         responses={
-                status.HTTP_200_OK: {"model": list[MoleculeResponse]},
-                status.HTTP_400_BAD_REQUEST: {
-                    "model": str,
-                    "description": "Probably due to Invalid SMILES string",
-                },
-         })
+@app.get(
+    "/substructure_search",
+    responses={
+        status.HTTP_200_OK: {"model": list[MoleculeResponse]},
+        status.HTTP_400_BAD_REQUEST: {
+            "model": str,
+            "description": "Probably due to Invalid SMILES string",
+        },
+    },
+)
 def substructure_search(
     smiles: Annotated[
         str,
-        Query(..., description="SMILES string that has to be substructure of the found molecules"),
+        Query(
+            ...,
+            description="SMILES string that has to be substructure of the found molecules",
+        ),
     ],
     service: Annotated[MoleculeService, Depends(get_molecule_service)],
 ) -> list[MoleculeResponse]:
@@ -143,6 +148,3 @@ def substructure_search(
     Find all molecules that ARE SUBSTRUCTURES of the given smile, not vice vera.
     """
     return service.get_substructures(smiles)
-
-
-

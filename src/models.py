@@ -20,4 +20,3 @@ class Molecule(Base):
 
     def to_chem(self):
         return Chem.MolFromSmiles(self.smiles)
-

@@ -166,4 +166,3 @@ def test_substructure_search(init_db_3_alkanes):
     assert len(response_json) == 2
     assert is_equal_dict_without_id(response_json[0], alkanes["methane"])
     assert is_equal_dict_without_id(response_json[1], alkanes["ethane"])
-

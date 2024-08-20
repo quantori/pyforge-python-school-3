@@ -1,27 +1,27 @@
-# base image +1 layer
-FROM continuumio/miniconda3
+# I was using conda environment before but i found it too inconvenient to use with docker
+# So i switched to using pip and requirements.txt
+# This base image example is from fastapi official documentation
+FROM tiangolo/uvicorn-gunicorn-fastapi:python3.10
 
-LABEL maintainer="GT <suiiii@gmail.com>"
-LABEL description="Docker image for fastapi in memory molecules crud"
+# Install rdkit library with pip, This is a big library and takes a while to install,
+# so  I think it's better to install it before copying the rest of the dependencies,
+RUN pip install rdkit
 
-# copy the environment file to the docker image + 1 layer
-# this file is generate by conda env export
-COPY environment.yml .
+# Copy requirements.txt to the container at /app
+COPY requirements.txt /app/
 
-# create the environment and  name it environment + 1 layer
-RUN conda env create -f environment.yml  -n environment
+# Install the dependencies
+RUN pip install -r requirements.txt
 
-# working directory + 1 layer
-WORKDIR /app
+# Copy the content of the local src directory to the container at /app
+COPY . /app/
 
-# copy the source code to the docker image + 1 layer
-COPY /src /app/src
-COPY /HTTP_database_client /app/HTTP_database_client
+# Set the working directory in the container
+WORKDIR /app/
 
-# expose the port 8000
+# make migrations
+#RUN ["alembic", "upgrade", "head"]
+
 EXPOSE 8000
 
-# conda run is the main executable, maybe I should have heft only conda in entrypoint? idk
-# --no-capture-output is for showing fasapi app logs in the termial when container runs
-ENTRYPOINT [ "conda", "run" ]
-CMD ["--no-capture-output", "-n", "environment", "fastapi", "run", "src/main.py"]
+ENTRYPOINT ["fastapi", "run", "src/main.py"]

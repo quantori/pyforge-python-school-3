@@ -31,7 +31,7 @@ class MoleculeService:
             raise UnknownIdentifierException(obj_id)
         return self._repository.find_by_id(obj_id)
 
-    def save(self, molecule_request: MoleculeRequest) :
+    def save(self, molecule_request: MoleculeRequest):
         """
         Simply save a new molecule to the database. If the smiles is not unique, the database will raise an exception.
 
@@ -96,5 +96,3 @@ class MoleculeService:
                 substructures.append(molecule.to_response())
 
         return substructures
-
-
