@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from black.linegen import Optional
+from fastapi import Query
 from pydantic import BaseModel, Field, field_validator
 
 from src.exceptions import InvalidSmilesException
@@ -18,22 +19,19 @@ class MoleculeRequest(BaseModel):
     ]
     name: Annotated[Optional[str], Field(description="Name of the molecule")]
 
-    @classmethod
     @field_validator("smiles")
+    @classmethod
     def validate_smiles(cls, smiles: str):
         if not is_valid_smiles(smiles):
             raise InvalidSmilesException(smiles)
         return smiles
 
     model_config = {
-        "examples": {
-            "aspirin": {
-                "smiles": "CC(=O)Oc1ccccc1C(=O)O",
-                "name": "Aspirin",
-            },
-            "Methane": {
-                "smiles": "C",
-            },
+        "json_schema_extra": {
+            "examples": [
+                {"smiles": "CC(=O)Oc1ccccc1C(=O)O", "name": "Aspirin"},
+                {"smiles": "C"},
+            ]
         }
     }
 
@@ -44,15 +42,28 @@ class MoleculeResponse(MoleculeRequest):
     ]
 
     model_config = {
-        "examples": {
-            "aspirin": {
-                "molecule_id": 1,
-                "smiles": "CC(=O)Oc1ccccc1C(=O)O",
-                "name": "Aspirin",
-            },
-            "Methane": {
-                "molecule_id": 2,
-                "smiles": "C",
-            },
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "molecule_id": 1,
+                    "smiles": "CC(=O)Oc1ccccc1C(=O)O",
+                    "name": "Aspirin",
+                },
+                {
+                    "molecule_id": 2,
+                    "smiles": "C",
+                },
+            ]
         }
     }
+
+
+class PaginationQueryParams(BaseModel):
+    """Query parameters for paginated responses. Page is 0-indexed."""
+
+    page: Annotated[int, Query(0, description="Page number", ge=0)] = 0
+    page_size: Annotated[
+        int, Query(1000, description="Number of items per page", ge=1)
+    ] = 1000
+
+    model_config = {"json_schema_extra": {"examples": [{"page": 0, "limit": 1000}]}}

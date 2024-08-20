@@ -2,7 +2,7 @@ import collections
 
 from src.models import Molecule
 
-# simples organic compounds
+# simplest organic compounds
 alkanes = collections.OrderedDict(
     {
         "methane": {"smiles": "C", "name": "Methane", "molecule_id": 100},
@@ -31,3 +31,29 @@ def is_equal(molecule: Molecule, molecule_dict: dict):
         and molecule.smiles == molecule_dict["smiles"]
         and molecule.name == molecule_dict["name"]
     )
+
+
+def is_equal_dict_without_id(molecule_dict1: dict, molecule_dict2: dict):
+    """
+    :param molecule_dict1: dictionary representing essential args
+    :param molecule_dict2: dictionary representing essential args
+    :return: True if the molecule_dict1 and molecule_dict2 are equal, False otherwise
+    """
+
+    return (
+        molecule_dict1["smiles"] == molecule_dict2["smiles"]
+        and molecule_dict1["name"] == molecule_dict2["name"]
+    )
+
+
+def to_molecule_request_dict(molecule_dict: dict):
+    """
+    Just get rid of the molecule_id key
+
+    :param molecule_dict: dictionary representing essential args
+    :return: MoleculeRequest instance
+    """
+
+    copyo = molecule_dict.copy()
+    del copyo["molecule_id"]
+    return copyo

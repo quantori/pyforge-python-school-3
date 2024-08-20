@@ -1,6 +1,9 @@
 """
 Unit test Molecule Repository. Create sqlite for testing. Override the
 get_session_maker function to return a session maker that uses the in-memory SQLite database.
+
+Not fully Unit test, as it uses the database and does not mock, but that is sqlite in memory. I think it is fine, and
+the best way to test the repository. Service will be mocked though.
 """
 
 import pytest
@@ -9,7 +12,7 @@ from sqlalchemy import create_engine
 from src.database import Base
 from src.repositories import MoleculeRepository
 from src.models import Molecule
-from src.tests.test_data import alkanes, is_equal
+from src.tests.sample_data import alkanes, is_equal
 
 engine = create_engine("sqlite:///:memory:", echo=True)
 session_factory = sessionmaker(bind=engine)

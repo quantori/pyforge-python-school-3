@@ -4,6 +4,7 @@ from src.repositories import MoleculeRepository
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from src.service import MoleculeService
+from src.schemas import PaginationQueryParams
 
 
 @lru_cache
@@ -24,3 +25,8 @@ def get_molecule_repository():
 @lru_cache
 def get_molecule_service():
     return MoleculeService(get_molecule_repository())
+
+
+@lru_cache
+def get_pagination_query_params(page: int = 0, page_size: int = 1000):
+    return PaginationQueryParams(page=page, page_size=page_size)

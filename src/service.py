@@ -4,9 +4,6 @@ from src.schemas import MoleculeRequest
 
 
 class MoleculeService:
-    """
-    This class is too simple now to be tested.
-    """
 
     def __init__(self, repository: MoleculeRepository):
         self._repository = repository
@@ -21,7 +18,6 @@ class MoleculeService:
 
     def find_by_id(self, obj_id: int):
         """
-
         Find a molecule by its id. Calls exists_by_id to check if the molecule exists, resulting in two database calls.
         Not vert impressive, but I am trying to keep it simple.
 
@@ -29,6 +25,7 @@ class MoleculeService:
         :return: found molecule
         :raises UnknownIdentifierException: if the molecule with the given id does not exist
         """
+
         if not self.exists_by_id(obj_id):
             raise UnknownIdentifierException(obj_id)
         return self._repository.find_by_id(obj_id)
@@ -39,6 +36,7 @@ class MoleculeService:
         :param molecule_request: Molecule data
         :return: Saved molecule
         """
+
         return self._repository.save(molecule_request.dict())
 
     def update(self, obj_id: int, molecule_request: MoleculeRequest):
@@ -55,9 +53,12 @@ class MoleculeService:
             raise UnknownIdentifierException(obj_id)
         return self._repository.update(obj_id, molecule_request.dict())
 
-    def find_all(self):
+    def find_all(self, page: int = 0, page_size: int = 1000):
         """
-        Find all molecules in the database. Soon will be paginated.
+        Find all molecules in the database. Can be paginated. Default page size is 1000.
+
+        :param page: Zero indexed page number, default is 0
+        :param page_size: Items per page, default is 1000
         :return: List of all molecules
         """
-        return self._repository.find_all()
+        return self._repository.find_all(page, page_size)
