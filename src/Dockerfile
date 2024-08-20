@@ -4,11 +4,14 @@ ENV PATH="/opt/conda/envs/myenv/bin:$PATH"
 
 WORKDIR /app
 
-COPY . /app
+COPY requirements.txt /app/
 
-RUN conda create --name myenv python=3.8 -y && \
+RUN conda create --name myenv python=3.9 -y && \
     conda run -n myenv pip install --no-cache-dir -r requirements.txt && \
-    conda run -n myenv conda install -y -c conda-forge rdkit
+    conda run -n myenv conda install -y -c conda-forge rdkit && \
+    conda run -n myenv pip install alembic
+
+COPY . /app
 
 EXPOSE 8000
 

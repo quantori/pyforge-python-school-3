@@ -60,6 +60,9 @@ jobs:
       - name: Install Python dependencies
         run: docker-compose exec -T web1 pip install -r requirements.txt
 
+      - name: Run Alembic migrations
+        run: docker-compose exec -T web1 alembic upgrade head
+        
       - name: Run tests with pytest
         run: |
           set -e

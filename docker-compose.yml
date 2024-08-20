@@ -7,7 +7,12 @@ services:
       - ./src:/app
       - ./tests:/app/tests
     environment:
-      SERVER_ID: SERVER-1
+      - SERVER_ID=SERVER-1
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=molecules_db
+      - DB_USER=admin
+      - DB_PASSWORD=password
     networks:
       - mynetwork
     ports:
@@ -21,7 +26,12 @@ services:
       - ./src:/app
       - ./tests:/app/tests
     environment:
-      SERVER_ID: SERVER-2
+      - SERVER_ID=SERVER-2
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=molecules_db
+      - DB_USER=admin
+      - DB_PASSWORD=password
     networks:
       - mynetwork
     ports:
@@ -39,6 +49,41 @@ services:
     networks:
       - mynetwork
 
+  db:
+    image: postgres:latest
+    container_name: postgres_molecule_app
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: molecules_db
+      PGDATA: /var/lib/postgresql/data/pgdata
+    networks:
+      - mynetwork
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data/pgdata
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+    command: >
+      postgres -c max_connections=1000
+               -c shared_buffers=256MB
+               -c effective_cache_size=768MB
+               -c maintenance_work_mem=64MB
+               -c checkpoint_completion_target=0.7
+               -c wal_buffers=16MB
+               -c default_statistics_target=100
+
 networks:
   mynetwork:
     driver: bridge
+
+volumes:
+  pgdata:
+    driver: local
