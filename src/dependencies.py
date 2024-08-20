@@ -1,7 +1,7 @@
 from functools import lru_cache
 from src.configs import Settings
 from src.repositories import MoleculeRepository
-from sqlalchemy import create_engine, StaticPool
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from src.service import MoleculeService
 from src.schemas import PaginationQueryParams
@@ -17,8 +17,7 @@ def get_session_factory():
     if Settings().TEST_MODE:
         return sessionmaker(
             bind=create_engine(
-                get_database_url(),
-                connect_args={"check_same_thread": False}
+                get_database_url(), connect_args={"check_same_thread": False}
             )
         )
 

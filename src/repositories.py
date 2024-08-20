@@ -1,8 +1,6 @@
 from typing import Type
-
-from sqlalchemy import select, func
+from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
-
 from src.database import Base
 from src.models import Molecule
 
@@ -78,7 +76,7 @@ class SQLAlchemyRepository:
             session.commit()
             session.close()
             return True
-        except Exception as e:
+        except Exception:
             return False
 
     def __get_session(self):
