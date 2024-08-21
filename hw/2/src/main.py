@@ -1,36 +1,29 @@
-from fastapi import FastAPI, HTTPException, UploadFile, File
-from models import Molecules
+import os
+from fastapi import FastAPI, HTTPException, Depends, UploadFile, File
+from sqlalchemy.orm import Session
+from models import MoleculeBase
+from db import Molecule, get_db
 from rdkit import Chem
 import io
-import os
 import csv
 
 app = FastAPI()
-
-molecules_db = {
-    "m1": Molecules(identifier="m1", smile="CCO"),
-    "m2": Molecules(identifier="m2", smile="CCN"),
-    "m3": Molecules(identifier="m3", smile="CCCO"),
-    "m4": Molecules(identifier="m4", smile="CC(=O)O"),
-    "m5": Molecules(identifier="m5", smile="C1=CC=CC=C1")
-}
 
 @app.get("/")
 def get_server():
     return {"server_id": os.getenv("SERVER_ID", "1")}
 
-
 @app.get("/smiles")
-def retrive_molecules():
+def retrieve_molecules(db: Session = Depends(get_db)):
     """
     Endpoint to retrieve all smiles from the database.
     Returns a dictionary with all smiles.
     """
-    return molecules_db
-
+    molecules = db.query(Molecule).all()
+    return molecules
 
 @app.get("/smiles/{identifier}")
-def retrieve_molecule(identifier: str):
+def retrieve_molecule(identifier: str, db: Session = Depends(get_db)):
     """
     Endpoint to retrieve a specific smile by its identifier.
     Args:
@@ -40,14 +33,13 @@ def retrieve_molecule(identifier: str):
     Raises:
         HTTPException: If the smile with the given identifier does not exist.
     """
-    molecule = molecules_db.get(identifier)
-    if molecule:
-        return molecule
-    raise HTTPException(status_code=404, detail="Molecule not found")
-
+    molecule = db.query(Molecule).filter(Molecule.identifier == identifier).first()
+    if molecule is None:
+        raise HTTPException(status_code=404, detail="Molecule not found")
+    return molecule
 
 @app.post("/add")
-def add_molecule(molecule: Molecules):
+def add_molecule(molecule: MoleculeBase, db: Session = Depends(get_db)):
     """
     Endpoint to add a new smile to the database.
     Args:
@@ -57,14 +49,17 @@ def add_molecule(molecule: Molecules):
     Raises:
         HTTPException: If a smile with the same identifier already exists.
     """
-    if molecule.identifier in molecules_db:
+    db_molecule = db.query(Molecule).filter(Molecule.identifier == molecule.identifier).first()
+    if db_molecule:
         raise HTTPException(status_code=400, detail="Molecule with this identifier already exists")
-    molecules_db[molecule.identifier] = molecule
-    return molecule
-
+    new_molecule = Molecule(identifier=molecule.identifier, smile=molecule.smile)
+    db.add(new_molecule)
+    db.commit()
+    db.refresh(new_molecule)
+    return new_molecule
 
 @app.put("/smiles/{identifier}")
-def update_molecule(identifier: str, updated_molecule: Molecules):
+def update_molecule(identifier: str, updated_molecule: MoleculeBase, db: Session = Depends(get_db)):
     """
     Endpoint to update an existing smile's information.
     Args:
@@ -75,22 +70,23 @@ def update_molecule(identifier: str, updated_molecule: Molecules):
     Raises:
         HTTPException: If the smile to be updated does not exist or if the new identifier already exists.
     """
-    if identifier in molecules_db:
-        # Remove the old entry if the identifier is different
-        if updated_molecule.identifier != identifier:
-            if updated_molecule.identifier in molecules_db:
-                raise HTTPException(status_code=400, detail="New identifier already exists")
-            del molecules_db[identifier]
-            molecules_db[updated_molecule.identifier] = updated_molecule
-        else:
-            molecules_db[identifier] = updated_molecule
-        return updated_molecule
-    raise HTTPException(status_code=404, detail="Molecule not found")
+    molecule = db.query(Molecule).filter(Molecule.identifier == identifier).first()
+    if molecule is None:
+        raise HTTPException(status_code=404, detail="Molecule not found")
 
+    if updated_molecule.identifier != identifier:
+        db_molecule_with_new_id = db.query(Molecule).filter(Molecule.identifier == updated_molecule.identifier).first()
+        if db_molecule_with_new_id:
+            raise HTTPException(status_code=400, detail="New identifier already exists")
 
+    molecule.identifier = updated_molecule.identifier
+    molecule.smile = updated_molecule.smile
+    db.commit()
+    db.refresh(molecule)
+    return molecule
 
 @app.delete("/delete/{identifier}")
-def delete_molecule(identifier: str):
+def delete_molecule(identifier: str, db: Session = Depends(get_db)):
     """
     Endpoint to delete a specific smile by its identifier.
     Args:
@@ -100,29 +96,25 @@ def delete_molecule(identifier: str):
     Raises:
         HTTPException: If the smile with the given identifier does not exist.
     """
-    if identifier in molecules_db:
-        del molecules_db[identifier]
-        return {"detail": "Molecule deleted"}
-    raise HTTPException(status_code=404, detail="Molecule not found")
-
+    molecule = db.query(Molecule).filter(Molecule.identifier == identifier).first()
+    if molecule is None:
+        raise HTTPException(status_code=404, detail="Molecule not found")
+    db.delete(molecule)
+    db.commit()
+    return {"detail": "Molecule deleted"}
 
 @app.get("/substructures")
-def substructure_search():
+def substructure_search(db: Session = Depends(get_db)):
     """
     Search for substructures within the molecules database.
     Returns a list of molecules that contain substructures from other molecules.
     """
-    # Create a dictionary to store molecule identifiers and their molecules
-    molecules_dict = {mol.identifier: mol for mol in molecules_db.values()}
+    molecules = db.query(Molecule).all()
+    molecule_objects = {mol.identifier: Chem.MolFromSmiles(mol.smile) for mol in molecules}
 
     results = []
-    substructure_matches = {identifier: [] for identifier in molecules_dict}
+    substructure_matches = {identifier: [] for identifier in molecule_objects}
 
-    # Create molecule objects for all molecules once
-    molecule_objects = {identifier: Chem.MolFromSmiles(molecule.smile) 
-                         for identifier, molecule in molecules_dict.items()}
-
-    # Check substructure matches
     for identifier, mol in molecule_objects.items():
         if mol is None:
             continue
@@ -134,10 +126,9 @@ def substructure_search():
             if mol.HasSubstructMatch(sub_mol):
                 substructure_matches[identifier].append({
                     "identifier": sub_id,
-                    "smile": molecules_dict[sub_id].smile
+                    "smile": next(m.smile for m in molecules if m.identifier == sub_id)
                 })
 
-    # Prepare the final result list
     for identifier, matches in substructure_matches.items():
         if matches:
             results.append({
@@ -147,9 +138,8 @@ def substructure_search():
 
     return results
 
-
 @app.post("/upload")
-async def upload_file(file: UploadFile = File(...)):
+async def upload_file(file: UploadFile = File(...), db: Session = Depends(get_db)):
     """
     Endpoint to upload a CSV file containing smile data.
     The CSV file must have 'identifier' and 'smile' columns and use a tab delimiter.
@@ -162,7 +152,7 @@ async def upload_file(file: UploadFile = File(...)):
     """
     if not file.filename.endswith('.csv'):
         raise HTTPException(status_code=400, detail="Only CSV files are supported")
-    
+
     content = await file.read()
     data = io.StringIO(content.decode("utf-8"))
 
@@ -178,9 +168,10 @@ async def upload_file(file: UploadFile = File(...)):
         if not identifier or not smile:
             raise HTTPException(status_code=400, detail="File must contain 'identifier' and 'smile' columns")
 
-        if identifier not in molecules_db:
-            molecule = Molecules(identifier=identifier, smile=smile)
-            molecules_db[identifier] = molecule
+        if db.query(Molecule).filter(Molecule.identifier == identifier).first() is None:
+            molecule = Molecule(identifier=identifier, smile=smile)
+            db.add(molecule)
+            db.commit()
             added_smiles.append(molecule)
 
     return {"added_molecules": added_smiles}

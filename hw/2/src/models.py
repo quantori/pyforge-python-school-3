@@ -1,5 +1,8 @@
 from pydantic import BaseModel
 
-class Molecules(BaseModel):
+class MoleculeBase(BaseModel):
     identifier: str
     smile: str
+
+    class Config:
+        orm_mode = True

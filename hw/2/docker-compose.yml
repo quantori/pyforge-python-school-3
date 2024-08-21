@@ -1,23 +1,41 @@
 version: '3.8'
 
 services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - webnet
+
   web1:
     build: ./src
     volumes:
       - ./src:/app
     environment:
-      SERVER_ID: SERVER-1
+      - SERVER_ID=${SERVER_ID}
+      - DATABASE_URL=${DATABASE_URL}
     networks:
       - webnet
+    depends_on:
+      - db
 
   web2:
     build: ./src
     volumes:
       - ./src:/app
     environment:
-      SERVER_ID: SERVER-2
+      - SERVER_ID=${SERVER_ID}
+      - DATABASE_URL=${DATABASE_URL}
     networks:
       - webnet
+    depends_on:
+      - db
 
   nginx:
     image: nginx:latest
@@ -30,6 +48,10 @@ services:
       - web2
     networks:
       - webnet
+
+volumes:
+  mysql_data:
+
 
 networks:
   webnet:
