@@ -58,7 +58,10 @@ async def add_molecule(molecule: Molecule):
             molecule.smiles
         )
         if mol is None:
-            raise HTTPException(status_code=400, detail="Invalid SMILES string.")
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid SMILES string."
+            )
         molecules[molecule.identifier] = molecule.smiles
         return {"message": "Molecule added successfully."}
     except Exception as e:
