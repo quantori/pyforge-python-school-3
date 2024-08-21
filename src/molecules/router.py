@@ -50,7 +50,7 @@ async def update_molecule(molecule_id: int, updated_molecule: MoleculeUpdate):
     '''
     substructure = Chem.MolFromSmiles(updated_molecule.smiles)
     if not substructure:
-        raise HTTPException(status_code=404, detail="Invalid SMILES molecule")
+        raise HTTPException(status_code=400, detail="Invalid SMILES molecule")
     try:
         updated = await MoleculeDAO.update(molecule_id, updated_molecule)
         
