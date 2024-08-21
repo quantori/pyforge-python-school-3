@@ -11,10 +11,16 @@ from molecules.schema import MoleculeCreate, MoleculeRead
 from molecules.dao import MoleculeDAO
 from molecules.request_body import RBMolecule
 from typing import List
-
+from dotenv import load_dotenv
 
 app = FastAPI()
 
+load_dotenv(".env")
+
+DB_URL = ("DB_URL")
+
+if DB_URL is None:
+    raise ValueError("Database URL is not in env")
 
 @app.get("/")
 def get_server():

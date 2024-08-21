@@ -8,11 +8,7 @@ services:
       - ./tests:/app/tests
     environment:
       - SERVER_ID=SERVER-1
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_NAME=molecules_db
-      - DB_USER=admin
-      - DB_PASSWORD=password
+      - DB_URL=${DB_URL}
     networks:
       - mynetwork
     ports:
@@ -27,11 +23,7 @@ services:
       - ./tests:/app/tests
     environment:
       - SERVER_ID=SERVER-2
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_NAME=molecules_db
-      - DB_USER=admin
-      - DB_PASSWORD=password
+      - DB_URL=${DB_URL}
     networks:
       - mynetwork
     ports:
@@ -53,9 +45,9 @@ services:
     image: postgres:latest
     container_name: postgres_molecule_app
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: molecules_db
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
       PGDATA: /var/lib/postgresql/data/pgdata
     networks:
       - mynetwork
