@@ -41,7 +41,10 @@ def test_substructure_search_single_atom(setup_teardown):
 
 def test_substructure_search_ring(setup_teardown):
     # Test searching for a benzene ring substructure
-    response = client.post("/search/", json={"substructure": "c1ccccc1"})
+    response = client.post(
+        "/search/",
+        json={"substructure": "c1ccccc1"}
+    )
     assert response.status_code == 200
     result = response.json()
     expected = [
@@ -53,7 +56,10 @@ def test_substructure_search_ring(setup_teardown):
 
 def test_substructure_search_exact_match(setup_teardown):
     # Test searching for an exact match
-    response = client.post("/search/", json={"substructure": "CC(=O)O"})
+    response = client.post(
+        "/search/",
+        json={"substructure": "CC(=O)O"}
+    )
     assert response.status_code == 200
     result = response.json()
     expected = [
@@ -65,7 +71,10 @@ def test_substructure_search_exact_match(setup_teardown):
 
 def test_substructure_search_multiple_matches(setup_teardown):
     # Test searching for a substructure that appears in multiple molecules
-    response = client.post("/search/", json={"substructure": "CC"})
+    response = client.post(
+        "/search/",
+        json={"substructure": "CC"}
+    )
     assert response.status_code == 200
     result = response.json()
     expected = [
@@ -101,7 +110,10 @@ def test_substructure_search_special_case(setup_teardown):
 
 def test_substructure_search_large_molecule(setup_teardown):
     # Test searching with a large molecule substructure
-    response = client.post("/search/", json={"substructure": "CC(=O)Oc1ccccc1"})
+    response = client.post(
+        "/search/",
+        json={"substructure": "CC(=O)Oc1ccccc1"}
+    )
     assert response.status_code == 200
     result = response.json()
     expected = [
