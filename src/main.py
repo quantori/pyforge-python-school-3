@@ -164,4 +164,4 @@ async def search_substructure(query: SubstructureQuery):
             if smiles in matching_molecules
         ]
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail="Invalid substructure SMILES string.")

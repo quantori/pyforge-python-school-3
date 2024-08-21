@@ -33,6 +33,7 @@ def test_substructure_search_single_atom(setup_teardown):
     expected = [
         {"identifier": "methane", "smiles": "C"},
         {"identifier": "ethanol", "smiles": "CCO"},
+        {"identifier": "benzene", "smiles": "c1ccccc1"},
         {"identifier": "acetic_acid", "smiles": "CC(=O)O"},
         {"identifier": "aspirin", "smiles": "CC(=O)Oc1ccccc1C(=O)O"},
     ]
@@ -93,15 +94,16 @@ def test_substructure_search_no_matches(setup_teardown):
     assert result == []
 
 
-def test_substructure_search_empty_substructure(setup_teardown):
+def test_substructure_search_invalid_substructure(setup_teardown):
     # Test searching with an empty substructure (should return an error)
     response = client.post(
         "/search/",
-        json={"substructure": ""}
+        json={"substructure": "some_string"}
     )
+    print(response.text)
     assert response.status_code == 400
     assert response.json() == {
-        "detail": "Substructure SMILES string cannot be empty."
+        "detail": "Invalid substructure SMILES string."
     }
 
 
