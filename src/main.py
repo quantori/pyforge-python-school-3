@@ -155,7 +155,9 @@ async def search_substructure(query: SubstructureQuery):
                 detail="Invalid substructure SMILES string."
             )
 
-        matching_molecules = substructure_search(molecules.values(), query.substructure)
+        matching_molecules = substructure_search(
+            molecules.values(), query.substructure
+        )
         return [
             {"identifier": identifier, "smiles": smiles}
             for identifier, smiles in molecules.items()

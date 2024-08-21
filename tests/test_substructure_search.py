@@ -100,7 +100,9 @@ def test_substructure_search_empty_substructure(setup_teardown):
         json={"substructure": ""}
     )
     assert response.status_code == 400
-    assert response.json() == {"detail": "Substructure SMILES string cannot be empty."}
+    assert response.json() == {
+        "detail": "Substructure SMILES string cannot be empty."
+    }
 
 
 def test_substructure_search_special_case(setup_teardown):
