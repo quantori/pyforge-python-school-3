@@ -95,14 +95,20 @@ def test_substructure_search_no_matches(setup_teardown):
 
 def test_substructure_search_empty_substructure(setup_teardown):
     # Test searching with an empty substructure (should return an error)
-    response = client.post("/search/", json={"substructure": ""})
+    response = client.post(
+        "/search/",
+        json={"substructure": ""}
+    )
     assert response.status_code == 400
     assert response.json() == {"detail": "Substructure query cannot be empty"}
 
 
 def test_substructure_search_special_case(setup_teardown):
-    # Test searching with a special or complex substructure
-    response = client.post("/search/", json={"substructure": "O=O"})
+    # Test searching: special or complex substructure
+    response = client.post(
+        "/search/",
+        json={"substructure": "O=O"}
+    )
     assert response.status_code == 200
     result = response.json()
     assert result == []  # No sample molecule has this exact substructure

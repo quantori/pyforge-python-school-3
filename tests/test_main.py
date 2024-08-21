@@ -117,7 +117,10 @@ def test_search_substructure(setup_teardown):
     result = response.json()
     assert len(result) == 2
     assert {"identifier": "ethanol", "smiles": "CCO"} in result
-    assert {"identifier": "aspirin", "smiles": "CC(=O)Oc1ccccc1C(=O)O"} in result
+    assert {
+               "identifier": "aspirin",
+               "smiles": "CC(=O)Oc1ccccc1C(=O)O"} \
+           in result
 
     # Test searching with an invalid substructure SMILES
     response = client.post("/search/", json={"substructure": "invalid_smiles"})
