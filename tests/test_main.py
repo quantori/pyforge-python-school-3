@@ -27,14 +27,24 @@ def setup_teardown():
 
 
 def test_add_molecule():
-    response = client.post("/molecule", json={"identifier": "test", "smiles": "CCO"})
+    response = client.post(
+        "/molecule",
+        json={"identifier": "test", "smiles": "CCO"}
+    )
     assert response.status_code == 200
-    assert response.json() == {"message": "Molecule added successfully."}
+    assert response.json() == {
+        "message": "Molecule added successfully."
+    }
 
     # Test adding a molecule with the same identifier (should fail)
-    response = client.post("/molecule", json={"identifier": "test", "smiles": "C"})
+    response = client.post(
+        "/molecule",
+        json={"identifier": "test", "smiles": "C"}
+    )
     assert response.status_code == 400
-    assert response.json() == {"detail": "Molecule with this identifier already exists."}
+    assert response.json() == {
+        "detail": "Molecule with this identifier already exists."
+    }
 
     # Cleanup
     client.delete("/molecule/test")
@@ -43,27 +53,40 @@ def test_add_molecule():
 def test_get_molecule(setup_teardown):
     response = client.get("/molecule/water")
     assert response.status_code == 200
-    assert response.json() == {"identifier": "water", "smiles": "O"}
+    assert response.json() == {
+        "identifier": "water", "smiles": "O"
+    }
 
     # Test getting a non-existing molecule
-    response = client.get("/molecule/non_existing")
+    response = client.get(
+        "/molecule/non_existing"
+    )
     assert response.status_code == 404
     assert response.json() == {"detail": "Molecule not found."}
 
 
 def test_update_molecule(setup_teardown):
     # Update molecule
-    response = client.put("/molecule/water", json={"identifier": "water", "smiles": "OO"})
+    response = client.put(
+        "/molecule/water",
+        json={"identifier": "water", "smiles": "OO"}
+    )
     assert response.status_code == 200
-    assert response.json() == {"message": "Molecule updated successfully."}
+    assert response.json() == {
+        "message": "Molecule updated successfully."
+    }
 
     # Check the update
     response = client.get("/molecule/water")
     assert response.status_code == 200
-    assert response.json() == {"identifier": "water", "smiles": "OO"}
+    assert response.json() == {
+        "identifier": "water", "smiles": "OO"
+    }
 
     # Test updating a non-existing molecule
-    response = client.put("/molecule/non_existing", json={"identifier": "non_existing", "smiles": "C"})
+    response = client.put(
+        "/molecule/non_existing",
+        json={"identifier": "non_existing", "smiles": "C"})
     assert response.status_code == 404
     assert response.json() == {"detail": "Molecule not found."}
 
@@ -72,7 +95,9 @@ def test_delete_molecule(setup_teardown):
     # Delete molecule
     response = client.delete("/molecule/water")
     assert response.status_code == 200
-    assert response.json() == {"message": "Molecule deleted successfully."}
+    assert response.json() == {
+        "message": "Molecule deleted successfully."
+    }
 
     # Check the deletion
     response = client.get("/molecule/water")
