@@ -1,4 +1,5 @@
 from os import getenv
+from typing import List
 
 from rdkit import Chem
 from fastapi import FastAPI, HTTPException
@@ -18,6 +19,10 @@ class Molecule(BaseModel):
     smiles: str
 
 
+class SubstructureQuery(BaseModel):
+    substructure: str
+
+
 def substructure_search(mols, mol):
     """
     :param mols: list of molecules
@@ -25,9 +30,10 @@ def substructure_search(mols, mol):
     :return: matching molecules
     """
     # List to store molecules that contain the substructure (mol)
+    molecule = Chem.MolFromSmiles(mol)
     matching_molecules = [
         smiles for smiles in mols if
-        Chem.MolFromSmiles(smiles).HasSubstructMatch(Chem.MolFromSmiles(mol))
+        Chem.MolFromSmiles(smiles).HasSubstructMatch(molecule)
     ]
     return matching_molecules
 
@@ -133,21 +139,23 @@ async def list_molecules():
     ]
 
 
-@app.post("/search/", summary="Substructure Search")
-async def search_substructure(substructure: str):
+@app.post("/search/", summary="Substructure Search", response_model=List[dict])
+async def search_substructure(query: SubstructureQuery):
     """
     Search for molecules containing a given substructure.
 
     - **substructure**: SMILES representation of the substructure.
     """
     try:
-        sub_mol = Chem.MolFromSmiles(substructure)
+
+        sub_mol = Chem.MolFromSmiles(query.substructure)
         if sub_mol is None:
             raise HTTPException(
                 status_code=400,
                 detail="Invalid substructure SMILES string."
             )
-        matching_molecules = substructure_search(molecules.values(), sub_mol)
+
+        matching_molecules = substructure_search(molecules.values(), query.substructure)
         return [
             {"identifier": identifier, "smiles": smiles}
             for identifier, smiles in molecules.items()
