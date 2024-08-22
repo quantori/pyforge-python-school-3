@@ -6,9 +6,11 @@ services:
     volumes:
       - ./src:/app
       - ./tests:/app/tests
+    env_file:
+      - .env
     environment:
-      - SERVER_ID=SERVER-1
-      - DB_URL=${DB_URL}
+      SERVER_ID: SERVER-1
+      DB_URL: ${DB_URL}
     networks:
       - mynetwork
     ports:
@@ -21,9 +23,11 @@ services:
     volumes:
       - ./src:/app
       - ./tests:/app/tests
+    env_file:
+      - .env
     environment:
-      - SERVER_ID=SERVER-2
-      - DB_URL=${DB_URL}
+      SERVER_ID: SERVER-2
+      DB_URL: ${DB_URL}
     networks:
       - mynetwork
     ports:
@@ -44,6 +48,8 @@ services:
   db:
     image: postgres:latest
     container_name: postgres_molecule_app
+    env_file:
+      - .env
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
