@@ -13,7 +13,7 @@ from molecules.request_body import RBMolecule
 from typing import List
 from dotenv import load_dotenv
 
-app = FastAPI()
+app = FastAPI()  
 
 load_dotenv(".env")
 
@@ -48,9 +48,9 @@ async def add_molecule(molecule: MoleculeCreate, db: AsyncSession = Depends(get_
             detail=f"Invalid SMILES: {molecule.name}"
         )
     
-    db_molecule = MoleculeModel(id=molecule.id, name=molecule.name)
-    await MoleculeDAO.add(db_molecule, db)
-    return db_molecule
+    molecules_db = MoleculeModel(id=molecule.id, name=molecule.name)
+    await MoleculeDAO.add(molecules_db, db)
+    return molecules_db
 
 @app.get(
     "/molecules",
