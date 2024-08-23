@@ -74,6 +74,11 @@ class MoleculeService:
         """
         if not self.exists_by_id(obj_id):
             raise UnknownIdentifierException(obj_id)
+
+        same_smiles = self._repository.filter(smiles=molecule_request.smiles)
+        if len(same_smiles) > 0:
+            raise DuplicateSmilesException(molecule_request.smiles)
+
         mol = self._repository.update(obj_id, molecule_request.model_dump())
         return mol.to_response()
 

@@ -14,7 +14,6 @@ class MoleculeRequest(BaseModel):
     smiles: Annotated[
         str,
         Field(
-            ...,
             min_length=1,
             description="SMILES string of the molecule, should be unique",
         ),
@@ -40,7 +39,7 @@ class MoleculeRequest(BaseModel):
 
 class MoleculeResponse(MoleculeRequest, BaseResponse):
     molecule_id: Annotated[
-        int, Field(..., description="Unique identifier for the molecule")
+        int, Field(description="Unique identifier for the molecule")
     ]
     created_at: Annotated[
         datetime.datetime, Field(description="Timestamp when the molecule was created")

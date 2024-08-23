@@ -1,5 +1,5 @@
 name: Run Tests and Check Coverage
-# This workflow is triggered on pushes to the main branch and pull requests to the main branch.
+# This workflow is triggered on pushes to the develop branch and pull requests to the develop branch.
 # It runs the tests and checks the coverage of the code.
 # For some reason I had to use python 3.10 in dockerfile and here i will leave it is
 
