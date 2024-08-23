@@ -6,17 +6,16 @@ import pytest
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine, StaticPool
 from src.database import Base
-from src.dependencies import get_molecule_service
-from src.repositories import MoleculeRepository
-from src.models import Molecule
-from src.service import MoleculeService
-from src.tests.sample_data import (
+from src.molecules.service import get_molecule_service, MoleculeService
+from src.molecules.molecule_repository import MoleculeRepository
+from src.molecules.models import Molecule
+from src.molecules.tests.sample_data import (
     alkanes,
     to_molecule_request_dict,
     is_equal_dict_without_id,
 )
 from fastapi.testclient import TestClient
-from src.main import app
+from src.molecules.main import app
 
 # engine = create_engine("postgresql://user:password@localhost:5432/db_test")
 engine = create_engine(

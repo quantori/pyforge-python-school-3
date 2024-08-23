@@ -1,7 +1,13 @@
-from src.exceptions import UnknownIdentifierException, DuplicateSmilesException
-from src.repositories import MoleculeRepository
-from src.schemas import MoleculeRequest, MoleculeResponse
-from src.utils import get_chem_molecule_from_smiles_or_raise_exception
+from functools import lru_cache
+
+from src.exceptions import UnknownIdentifierException
+from src.molecules.molecule_exceptions import DuplicateSmilesException
+from src.molecules.molecule_repository import (
+    MoleculeRepository,
+    get_molecule_repository,
+)
+from src.molecules.schemas import MoleculeRequest, MoleculeResponse
+from src.molecules.utils import get_chem_molecule_from_smiles_or_raise_exception
 
 
 class MoleculeService:
@@ -29,7 +35,8 @@ class MoleculeService:
 
         if not self.exists_by_id(obj_id):
             raise UnknownIdentifierException(obj_id)
-        return self._repository.find_by_id(obj_id)
+        mol = self._repository.find_by_id(obj_id)
+        return mol.to_response()
 
     def save(self, molecule_request: MoleculeRequest):
         """
@@ -41,7 +48,8 @@ class MoleculeService:
         same_smiles = self._repository.filter(smiles=molecule_request.smiles)
         if len(same_smiles) > 0:
             raise DuplicateSmilesException(molecule_request.smiles)
-        return self._repository.save(molecule_request.dict())
+        mol = self._repository.save(molecule_request.model_dump())
+        return mol.to_response()
 
     def update(self, obj_id: int, molecule_request: MoleculeRequest):
         """
@@ -55,7 +63,8 @@ class MoleculeService:
         """
         if not self.exists_by_id(obj_id):
             raise UnknownIdentifierException(obj_id)
-        return self._repository.update(obj_id, molecule_request.dict())
+        mol = self._repository.update(obj_id, molecule_request.model_dump())
+        return mol.to_response()
 
     def find_all(self, page: int = 0, page_size: int = 1000):
         """
@@ -65,7 +74,8 @@ class MoleculeService:
         :param page_size: Items per page, default is 1000
         :return: List of all molecules
         """
-        return self._repository.find_all(page, page_size)
+        find_all = self._repository.find_all(page, page_size)
+        return [molecule.to_response() for molecule in find_all]
 
     def delete(self, obj_id: int):
         """
@@ -96,3 +106,8 @@ class MoleculeService:
                 substructures.append(molecule.to_response())
 
         return substructures
+
+
+@lru_cache
+def get_molecule_service():
+    return MoleculeService(get_molecule_repository())

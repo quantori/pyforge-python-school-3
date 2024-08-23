@@ -3,10 +3,11 @@ from fastapi import FastAPI, Depends, status, Body, Path, Request, Query
 from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
 from src.exceptions import BadRequestException, UnknownIdentifierException
-from src.schemas import MoleculeRequest, MoleculeResponse
-from src.dependencies import get_molecule_service, get_pagination_query_params
-from src.schemas import PaginationQueryParams
-from src.service import MoleculeService
+from src.molecules.schemas import MoleculeRequest, MoleculeResponse
+from src.molecules.dependencies import get_pagination_query_params
+from src.molecules.service import get_molecule_service
+from src.molecules.schemas import PaginationQueryParams
+from src.molecules.service import MoleculeService
 
 app = FastAPI()
 

@@ -1,7 +1,7 @@
 from typing import Annotated, Optional
 from sqlalchemy.orm import Mapped, mapped_column
 from src.database import Base
-from src.schemas import MoleculeResponse
+from src.molecules.schemas import MoleculeResponse
 from rdkit import Chem
 
 
@@ -16,7 +16,20 @@ class Molecule(Base):
         return f"Molecule(molecule_id={self.molecule_id}, smiles={self.smiles}, name={self.name})"
 
     def to_response(self) -> MoleculeResponse:
-        return MoleculeResponse(**self.__dict__)
+        links = {
+            "self": {
+                "href": f"/molecules/{self.molecule_id}",
+                "rel": "self",
+                "type": "GET",
+            },
+            "substructures": {
+                "href": f"/substructure_search?smiles={self.smiles}",
+                "rel": "substructures",
+                "type": "GET",
+            }
+        }
+
+        return MoleculeResponse(links=links, **self.__dict__)
 
     def to_chem(self):
         return Chem.MolFromSmiles(self.smiles)

@@ -2,7 +2,6 @@ from typing import Type
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 from src.database import Base
-from src.models import Molecule
 
 
 class SQLAlchemyRepository:
@@ -81,8 +80,3 @@ class SQLAlchemyRepository:
 
     def __get_session(self):
         return self._session_factory()
-
-
-class MoleculeRepository(SQLAlchemyRepository):
-    def __init__(self, session_factory: sessionmaker):
-        super().__init__(Molecule, session_factory)

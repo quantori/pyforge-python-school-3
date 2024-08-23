@@ -10,9 +10,9 @@ import pytest
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from src.database import Base
-from src.repositories import MoleculeRepository
-from src.models import Molecule
-from src.tests.sample_data import alkanes, is_equal
+from src.molecules.molecule_repository import MoleculeRepository
+from src.molecules.models import Molecule
+from src.molecules.tests.sample_data import alkanes, is_equal
 
 engine = create_engine("sqlite:///:memory:")
 session_factory = sessionmaker(bind=engine)

@@ -6,12 +6,12 @@ Using mocks to test the service without the database.
 """
 
 import pytest
-from src.service import MoleculeService
+from src.molecules.service import MoleculeService
 from src.exceptions import UnknownIdentifierException
-from src.models import Molecule
-from src.tests.sample_data import alkanes
-from src.tests.sample_data import is_equal
-from src.schemas import MoleculeRequest
+from src.molecules.models import Molecule
+from src.molecules.tests.sample_data import alkanes
+from src.molecules.tests.sample_data import is_equal
+from src.molecules.schemas import MoleculeRequest
 
 
 # Fixture to create a mock repository
@@ -43,6 +43,7 @@ def test_exists_by_id_when_molecule_does_not_exist(molecule_service, mock_reposi
 def test_find_by_id_when_molecule_exists(molecule_service, mock_repository):
     mock_repository.find_by_id.return_value = Molecule(**alkanes["methane"])
     molecule = molecule_service.find_by_id(1)
+    print(molecule, "tabata")
     assert is_equal(molecule, alkanes["methane"])
     mock_repository.find_by_id.assert_called_with(1)
 

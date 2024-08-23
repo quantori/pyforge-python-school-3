@@ -1,6 +1,6 @@
 from rdkit import Chem
 
-from src.exceptions import InvalidSmilesException
+from src.molecules.molecule_exceptions import InvalidSmilesException
 
 
 def is_valid_smiles(smiles: str) -> bool:
