@@ -163,4 +163,3 @@ async def upload_molecules(
 
     res = service.process_csv_file(file)
     return {"number_of_molecules_added": res}
-
