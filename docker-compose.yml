@@ -17,7 +17,7 @@ services:
       SERVER_ID: SERVER-1
     depends_on:
       - postgres
-    entrypoint: ["/bin/sh", "-c", "alembic revision --autogenerate && alembic upgrade head && fastapi run src/main.py"]
+    entrypoint: ["/bin/sh", "-c", "alembic revision --autogenerate && alembic upgrade head && fastapi run src/molecules/main.py"]
 
   web2:
     build: .

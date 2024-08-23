@@ -8,9 +8,10 @@ def is_valid_smiles(smiles: str) -> bool:
     Check if a SMILES string represents a valid molecule.
 
     :param smiles: SMILES string
-    :return: True if the SMILES string represents a valid molecule, False otherwise
+    :return: True if the SMILES string not empty and represents a valid molecule , False otherwise
     """
-
+    if not smiles:
+        return False
     return Chem.MolFromSmiles(smiles) is not None
 
 

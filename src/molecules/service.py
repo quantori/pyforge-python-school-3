@@ -1,16 +1,27 @@
+import csv
 from functools import lru_cache
 
+from fastapi import UploadFile
+
 from src.exceptions import UnknownIdentifierException
-from src.molecules.molecule_exceptions import DuplicateSmilesException
+from src.molecules.molecule_exceptions import (
+    DuplicateSmilesException,
+    InvalidCsvHeaderColumnsException,
+    InvalidSmilesException,
+)
 from src.molecules.molecule_repository import (
     MoleculeRepository,
     get_molecule_repository,
 )
 from src.molecules.schemas import MoleculeRequest, MoleculeResponse
-from src.molecules.utils import get_chem_molecule_from_smiles_or_raise_exception
+from src.molecules.utils import (
+    get_chem_molecule_from_smiles_or_raise_exception,
+    is_valid_smiles,
+)
 
 
 class MoleculeService:
+    required_columns = {"smiles", "name"}
 
     def __init__(self, repository: MoleculeRepository):
         self._repository = repository
@@ -106,6 +117,51 @@ class MoleculeService:
                 substructures.append(molecule.to_response())
 
         return substructures
+
+    def process_csv_file(self, file: UploadFile):
+        """
+        Process a CSV file and add molecules to the database. The CSV file must have the following columns:
+
+        - smiles
+        - name
+
+        Lines that have incorrect format, missing smiles string or invalid smiles string are ignored, and the valid
+        molecules are added to the database.
+
+        :return: Number of molecules added successfully
+        """
+
+        contents = file.file.read().decode("utf-8")
+        csv_reader = csv.DictReader(contents.splitlines())
+
+        self.__validate_csv_header_columns(set(csv_reader.fieldnames))
+
+        number_of_molecules_added = 0
+
+        for row in csv_reader:
+            try:
+                if not is_valid_smiles(row["smiles"]):
+                    raise InvalidSmilesException(row["smiles"])
+                self.save(MoleculeRequest(smiles=row["smiles"], name=row["name"]))
+                number_of_molecules_added += 1
+            except Exception as e:
+                """
+                We are ignoring the exception and continuing to the next line. It is not important
+                whole file to be valid, we just want to add as many molecules as possible.
+                """
+                print(e)
+        return number_of_molecules_added
+
+    def __validate_csv_header_columns(self, columns: set[str]):
+        """
+
+        :param columns:
+        :return:
+        :raises InvalidCsvHeaderColumnsException:
+        """
+        missing_columns = self.required_columns - columns
+        if missing_columns:
+            raise InvalidCsvHeaderColumnsException(missing_columns)
 
 
 @lru_cache

@@ -1,0 +1,11 @@
+name,smiles,extra_column_are_ok
+Methane,C
+Ethane,CC
+Propane,CCC
+Butane,CCCC
+Pentane,CCCCC
+Hexane,CCCCCC
+Heptane,CCCCCCC
+Octane,CCCCCCCC
+Nonane,CCCCCCCCC
+Decane,CCCCCCCCCC

@@ -10,7 +10,11 @@ class Link(BaseModel):
         "json_schema_extra": {
             "examples": [
                 {"href": "/molecules/1", "rel": "self", "type": "GET"},
-                {"href": "/substructure_search?smiles=C", "rel": "substructures", "type": "GET"},
+                {
+                    "href": "/substructure_search?smiles=C",
+                    "rel": "substructures",
+                    "type": "GET",
+                },
             ]
         }
     }
@@ -23,7 +27,11 @@ class BaseResponse(BaseModel):
         "json_schema_extra": {
             "examples": {
                 "self": {"href": "/molecules/1", "rel": "self", "type": "GET"},
-                "substructures": {"href": "/substructure_search?smiles=C", "rel": "substructures", "type": "GET"},
+                "substructures": {
+                    "href": "/substructure_search?smiles=C",
+                    "rel": "substructures",
+                    "type": "GET",
+                },
             }
         }
     }

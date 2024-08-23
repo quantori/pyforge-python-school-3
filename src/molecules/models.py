@@ -26,7 +26,7 @@ class Molecule(Base):
                 "href": f"/substructure_search?smiles={self.smiles}",
                 "rel": "substructures",
                 "type": "GET",
-            }
+            },
         }
 
         return MoleculeResponse(links=links, **self.__dict__)

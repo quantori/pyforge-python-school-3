@@ -1,5 +1,5 @@
 from typing import Annotated
-from fastapi import FastAPI, Depends, status, Body, Path, Request, Query
+from fastapi import FastAPI, Depends, status, Body, Path, Request, Query, UploadFile
 from fastapi.encoders import jsonable_encoder
 from starlette.responses import JSONResponse
 from src.exceptions import BadRequestException, UnknownIdentifierException
@@ -147,3 +147,20 @@ def substructure_search(
     Find all molecules that ARE SUBSTRUCTURES of the given smile, not vice vera.
     """
     return service.get_substructures(smiles)
+
+
+@app.post("/upload_molecules_csv", status_code=status.HTTP_201_CREATED)
+async def upload_molecules(
+    file: UploadFile, service: Annotated[MoleculeService, Depends(get_molecule_service)]
+):
+    """
+    Upload a CSV file containing molecules to the repository.
+    Uploaded CSV file is not stored on the server, only the molecules are extracted and stored in the memory.
+    The CSV file should have the following columns: smiles,name
+    Lines that have incorrect format, missing smiles string or invalid smiles string are ignored.
+
+    """
+
+    res = service.process_csv_file(file)
+    return {"number_of_molecules_added": res}
+

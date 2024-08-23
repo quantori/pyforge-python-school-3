@@ -16,7 +16,7 @@ class SQLAlchemyRepository:
         self._session_factory = session_factory
 
     def find_by_id(self, obj_id):
-        with self.__get_session() as session:
+        with self._get_session() as session:
             return session.get(self._model_type, obj_id)
 
     def find_all(self, page=0, page_size=1000):
@@ -29,7 +29,7 @@ class SQLAlchemyRepository:
         :return: List of instances
         """
 
-        session = self.__get_session()
+        session = self._get_session()
         stmt = select(self._model_type).limit(page_size).offset(page * page_size)
 
         result = session.execute(stmt).scalars().all()
@@ -38,12 +38,12 @@ class SQLAlchemyRepository:
         return result
 
     def filter(self, **kwargs):
-        with self.__get_session() as session:
+        with self._get_session() as session:
             stmt = select(self._model_type).filter_by(**kwargs)
             return session.execute(stmt).scalars().all()
 
     def save(self, data: dict):
-        session = self.__get_session()
+        session = self._get_session()
         instance = self._model_type(**data)
         session.add(instance)
         session.commit()
@@ -52,7 +52,7 @@ class SQLAlchemyRepository:
         return instance
 
     def update(self, obj_id, data: dict):
-        session = self.__get_session()
+        session = self._get_session()
         instance = session.get(self._model_type, obj_id)
         for key, value in data.items():
             setattr(instance, key, value)
@@ -69,7 +69,7 @@ class SQLAlchemyRepository:
         """
 
         try:
-            session = self.__get_session()
+            session = self._get_session()
             instance = session.get(self._model_type, obj_id)
             session.delete(instance)
             session.commit()
@@ -78,5 +78,5 @@ class SQLAlchemyRepository:
         except Exception:
             return False
 
-    def __get_session(self):
+    def _get_session(self):
         return self._session_factory()
