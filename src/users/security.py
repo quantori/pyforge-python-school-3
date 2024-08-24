@@ -33,5 +33,3 @@ def decode_access_token(token):
     return jwt.decode(
         token, get_settings().SECRET_KEY, algorithms=[get_settings().ALGORITHM]
     )
-
-

@@ -1,37 +1,16 @@
 from typing import Annotated
-from fastapi import FastAPI, Depends, status, Body, Path, Request, Query, UploadFile
-from fastapi.encoders import jsonable_encoder
-from starlette.responses import JSONResponse
-from src.exceptions import BadRequestException, UnknownIdentifierException
+from fastapi import Depends, status, Body, Path, Query, UploadFile, APIRouter
 from src.molecules.schemas import MoleculeRequest, MoleculeResponse
 from src.molecules.dependencies import get_pagination_query_params
 from src.molecules.service import get_molecule_service
 from src.molecules.schemas import PaginationQueryParams
 from src.molecules.service import MoleculeService
 
-app = FastAPI()
+router = APIRouter()
 
 
-@app.exception_handler(BadRequestException)
-def validation_exception_handler(request: Request, exc: BadRequestException):
-    return JSONResponse(
-        status_code=status.HTTP_400_BAD_REQUEST,
-        content=jsonable_encoder({"detail": exc.message}),
-    )
-
-
-@app.exception_handler(UnknownIdentifierException)
-def unknown_identifier_exception_handler(
-    request: Request, exc: UnknownIdentifierException
-):
-    return JSONResponse(
-        status_code=status.HTTP_404_NOT_FOUND,
-        content=jsonable_encoder({"detail": exc.message}),
-    )
-
-
-@app.post(
-    "/molecules/",
+@router.post(
+    "/",
     status_code=201,
     responses={
         status.HTTP_201_CREATED: {"model": MoleculeResponse},
@@ -48,8 +27,8 @@ def add_molecule(
     return service.save(molecule_request)
 
 
-@app.get(
-    "/molecules/{molecule_id}",
+@router.get(
+    "/{molecule_id}",
     status_code=200,
     responses={
         status.HTTP_200_OK: {"model": MoleculeResponse},
@@ -68,8 +47,8 @@ def get_molecule(
     return service.find_by_id(molecule_id)
 
 
-@app.get(
-    "/molecules/",
+@router.get(
+    "/",
     status_code=200,
     responses={
         status.HTTP_200_OK: {"model": list[MoleculeResponse]},
@@ -82,8 +61,8 @@ def get_molecules(
     return service.find_all(pagination.page, pagination.page_size)
 
 
-@app.put(
-    "/molecules/{molecule_id}",
+@router.put(
+    "/{molecule_id}",
     status_code=200,
     responses={
         status.HTTP_200_OK: {"model": MoleculeResponse},
@@ -103,8 +82,8 @@ def update_molecule(
     return service.update(molecule_id, molecule_request)
 
 
-@app.delete(
-    "/molecules/{molecule_id}",
+@router.delete(
+    "/{molecule_id}",
     status_code=200,
     responses={
         status.HTTP_200_OK: {"description": "Molecule deleted successfully"},
@@ -123,8 +102,8 @@ def delete_molecule(
     return service.delete(molecule_id)
 
 
-@app.get(
-    "/substructure_search",
+@router.get(
+    "/search/substructure_search",
     responses={
         status.HTTP_200_OK: {"model": list[MoleculeResponse]},
         status.HTTP_400_BAD_REQUEST: {
@@ -149,17 +128,19 @@ def substructure_search(
     return service.get_substructures(smiles)
 
 
-@app.post("/upload_molecules_csv", status_code=status.HTTP_201_CREATED)
-async def upload_molecules(
+@router.post("/upload/upload_molecules_csv", status_code=status.HTTP_201_CREATED)
+def upload_molecules(
     file: UploadFile, service: Annotated[MoleculeService, Depends(get_molecule_service)]
 ):
     """
     Upload a CSV file containing molecules to the repository.
-    Uploaded CSV file is not stored on the server, only the molecules are extracted and stored in the memory.
-    The CSV file should have the following columns: smiles,name
-    Lines that have incorrect format, missing smiles string or invalid smiles string are ignored.
 
+    The CSV file should have the following columns: smiles,name
+
+    Lines that have incorrect format, missing smiles string or invalid smiles string are ignored.
     """
+
+    # Uploaded CSV file is not stored on the server, only the molecules are extracted and stored in the memory.
 
     res = service.process_csv_file(file)
     return {"number_of_molecules_added": res}

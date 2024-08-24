@@ -13,15 +13,14 @@ class MoleculeRepository(SQLAlchemyRepository):
     def __init__(self, session_factory: sessionmaker):
         super().__init__(Molecule, session_factory)
 
-    def bulk_save(self, molecules: list[MoleculeRequest]):
-        session = self._get_session()
-        ans = session.scalars(
-            insert(Molecule).returning(Molecule.molecule_id), molecules
-        )
-        session.commit()
-        session.close()
-
-        return list(ans)
+    # def bulk_save(self, molecules: list[MoleculeRequest]):
+    #     session = self._get_session()
+    #     ans = session.scalars(
+    #         insert(Molecule).returning(Molecule.molecule_id), molecules
+    #     )
+    #     session.commit()
+    #     session.close()
+    #     return list(ans)
 
 
 @lru_cache

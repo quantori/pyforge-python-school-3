@@ -15,7 +15,7 @@ from src.molecules.tests.sample_data import (
     is_equal_dict_without_id,
 )
 from fastapi.testclient import TestClient
-from src.molecules.main import app
+from src.main import app
 
 # engine = create_engine("postgresql://user:password@localhost:5432/db_test")
 engine = create_engine(
@@ -159,7 +159,7 @@ def test_find_all_delete_by_id(init_db_3_alkanes):
 
 
 def test_substructure_search(init_db_3_alkanes):
-    response = client.get("/substructure_search?smiles=CC")
+    response = client.get("molecules/search/substructure_search?smiles=CC")
     response_json = response.json()
     assert response.status_code == 200
     assert len(response_json) == 2

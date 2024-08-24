@@ -81,7 +81,15 @@ def test_delete_molecule(molecule_service, mock_repository):
 
 
 def test_delete_molecule_that_does_not_exist(molecule_service, mock_repository):
-    mock_repository.delete.return_value = False
-    result = molecule_service.delete(1)
-    assert result is False
-    mock_repository.delete.assert_called_once_with(1)
+    mock_repository.find_by_id.return_value = None
+    with pytest.raises(UnknownIdentifierException):
+        molecule_service.delete(1)
+
+
+# def test_find_all_molecules(molecule_service, mock_repository):
+#     mock_repository.find_all.return_value = [Molecule(**molecule) for molecule in alkanes.values()]
+#     molecules = molecule_service.find_all()
+#     assert len(molecules) == 3
+#     for molecule in molecules:
+#         assert is_equal(molecule, alkanes[molecule["name"]])
+#
