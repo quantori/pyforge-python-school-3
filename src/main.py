@@ -26,7 +26,9 @@ if DB_URL is None:
 @app.get("/")
 def get_server():
     server_id = getenv("SERVER_ID", "1")
-    logger.info(f"Server {server_id} received a request to the root endpoint")
+    logger.info(
+        f"Server {server_id} received a request to the root endpoint"
+    )
     return {"server_id": server_id, "message": "Welcome to Molecules app!"}
 
 
@@ -76,8 +78,8 @@ async def get_molecule(mol_id: int):
 
 
 @app.put(
-        "/molecules/{mol_id}", 
-        tags=["Molecules"], 
+        "/molecules/{mol_id}",
+        tags=["Molecules"],
         response_description="Update molecule by ID"
     )
 async def update_molecule(mol_id: int, name: str):
@@ -159,7 +161,6 @@ async def upload_file(file: UploadFile = File(...)):
     except ValueError as e:
         logger.warning(f"Failed to process file {file.filename}: {str(e)}")
         raise HTTPException(status_code=400, detail="Invalid JSON file")
-    
     added_count = 0
     
     for molecule in molecules:
@@ -174,7 +175,9 @@ async def upload_file(file: UploadFile = File(...)):
         except Exception as e:
             logger.error(f"Error processing molecule {molecule}: {str(e)}")
             continue
-    logger.info(f"File processing complete. Number of molecules added: {added_count}")
+    logger.info(
+        f"File processing complete. Number of molecules added: {added_count}"
+        )
     return {
         "message": "File uploaded and molecules parsed successfully",
         "num_molecules": added_count

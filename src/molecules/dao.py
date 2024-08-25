@@ -80,9 +80,9 @@ class MoleculeDAO(BaseDAO):
 
     @classmethod
     async def find_by_substructure(
-        cls, 
+        cls,
         substructure_smiles: str
-        ) -> List[Dict]:
+    ) -> List[Dict]:
         if not substructure_smiles:
             raise ValueError("Substructure SMILES string cannot be empty")
         substructure_mol = Chem.MolFromSmiles(substructure_smiles)
