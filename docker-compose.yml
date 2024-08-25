@@ -10,11 +10,13 @@ services:
       - .env
     environment:
       SERVER_ID: SERVER-1
-      DB_URL: ${DB_URL}
     networks:
       - mynetwork
     ports:
       - "8011:8000"
+    depends_on:
+      - db
+
 
   web2:
     build:
@@ -32,6 +34,8 @@ services:
       - mynetwork
     ports:
       - "8012:8000"
+    depends_on:
+      - db
 
   nginx:
     image: nginx:latest

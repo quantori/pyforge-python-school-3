@@ -1,11 +1,11 @@
 import asyncio
+from logging.config import fileConfig
+from alembic import context
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncConnection
 from sqlalchemy.ext.asyncio import AsyncEngine
-from logging.config import fileConfig
 import os
 from os.path import dirname, abspath
 import sys
-from alembic import context
 from src.database import Base
 
 sys.path.insert(0, dirname(dirname(abspath(__file__))))
@@ -48,6 +48,7 @@ async def run_async_migrations() -> None:
 
         async with connection.begin():
             await connection.run_sync(lambda conn: context.run_migrations())
+
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.

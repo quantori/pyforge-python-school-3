@@ -13,8 +13,6 @@ RUN conda create --name myenv python=3.9 -y && \
 
 COPY . /app
 
-ENV PYTHONPATH=/app/src
-
 EXPOSE 8000
 
 CMD ["conda", "run", "-n", "myenv", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
