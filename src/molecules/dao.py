@@ -20,6 +20,7 @@ class MoleculeDAO(BaseDAO):
             result = await session.execute(query)
             return result.scalars().all()
 
+
     @classmethod
     async def find_full_data(cls, mol_id):
         async with async_session_maker() as session:
@@ -33,6 +34,7 @@ class MoleculeDAO(BaseDAO):
             mol_data = cls._model_to_dict(mol_info)
             return mol_data
         
+
     @staticmethod
     def _model_to_dict(model_instance):
         """
@@ -41,7 +43,10 @@ class MoleculeDAO(BaseDAO):
         """
         if model_instance is None:
             return None
-        return {column.name: getattr(model_instance, column.name) for column in model_instance.__table__.columns}
+        return {
+            column.name: getattr(model_instance, column.name) for column in model_instance.__table__.columns
+            }
+
 
     @classmethod
     async def add_mol(cls, **mol_data: dict):
@@ -54,6 +59,7 @@ class MoleculeDAO(BaseDAO):
                 await session.commit()
                 return new_mol_id
             
+
     @classmethod
     async def update_mol(cls, mol_id: int, name: str):
         async with async_session_maker() as session:
@@ -63,7 +69,8 @@ class MoleculeDAO(BaseDAO):
                 await session.commit()
                 if result.rowcount == 0:
                     raise ValueError("Molecule not found")
-                
+
+
     @classmethod
     async def delete_mol_by_id(cls, mol_id: int):
         async with async_session_maker() as session:
@@ -78,7 +85,8 @@ class MoleculeDAO(BaseDAO):
 
                 await session.commit()
                 return mol_id
-            
+
+
     @classmethod
     async def find_by_substructure(cls, substructure_smiles: str) -> List[Dict]:
         async with async_session_maker() as session:
@@ -107,6 +115,7 @@ class MoleculeDAO(BaseDAO):
                 return matches
             except SQLAlchemyError as e:
                 raise Exception("Database error occurred") from e
+       
             
     @classmethod
     async def upload_file(cls, file_content: str) -> int:
@@ -150,4 +159,6 @@ class MoleculeDAO(BaseDAO):
         except SQLAlchemyError as e:
             raise Exception("Database error occurred") from e
         except Exception as e:
-            raise Exception(f"An error occurred while processing the file: {str(e)}") from e
+            raise Exception(
+                f"An error occurred while processing the file: {str(e)}"
+                ) from e

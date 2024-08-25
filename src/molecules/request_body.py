@@ -15,5 +15,7 @@ class RBMolecule:
             "id": self.id,
             "name": self.name,
         }
-        filtered_data = {key: value for key, value in data.items() if value is not None}
+        filtered_data = {
+            key: value for key, value in data.items() if value is not None
+        }
         return filtered_data

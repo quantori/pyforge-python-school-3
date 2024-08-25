@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Mapped
-from src.database import Base, str_uniq, int_pk
+from database import Base, str_uniq, int_pk
 
 
 class Molecule(Base):

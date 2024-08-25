@@ -5,12 +5,6 @@ Revises: d3f8b71deba4
 Create Date: 2024-08-23 18:24:51.702917
 
 """
-from typing import Sequence, Union
-
-from alembic import op
-import sqlalchemy as sa
-
-
 # revision identifiers, used by Alembic.
 revision: str = 'c07a9811008c'
 revision = 'c07a9811008c'
@@ -21,5 +15,7 @@ depends_on = None
 def upgrade() -> None:
     pass
 
+
 def downgrade() -> None:
     pass
+

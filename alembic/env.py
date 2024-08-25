@@ -1,8 +1,7 @@
 import asyncio
 from logging.config import fileConfig
 from alembic import context
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncConnection
-from sqlalchemy.ext.asyncio import AsyncEngine
+from sqlalchemy.ext.asyncio import create_async_engine
 import os
 from os.path import dirname, abspath
 import sys
@@ -36,7 +35,10 @@ target_metadata = Base.metadata
 
 
 async def run_async_migrations() -> None:
-    connectable = create_async_engine(config.get_main_option("sqlalchemy.url"), future=True)
+    connectable = create_async_engine(
+        config.get_main_option("sqlalchemy.url"), 
+        future=True
+    )
 
     async with connectable.connect() as connection:
         await connection.run_sync(lambda conn: context.configure(
@@ -72,10 +74,13 @@ def run_migrations_offline() -> None:
     with context.begin_transaction():
         context.run_migrations()
 
+
 def run_migrations_online() -> None:
     asyncio.run(run_async_migrations())
+
 
 if context.is_offline_mode():
     run_migrations_offline()
 else:
     run_migrations_online()
+    
