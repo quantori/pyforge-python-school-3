@@ -40,13 +40,13 @@ async def add_molecule(molecule: MoleculeAdd):
         if existing_molecule:
             logger.warning(f"Molecule with ID {molecule.id} already exists")
             raise HTTPException(
-                status_code=400, 
+                status_code=400,
                 detail="Molecule with this ID already exists"
             )
         if not Chem.MolFromSmiles(molecule.name):
             logger.warning(f"Invalid SMILES: {molecule.name}")
             raise HTTPException(
-                status_code=400, 
+                status_code=400,
                 detail=f"Invalid SMILES: {molecule.name}"
             )
         await MoleculeDAO.add_mol(**molecule.model_dump())
@@ -62,8 +62,10 @@ async def retrieve_molecules() -> List[MoleculeResponse]:
     try:
         molecules = await MoleculeDAO.find_all_molecules()
         return [
-            MoleculeResponse(id=molecule.id, name=molecule.name) for molecule in molecules
+            MoleculeResponse(molecule.id, molecule.name)
+            for molecule in molecules
         ]
+
     except Exception as e:
         logger.error(f"Error retrieving molecules: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
@@ -96,8 +98,8 @@ async def update_molecule(mol_id: int, name: str):
 
 
 @app.delete(
-        "/molecules/{mol_id}", 
-        tags=["Molecules"], 
+        "/molecules/{mol_id}",
+        tags=["Molecules"],
         response_description="Delete molecule by ID"
     )
 async def delete_mol(mol_id: int) -> dict:
@@ -133,14 +135,16 @@ async def substructure_search(substructure_name: str) -> List[Dict]:
         logger.warning(f"Bad request for substructure search: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        logger.error(f"Internal server error during substructure search: {str(e)}")
+        logger.error(
+            f"Internal server error during substructure search: {str(e)}"
+            )
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
 @app.post(
-        "/upload_file/", 
-        status_code=status.HTTP_201_CREATED, 
-        tags=["File Upload"], 
+        "/upload_file/",
+        status_code=status.HTTP_201_CREATED,
+        tags=["File Upload"],
         response_description="File uploaded and molecules parsed successfully"
 )
 async def upload_file(file: UploadFile = File(...)):
@@ -162,7 +166,6 @@ async def upload_file(file: UploadFile = File(...)):
         logger.warning(f"Failed to process file {file.filename}: {str(e)}")
         raise HTTPException(status_code=400, detail="Invalid JSON file")
     added_count = 0
-    
     for molecule in molecules:
         try:
             mol_id = molecule.get("mol_id")

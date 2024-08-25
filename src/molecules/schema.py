@@ -1,9 +1,9 @@
 from pydantic import BaseModel, Field
 
 name_field = Field(
-    ..., 
-    min_length=1, 
-    max_length=100, 
+    ...,
+    min_length=1,
+    max_length=100,
     description="Molecule name"
 )
 
