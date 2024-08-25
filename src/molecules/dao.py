@@ -111,7 +111,9 @@ class MoleculeDAO(BaseDAO):
         try:
             molecules = json.loads(file_content)
             if not isinstance(molecules, list):
-                raise ValueError("Invalid file format: expected a list of molecules")
+                raise ValueError(
+                    "Invalid file format: expected a list of molecules"
+                )
 
             added_count = 0
 
@@ -141,7 +143,9 @@ class MoleculeDAO(BaseDAO):
             return added_count
 
         except json.JSONDecodeError as e:
-            raise ValueError("Invalid file format: unable to decode JSON") from e
+            raise ValueError(
+                "Invalid file format: unable to decode JSON"
+            ) from e
         except SQLAlchemyError as e:
             raise Exception("Database error occurred") from e
         except Exception as e:

@@ -1,5 +1,4 @@
 from fastapi import FastAPI, HTTPException, status, UploadFile, File
-from sqlalchemy.future import select
 from rdkit import Chem
 import json
 import logging
@@ -23,11 +22,13 @@ if DB_URL is None:
     logger.error("Database URL is not in env")
     raise ValueError("Database URL is not in env")
 
+
 @app.get("/")
 def get_server():
     server_id = getenv("SERVER_ID", "1")
     logger.info(f"Server {server_id} received a request to the root endpoint")
     return {"server_id": server_id, "message": "Welcome to Molecules app!"}
+
 
 @app.post("/molecules", status_code=status.HTTP_201_CREATED)
 async def add_molecule(molecule: MoleculeAdd):
@@ -52,22 +53,27 @@ async def add_molecule(molecule: MoleculeAdd):
         logger.error(f"Error occurred while adding molecule: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
+
 @app.get("/molecules", tags=["Molecules"], response_model=List[MoleculeResponse])
 async def retrieve_molecules() -> List[MoleculeResponse]:
     logger.info("Retrieving molecules")
     try:
         molecules = await MoleculeDAO.find_all_molecules()
-        return [MoleculeResponse(id=molecule.id, name=molecule.name) for molecule in molecules]
+        return [
+            MoleculeResponse(id=molecule.id, name=molecule.name) for molecule in molecules
+        ]
     except Exception as e:
         logger.error(f"Error retrieving molecules: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
-    
+
+
 @app.get("/molecules/{mol_id}", response_model=MoleculeResponse)
 async def get_molecule(mol_id: int):
     mol_data = await MoleculeDAO.find_full_data(mol_id)
     if mol_data is None:
         raise HTTPException(status_code=404, detail="Molecule not found")
     return mol_data
+
 
 @app.put(
         "/molecules/{mol_id}", 
@@ -86,6 +92,7 @@ async def update_molecule(mol_id: int, name: str):
         logger.error(f"Internal server error during molecule update: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
+
 @app.delete(
         "/molecules/{mol_id}", 
         tags=["Molecules"], 
@@ -100,6 +107,7 @@ async def delete_mol(mol_id: int) -> dict:
     else:
         logger.warning(f"Molecule with ID {mol_id} not found for deletion")
         raise HTTPException(status_code=404, detail="Molecule not found")
+
 
 @app.get("/substructure_search", tags=["Molecules"], response_model=List[Dict])
 async def substructure_search(substructure_name: str) -> List[Dict]:
@@ -126,6 +134,7 @@ async def substructure_search(substructure_name: str) -> List[Dict]:
         logger.error(f"Internal server error during substructure search: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
+
 @app.post(
         "/upload_file/", 
         status_code=status.HTTP_201_CREATED, 
@@ -134,19 +143,16 @@ async def substructure_search(substructure_name: str) -> List[Dict]:
 )
 async def upload_file(file: UploadFile = File(...)):
     logger.info(f"Uploading and processing file: {file.filename}")
-    
     try:
         content = await file.read()
         content = content.decode("utf-8")
         molecules = json.loads(content)
-        
         if not isinstance(molecules, list):
             logger.warning(f"Invalid file format: Expected a list of molecules")
             raise HTTPException(
                 status_code=400, 
                 detail="Invalid file format: expected a list of molecules"
             )
-        
     except (UnicodeDecodeError, json.JSONDecodeError) as e:
         logger.warning(f"Failed to process file {file.filename}: {str(e)}")
         raise HTTPException(status_code=400, detail="Invalid JSON file")
@@ -160,18 +166,14 @@ async def upload_file(file: UploadFile = File(...)):
         try:
             mol_id = molecule.get("mol_id")
             name = molecule.get("name")
-            
             logger.debug(f"Processing molecule: ID={mol_id}, Name={name}")
-            
             if not mol_id or not name:
                 logger.warning(f"Missing ID or name in file: {molecule}")
                 continue
             added_count += 1
-        
         except Exception as e:
             logger.error(f"Error processing molecule {molecule}: {str(e)}")
             continue
-
     logger.info(f"File processing complete. Number of molecules added: {added_count}")
     return {
         "message": "File uploaded and molecules parsed successfully",
