@@ -4,10 +4,10 @@ from typing import Union
 class RBMolecule:
     def __init__(
         self,
-        mol_id: Union[int, None] = None,
-        name: Union[int, None] = None,
+        id: Union[int, None] = None,
+        name: Union[str, None] = None,
     ):
-        self.id = mol_id
+        self.id = id
         self.name = name
 
     def to_dict(self) -> dict:
