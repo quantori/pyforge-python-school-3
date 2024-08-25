@@ -56,7 +56,11 @@ async def add_molecule(molecule: MoleculeAdd):
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
-@app.get("/molecules", tags=["Molecules"], response_model=List[MoleculeResponse])
+@app.get(
+        "/molecules", 
+        tags=["Molecules"], 
+        response_model=List[MoleculeResponse]
+        )
 async def retrieve_molecules() -> List[MoleculeResponse]:
     logger.info("Retrieving molecules")
     try:
@@ -129,7 +133,10 @@ async def substructure_search(substructure_name: str) -> List[Dict]:
                 detail="No molecules found matching the substructure"
             )
         if not Chem.MolFromSmiles(substructure_name):
-            raise HTTPException(status_code=400, detail="Invalid SMILES string")
+            raise HTTPException(
+                status_code=400, 
+                detail="Invalid SMILES string"
+                )
         return matches
     except ValueError as e:
         logger.warning(f"Bad request for substructure search: {str(e)}")
@@ -154,9 +161,11 @@ async def upload_file(file: UploadFile = File(...)):
         content = content.decode("utf-8")
         molecules = json.loads(content)
         if not isinstance(molecules, list):
-            logger.warning(f"Invalid file format: Expected a list of molecules")
+            logger.warning(
+                f"Invalid file format: Expected a list of molecules"
+                )
             raise HTTPException(
-                status_code=400, 
+                status_code=400,
                 detail="Invalid file format: expected a list of molecules"
             )
     except (UnicodeDecodeError, json.JSONDecodeError) as e:

@@ -1,7 +1,7 @@
 """First migration
 
 Revision ID: d3f8b71deba4
-Revises: 
+Revises:
 Create Date: 2024-08-23 18:04:19.926772
 
 """

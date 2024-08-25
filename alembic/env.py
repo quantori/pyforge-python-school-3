@@ -36,7 +36,7 @@ target_metadata = Base.metadata
 
 async def run_async_migrations() -> None:
     connectable = create_async_engine(
-        config.get_main_option("sqlalchemy.url"), 
+        config.get_main_option("sqlalchemy.url"),
         future=True
     )
 
@@ -47,7 +47,6 @@ async def run_async_migrations() -> None:
             process_bind_parameters=True,
             include_schemas=True,
         ))
-        
         async with connection.begin():
             await connection.run_sync(lambda conn: context.run_migrations())
 

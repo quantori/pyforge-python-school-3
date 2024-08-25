@@ -62,7 +62,8 @@ class BaseDAO:
                 query = (
                     sqlalchemy_update(cls.model)
                     .where(
-                        *[getattr(cls.model, k) == v for k, v in filter_by.items()]
+                        *[getattr(cls.model, k) == v 
+                        for k, v in filter_by.items()]
                     )
                     .values(**values)
                     .execution_options(synchronize_session="fetch")
