@@ -12,6 +12,7 @@ down_revision = 'd3f8b71deba4'
 branch_labels = None
 depends_on = None
 
+
 def upgrade() -> None:
     pass
 
