@@ -57,8 +57,8 @@ async def add_molecule(molecule: MoleculeAdd):
 
 
 @app.get(
-        "/molecules", 
-        tags=["Molecules"], 
+        "/molecules",
+        tags=["Molecules"],
         response_model=List[MoleculeResponse]
         )
 async def retrieve_molecules() -> List[MoleculeResponse]:
@@ -121,13 +121,13 @@ async def delete_mol(mol_id: int) -> dict:
 async def substructure_search(substructure_name: str) -> List[Dict]:
     try:
         logger.info(
-            "Searching for molecules with substructure: %s", 
+            "Searching for molecules with substructure: %s",
             substructure_name
             )
         matches = await MoleculeDAO.find_by_substructure(substructure_name)
         if not matches:
             logger.warning(
-                "No molecules found for substructure: %s", 
+                "No molecules found for substructure: %s",
                 substructure_name
                 )
             raise HTTPException(
@@ -164,7 +164,7 @@ async def upload_file(file: UploadFile = File(...)):
         molecules = json.loads(content)
         if not isinstance(molecules, list):
             logger.warning(
-                f"Invalid file format: Expected a list of molecules"
+                "Invalid file format: Expected a list of molecules"
                 )
             raise HTTPException(
                 status_code=400,
