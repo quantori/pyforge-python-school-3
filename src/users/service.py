@@ -10,8 +10,9 @@ from src.users.security import (
     verify_password,
     decode_access_token,
     create_access_token,
-    get_password_hash,
+    get_password_hash, oauth2_scheme,
 )
+from src.users.security import Roles
 
 
 class UserService:
@@ -47,9 +48,12 @@ class UserService:
 
         return user
 
-    def get_current_user(self, token: str):
+    def get_current_user(self, token: str, roles=None):
         try:
             payload = decode_access_token(token)
+            if roles is not None:
+                if not self.check_roles(roles, payload.get("roles", [])):
+                    raise CredentialsException()
             username = payload.get("sub")
             if username is None:
                 raise CredentialsException()
@@ -64,8 +68,12 @@ class UserService:
         user = self.authenticate_user(username, password)
         if user is None:
             raise CredentialsException()
-        token = create_access_token({"sub": user.username})
+        token = create_access_token({"sub": user.username, "roles": user.get_roles()})
         return {"access_token": token, "token_type": "bearer"}
+
+    @staticmethod
+    def check_roles(required_roles, provided_roles):
+        return all(role in provided_roles for role in required_roles)
 
 
 @lru_cache
@@ -73,3 +81,9 @@ def get_user_service(
     user_repository: Annotated[UserRepository, Depends(get_user_repository)]
 ):
     return UserService(user_repository)
+
+
+def require_roles(roles: list[str]):
+    def wrapper(token: str = Depends(oauth2_scheme), user_service=Depends(get_user_service)):
+        user = user_service.get_current_user(token, roles)
+    return wrapper

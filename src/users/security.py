@@ -1,5 +1,4 @@
 from datetime import datetime, timezone, timedelta
-from functools import lru_cache
 import jwt
 from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
@@ -7,6 +6,11 @@ from src.configs import get_settings
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/token")
+
+
+class Roles:
+    ADMIN = "admin"
+    USER = "user"
 
 
 def verify_password(plain_password, hashed_password):

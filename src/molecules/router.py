@@ -5,6 +5,7 @@ from src.molecules.dependencies import get_pagination_query_params
 from src.molecules.service import get_molecule_service
 from src.molecules.schemas import PaginationQueryParams
 from src.molecules.service import MoleculeService
+from src.users.service import require_roles
 
 router = APIRouter()
 
@@ -130,7 +131,9 @@ def substructure_search(
 
 @router.post("/upload/upload_molecules_csv", status_code=status.HTTP_201_CREATED)
 def upload_molecules(
-    file: UploadFile, service: Annotated[MoleculeService, Depends(get_molecule_service)]
+    _: Annotated[None, Depends(require_roles(["admin"]))],
+    file: UploadFile,
+    service: Annotated[MoleculeService, Depends(get_molecule_service)]
 ):
     """
     Upload a CSV file containing molecules to the repository.

@@ -2,7 +2,6 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from src.users.schemas import RegisterRequest
-from src.users.security import oauth2_scheme
 from src.users.service import UserService, get_user_service
 
 router = APIRouter()
@@ -24,9 +23,9 @@ def login_for_access_token(
     return service.login(form_data.username, form_data.password)
 
 
-@router.get("/me")
-def get_current_user(
-    token: Annotated[str, Depends(oauth2_scheme)],
-    service: Annotated[UserService, Depends(get_user_service)],
-):
-    return service.get_current_user(token)
+# @router.get("/me")
+# def get_current_user(
+#     token: Annotated[str, Depends(oauth2_scheme)],
+#     service: Annotated[UserService, Depends(get_user_service)],
+# ):
+#     return service.get_current_user(token)
