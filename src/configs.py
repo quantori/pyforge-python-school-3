@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     TEST_MODE: bool
     TEST_DB_URL: str
 
+    CONTEXT_PATH: str
+
     model_config = SettingsConfigDict(env_file=".env")
 
     @property

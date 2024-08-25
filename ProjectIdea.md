@@ -209,6 +209,8 @@ substances are there in the medices they consume, or maybe to learn more about m
     - DELETE: /{patient_id} Delete a patient by id
 
     - PUT: /{patient_id} Update a patient by id
+    
+    - PATCH: /{patient_id}/set_active 
 
 #### **for patient**:
     
@@ -239,6 +241,8 @@ substances are there in the medices they consume, or maybe to learn more about m
     - DELETE: /{doctor_id} Delete a doctor by id
 
     - PUT: /{doctor_id} Update a doctor by id
+   
+    - PATCH: /{doctor_id}/set_active  Activate or deactivate a doctor
 
 #### **for doctor**:
 
@@ -283,14 +287,38 @@ substances are there in the medices they consume, or maybe to learn more about m
     - DELETE: /{prescription_id} Delete a prescription by id
 
 
+### `api/users/`
+    
+#### **for lab_admin, hospital_admin, or superuser**:
+    - GET: /me get the user's own profile
+
+#### **for super_admin**
+
+    - POST: Create a new user
+     
+    - GET: /{user_id} Get a user by id
+
+    - GET: /  Get all users
+   
+    - DELETE: /{user_id} Delete a user by id
+
+    - PUT: /{user_id} Update a user by id
+
+
 ### `api/auth/`
+   
+#### **for everyone**
+
+   - POST: /token
+   
+
+**for everyone**
 
     - POST: /token Get a jwt token
 
-    refresh token is not implemented yet
-
-
-
+**for hospital_admin**
+   
+ 
 
 
 ## DTOs
@@ -463,6 +491,27 @@ This is just a message to confirm that the user has been registered successfully
 ### UserActivationRequest
 
 - **set_is_active:** bool
+
+
+### UserRequest
+
+- **email:** str
+- **password:** str
+- **full_name:** str
+- **role:** str
+- **is_active:** bool
+
+
+### UserResponse(HyperlinkResponse, UserRequest)
+
+- **id:** int
+- **email:** str
+- **full_name:** str
+- **role:** str
+- **is_active:** bool
+- **links:** Dict[str, Link]
+   {"self": Link}
+
 
 
 
