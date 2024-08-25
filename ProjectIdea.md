@@ -32,6 +32,10 @@ I had to learn about hierarchies in sqlalchemy and complex relationships. Additi
 1. **Select Patient:** Choose a patient for whom the prescription is to be written.
 2. **Create Prescription:** Enter prescription details, including the drug (one drug per prescription) and other required fields.
 
+#### Accepting Appointments
+1. **View Appointments:** Access a list of all appointments.
+2. **Accept Appointment:** See the details of the appointment and confirm it. Possibly change the time.
+
 ### 2. Patient
 
 #### Registration Flow
@@ -47,7 +51,6 @@ I had to learn about hierarchies in sqlalchemy and complex relationships. Additi
 
 #### Requesting Appointments
 1. **Submit Request:** Provide details about the appointment request, including complaints, additional text, and preferred time.
-2. **Await Confirmation:** Receive confirmation or scheduling details for the requested appointment.
 
 ### 3. Hospital Admin
 
@@ -61,9 +64,9 @@ I had to learn about hierarchies in sqlalchemy and complex relationships. Additi
 1. **Review Request:** Examine the registration request from a specific doctor or patient.
 2. **Activate users:** Activate the accounts of registration requests
 
-#### Managing Appointment Requests
-1. **Access Requests:** View appointment requests from patients.
-2. **Schedule Appointments:** Arrange appointments based on patient preferences and provided details.
+#### Managing Doctors, Patients, and Appointments
+1. Can view, update, and delete all the information related to doctors, patients, and appointments.
+
 
 ### 4. Lab Admin
 
@@ -192,12 +195,16 @@ substances are there in the medices they consume, or maybe to learn more about m
     - GET: /{drug_id} Get a drug by id
 
 ### `api/patients/`
+
+#### **for everyone**:
+    
+    - POST: Register
+
+    - GET: /{patient_id}/public_profile Get a patient's public profile info
     
 #### **for hospital_admin**:
     
     - GET: /{patient_id} Get a patient by id
-    
-    - POST: Register a new patient
 
     - DELETE: /{patient_id} Delete a patient by id
 
@@ -206,22 +213,28 @@ substances are there in the medices they consume, or maybe to learn more about m
 #### **for patient**:
     
     - GET: /me get the patient's own profile
-
-    - PATCH: /me update the patient's own profile info including password, but not email or role
-    
+ 
     - GET: /me/prescriptions get all prescriptions of the patient
 
     - GET: /me/appointments?status={status}get all appointments of the patient you can filter by status, default is pending
 
     - POST: /me/appointments request a new appointment
 
+[//]: # (    - PATCH: me/appointments/{appointment_id} update appointment details   )
+
 ### `api/doctors/`
+
+#### **for everyone**:
+    
+    - POST: Register
+
+    - GET: /{doctor_id}/public_profile Get a doctor's public profile info
 
 #### **for hospital_admin**:
     
     - GET: /{doctor_id} Get a doctor by id
     
-    - POST: Register a new doctor
+    - GET: /?active={active} Get all doctors, you can see only active doctors if you filter by active=True
 
     - DELETE: /{doctor_id} Delete a doctor by id
 
@@ -231,13 +244,15 @@ substances are there in the medices they consume, or maybe to learn more about m
 
     - GET: /me get the doctor's own profile
 
-    - PATCH: /me update the doctor's own profile info including password, but not email or role
+    - PATCH: /me update the doctor's own profile info including password, but not role
     
     - GET: /me/patients get all patients of the doctor
 
     - GET: /me/patients/{patient_id} get a patient of the doctor
 
     - POST: /me/patients/{patient_id}/prescriptions create a new prescription for a patient
+
+[//]: # (    - PATCH: /me/patients/{patient_id}/prescriptions/{prescription_id} update a prescription for a patient)
 
     - GET: /me/appointments?status={status} get all appointments of the doctor, you can filter by status, default is pending
 
@@ -253,9 +268,206 @@ substances are there in the medices they consume, or maybe to learn more about m
     - PUT: /{appointment_id} Update an appointment by id
 
     - DELETE: /{appointment_id} Delete an appointment by id
-    
 
+
+### `api/prescriptions/`
+
+### **for hospital_admin**:
+
+    - GET: /{prescription_id} Get a prescription by id
     
+    - GET: /?doctor_id={doctor_id}&patient_id={patient_id} Get all prescriptions, you can filter by doctor_id and patient_id
+    
+    - PUT: /{prescription_id} Update a prescription by id
+    
+    - DELETE: /{prescription_id} Delete a prescription by id
+
+
+### `api/auth/`
+
+    - POST: /token Get a jwt token
+
+    refresh token is not implemented yet
+
+
+
+
+
+## DTOs
+
+Let's define DTO classes for the API endpoints. 
+
+If the field is not marked as nullable, it means that the field is required.
+
+Api will comply to the HATEOAS principle, specifically JSON Hypermedia API Language (HAL), meaning
+that the response will contain links to related resources in the response body.
+
+Before defining the important DTOs, lets start with the Link, and HyperlinkResponse DTOs, to 
+define the structure of the HAL response.
+
+### Link
+
+- **method:** str  GET, POST, PUT, DELETE
+- **href:** str    The url of the resource
+- **rel:** str     The relation of the resource to the current resource, e.g. self, next, patients, etc.
+
+### HyperlinkResponse
+
+- **links:** Dict[str, Link]   e.g. {"self": Link, "next": Link, "patients": Link}
+
+
+### MoleculeRequest
+
+- **name:** str
+- **smiles:** str
+
+**validation:** smiles should be a valid smiles string
+
+
+### MoleculeResponse(HyperlinkResponse, MoleculeRequest)
+
+- **id:** int
+- **smiles:** int 
+- **links:** Dict[str, Link]
+   {"self": Link, "is_substructure_of": Link, "substructures": Link}
+
+
+### DrugRequest
+
+- **name:** str
+- **description:** str
+- **molecule_ids:** List[int]
+
+
+### DrugResponse(HyperlinkResponse, DrugRequest)
+
+- **id:** int
+- **name:** str
+- **description:** str
+- **molecules_ids:** List[MoleculeResponse]
+- **links:** Dict[str, Link]
+   {"self": Link}
+
+
+### UserRegistrationRequest
+
+- **email:** str
+- **password:** str
+- **full_name:** str
+- **role:** str
+
+### PatientRegistrationRequest(UserRegistrationRequest)
+
+- **gender:** str
+- **date_of_birth:** date
+- **medical_history:** str nullable
+- **description:** str nullable
+
+### RegistrationResponse
+
+This is just a message to confirm that the user has been registered successfully.
+
+- **message:** str  e.g. "User registration request has been submitted successfully. Please wait for approval."
+
+
+### PatientUpdateRequest(PatientRegistrationRequest)
+
+- every patient field 
+
+
+### PatientSchedulingAppointmentRequest
+
+- **preferred_time:** str
+- **complaints:** str
+- **additional_text:** str nullable
+
+
+### PatientPublicProfileResponse
+
+- **full_name:** str
+- **gender:** str
+- **date_of_birth:** str
+
+
+### DoctorRegistrationRequest(UserRegistrationRequest)
+
+- **specialization:** str
+- **experience_years:** int
+- **description:** str nullable
+
+
+### DoctorPublicProfileResponse
+
+- **full_name:** str
+- **specialization:** str
+- **experience_years:** int
+- **description:** str nullable
+
+
+### DoctorCreatingPrescriptionRequest
+
+- **patient_id:** int
+- **drug_id:** int
+- **description:** str
+- **date:** str
+
+[//]: # (### DoctorUpdatingAppointmentRequest)
+
+[//]: # ()
+[//]: # (- **status:** str)
+
+[//]: # (- **date:** str nullable)
+
+
+[//]: # (### PatientUpdatingAppointmentRequest)
+
+[//]: # ()
+[//]: # (- **date:** str nullable)
+
+[//]: # (- **complaints:** str nullable)
+
+[//]: # (- **additional_text:** str nullable)
+
+### AppointmentRequest
+
+- **doctor_id:** int
+- **patient_id:** int
+- **date:** str
+- **complaints:** str
+- **additional_text:** str nullable
+- **status:** str
+
+
+### AppointmentResponse(HyperlinkResponse, AppointmentRequest)
+
+- **id:** int
+- **doctor_id:** int
+- **patient_id:** int
+- **date:** str
+- **complaints:** str
+- **additional_text:** str nullable
+- **status:** str
+
+
+### PrescriptionRequest
+
+- **doctor_id:** int
+- **patient_id:** int
+- **drug_id:** int
+- **description:** str
+
+### PrescriptionResponse(HyperlinkResponse, PrescriptionRequest)
+
+- **id:** int
+
+### UserActivationRequest
+
+- **set_is_active:** bool
+
+
+
+
+
 
 
 
