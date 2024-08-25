@@ -16,7 +16,7 @@ from dotenv import load_dotenv
 from typing import Union
 from database import async_session_maker
 
-# Initialize logging
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
