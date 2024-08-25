@@ -17,8 +17,8 @@ class MoleculeDAO(BaseDAO):
     async def find_all_molecules(cls):
         async with async_session_maker() as session:
             query = select(cls.model)
-            molecules = await session.execute(query)
-            return molecules.scalars().all()
+            result = await session.execute(query)
+            return result.scalars().all()
 
     @classmethod
     async def find_full_data(cls, mol_id):
@@ -30,8 +30,18 @@ class MoleculeDAO(BaseDAO):
             if not mol_info:
                 return None
 
-            mol_data = mol_info.to_dict()
+            mol_data = cls._model_to_dict(mol_info)
             return mol_data
+        
+    @staticmethod
+    def _model_to_dict(model_instance):
+        """
+        Convert SQLAlchemy model instance to a dictionary.
+        You may need to adjust this method based on your model's structure.
+        """
+        if model_instance is None:
+            return None
+        return {column.name: getattr(model_instance, column.name) for column in model_instance.__table__.columns}
 
     @classmethod
     async def add_mol(cls, **mol_data: dict):
@@ -64,7 +74,6 @@ class MoleculeDAO(BaseDAO):
 
                 if not mol_to_delete:
                     return None
-
                 await session.execute(delete(cls.model).filter_by(id=mol_id))
 
                 await session.commit()
@@ -106,6 +115,9 @@ class MoleculeDAO(BaseDAO):
         """
         try:
             molecules = json.loads(file_content)
+            if not isinstance(molecules, list):
+                raise ValueError("Invalid file format: expected a list of molecules")
+
             added_count = 0
 
             async with async_session_maker() as session:
@@ -113,19 +125,29 @@ class MoleculeDAO(BaseDAO):
                     for molecule in molecules:
                         mol_id = molecule.get("mol_id")
                         name = molecule.get("name")
+
+                        if not mol_id or not name:
+                            continue
+
                         if await cls.find_molecule_by_id(mol_id):
                             continue
-                        if not Chem.MolFromSmiles(name):
+
+                        mol = Chem.MolFromSmiles(name)
+                        if not mol:
                             continue
+
                         new_mol = cls.model(id=mol_id, name=name)
                         session.add(new_mol)
                         added_count += 1
+
                     await session.flush()
                     await session.commit()
 
             return added_count
 
         except json.JSONDecodeError as e:
-            raise ValueError("Invalid file format") from e
+            raise ValueError("Invalid file format: unable to decode JSON") from e
         except SQLAlchemyError as e:
             raise Exception("Database error occurred") from e
+        except Exception as e:
+            raise Exception(f"An error occurred while processing the file: {str(e)}") from e
