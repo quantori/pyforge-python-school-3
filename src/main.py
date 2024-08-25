@@ -36,7 +36,7 @@ def get_server():
 async def add_molecule(molecule: MoleculeAdd):
     try:
         logger.info(f"Adding molecule: {molecule.name}")
-        existing_molecule = await MoleculeDAO.find_full_data(mol_id=molecule.id)
+        existing_molecule = await MoleculeDAO.find_full_data(molecule.id)
         if existing_molecule:
             logger.warning(f"Molecule with ID {molecule.id} already exists")
             raise HTTPException(
@@ -121,20 +121,22 @@ async def delete_mol(mol_id: int) -> dict:
 async def substructure_search(substructure_name: str) -> List[Dict]:
     try:
         logger.info(
-            f"Searching for molecules matching substructure: {substructure_name}"
-        )
+            "Searching for molecules with substructure: %s", 
+            substructure_name
+            )
         matches = await MoleculeDAO.find_by_substructure(substructure_name)
         if not matches:
             logger.warning(
-                f"No molecules found matching the substructure: {substructure_name}"
+                "No molecules found for substructure: %s", 
+                substructure_name
                 )
             raise HTTPException(
-                status_code=404, 
+                status_code=404,
                 detail="No molecules found matching the substructure"
             )
         if not Chem.MolFromSmiles(substructure_name):
             raise HTTPException(
-                status_code=400, 
+                status_code=400,
                 detail="Invalid SMILES string"
                 )
         return matches

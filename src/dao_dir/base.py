@@ -59,12 +59,12 @@ class BaseDAO:
     async def update(cls, filter_by, **values):
         async with async_session_maker() as session:
             async with session.begin():
+                conditions = [
+                    getattr(cls.model, k) == v
+                    for k, v in filter_by.items()
+                ]
                 query = (
-                    sqlalchemy_update(cls.model)
-                    .where(
-                        *[getattr(cls.model, k) == v 
-                        for k, v in filter_by.items()]
-                    )
+                    sqlalchemy_update(cls.model).where(*conditions)
                     .values(**values)
                     .execution_options(synchronize_session="fetch")
                 )
