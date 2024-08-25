@@ -1,5 +1,4 @@
 from fastapi import FastAPI, HTTPException, status, UploadFile, File
-from sqlalchemy.future import select
 from rdkit import Chem
 import json
 import logging

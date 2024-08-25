@@ -1,6 +1,5 @@
 from pydantic import BaseModel, Field
 
-
 class MoleculeResponse(BaseModel):
     id: int
     name: str = Field(
@@ -9,7 +8,6 @@ class MoleculeResponse(BaseModel):
         max_length=100, 
         description="Molecule name"
     )
-
 
 class MoleculeAdd(BaseModel):
     id: int
