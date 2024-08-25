@@ -2,6 +2,7 @@ import requests
 
 ENDPOINT = "http://localhost:8011"
 
+
 def test_upload_file_success():
     """Test successful file upload."""
     response = upload_molecules_json()
@@ -11,6 +12,7 @@ def test_upload_file_success():
         "num_molecules": 10
     }
 
+
 def upload_molecules_json(filename='src/molecules.json'):
     """Helper function to upload a molecules JSON file."""
     with open(filename, 'rb') as file:
@@ -18,16 +20,19 @@ def upload_molecules_json(filename='src/molecules.json'):
         response = requests.post(ENDPOINT + "/upload_file/", files=files)
     return response
 
+
 def test_get_server():
     """Test to check if the server is up and running."""
     response = requests.get(ENDPOINT)
     assert response.status_code == 200
     assert "server_id" in response.json()
 
+
 def test_get_molecule_by_id():
     response = requests.get(ENDPOINT + "/molecules/4")
     assert response.status_code == 200
     assert response.json() == {"id": 4, "name": "CNC"}
+
 
 def test_update_molecule():
     response = requests.put(
@@ -37,10 +42,12 @@ def test_update_molecule():
     assert response.status_code == 200
     assert response.json() == {"message": "Molecule updated successfully"}
 
+
 def test_delete_molecule():
     response = requests.delete(ENDPOINT + "/molecules/7")
     assert response.status_code == 200
     assert response.json() == {"message": "The molecule with id 7 is deleted!"}
+
 
 def test_upload_file_invalid_json():
     """Test uploading an invalid JSON file."""

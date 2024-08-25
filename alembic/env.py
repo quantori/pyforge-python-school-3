@@ -47,7 +47,6 @@ async def run_async_migrations() -> None:
             process_bind_parameters=True,
             include_schemas=True,
         ))
-
         async with connection.begin():
             await connection.run_sync(lambda conn: context.run_migrations())
 
@@ -83,4 +82,3 @@ if context.is_offline_mode():
     run_migrations_offline()
 else:
     run_migrations_online()
-    

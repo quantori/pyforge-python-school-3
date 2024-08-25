@@ -9,6 +9,7 @@ from sqlalchemy.orm import DeclarativeBase, declared_attr
 from sqlalchemy.orm import Mapped, mapped_column
 from contextlib import asynccontextmanager
 
+
 DATABASE_URL = get_db_url()
 
 engine = create_async_engine(DATABASE_URL)
@@ -31,13 +32,13 @@ str_null_true = Annotated[str, mapped_column(nullable=True)]
 class Base(AsyncAttrs, DeclarativeBase):
     __abstract__ = True
 
-
     @declared_attr
     def __tablename__(cls) -> str:
         return f"{cls.__name__.lower()}s"
 
     created_at: Mapped[datetime] = created_at
     updated_at: Mapped[datetime] = updated_at
+
 
 @asynccontextmanager
 async def get_db():
