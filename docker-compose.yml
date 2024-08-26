@@ -6,6 +6,7 @@ services:
     volumes:
       - ./src:/app
       - ./tests:/app/tests
+      - ./alembic.ini:/app/alembic.ini
       - ./alembic:/app/alembic
     env_file:
       - .env
@@ -26,6 +27,7 @@ services:
     volumes:
       - ./src:/app
       - ./tests:/app/tests
+      - ./alembic.ini:/app/alembic.ini
       - ./alembic:/app/alembic
     env_file:
       - .env
