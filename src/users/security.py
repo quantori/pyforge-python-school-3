@@ -6,17 +6,25 @@ from passlib.context import CryptContext
 from src.configs import get_settings
 
 
+def get_superuser_email_and_password():
+    return get_settings().SUPERADMIN_EMAIL, get_settings().SUPERADMIN_PASSWORD
+
+
 class Scope:
-    MOLECULES = "molecules"
-    DRUGS = "drugs"
+    MOLECULES_WRITE = "molecules:write"
+    DRUGS_WRITE = "drugs:write"
+    USERS_READ = "users:read"
+    USERS_WRITE = "users:write"
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl="/users/token",
     scopes={
-        Scope.MOLECULES: "Access to every molecule endpoint",
-        Scope.DRUGS: "Access to every drug endpoint",
+        Scope.MOLECULES_WRITE: "Access to every molecule endpoint",
+        Scope.DRUGS_WRITE: "Access to every drug endpoint",
+        Scope.USERS_READ: "Access to read user details",
+        Scope.USERS_WRITE: "Access to write user details",
     },
 )
 
@@ -28,8 +36,9 @@ class Role(enum.Enum):
 
 
 role_scopes = {
-    Role.SUPER_ADMIN: [Scope.MOLECULES, Scope.DRUGS],
-    Role.LAB_ADMIN: [Scope.MOLECULES],
+    Role.SUPER_ADMIN: [Scope.MOLECULES_WRITE, Scope.DRUGS_WRITE, Scope.USERS_READ, Scope.USERS_WRITE],
+    Role.LAB_ADMIN: [Scope.MOLECULES_WRITE, Scope.DRUGS_WRITE],
+    Role.HOSPITAL_ADMIN: [],
 }
 
 

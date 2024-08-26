@@ -23,7 +23,7 @@ router = APIRouter()
     },
 )
 def add_molecule(
-    _: Annotated[None, Security(get_current_active_user, scopes=[Scope.MOLECULES])],
+    _: Annotated[None, Security(get_current_active_user, scopes=[Scope.MOLECULES_WRITE])],
     molecule_request: Annotated[MoleculeRequest, Body(...)],
     service: Annotated[MoleculeService, Depends(get_molecule_service)],
 ) -> MoleculeResponse:
@@ -76,6 +76,7 @@ def get_molecules(
     },
 )
 def update_molecule(
+    _: Annotated[None, Security(get_current_active_user, scopes=[Scope.MOLECULES_WRITE])],
     molecule_id: Annotated[
         int, Path(..., description="Unique identifier for the molecule")
     ],
@@ -97,6 +98,7 @@ def update_molecule(
     },
 )
 def delete_molecule(
+    _: Annotated[None, Security(get_current_active_user, scopes=[Scope.MOLECULES_WRITE])],
     molecule_id: Annotated[
         int, Path(..., description="Unique identifier for the molecule")
     ],
@@ -159,6 +161,7 @@ def substructure_search(
 
 @router.post("/upload/upload_molecules_csv", status_code=status.HTTP_201_CREATED)
 def upload_molecules(
+    _: Annotated[None, Security(get_current_active_user, scopes=[Scope.MOLECULES_WRITE])],
     file: UploadFile,
     service: Annotated[MoleculeService, Depends(get_molecule_service)],
 ):
