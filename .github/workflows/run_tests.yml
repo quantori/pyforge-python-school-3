@@ -60,6 +60,16 @@ jobs:
       - name: Install Python dependencies
         run: docker-compose exec -T web1 pip install -r requirements.txt
 
+      - name: Wait for PostgreSQL
+        run: |
+          for i in {1..30}; do
+            if docker-compose exec -T db pg_isready -U user; then
+              break
+            fi
+            sleep 1
+          done
+        shell: bash
+      
       - name: Run Alembic migrations
         run: docker-compose exec -T web1 alembic upgrade head
         
