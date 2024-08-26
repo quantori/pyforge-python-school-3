@@ -12,11 +12,18 @@ def create_molecule(db: Session, molecule: schemas.MoleculeCreate):
 
 
 def get_molecule(db: Session, identifier: str):
-    return db.query(models.Molecule).filter(models.Molecule.identifier == identifier).first()
+    return db.query(models.Molecule)\
+        .filter(models.Molecule.identifier == identifier)\
+        .first()
 
 
-def update_molecule(db: Session, identifier: str, molecule: schemas.MoleculeCreate):
-    db_molecule = db.query(models.Molecule).filter(models.Molecule.identifier == identifier).first()
+def update_molecule(
+        db: Session, identifier: str,
+        molecule: schemas.MoleculeCreate
+):
+    db_molecule = db.query(models.Molecule)\
+        .filter(models.Molecule.identifier == identifier)\
+        .first()
     if db_molecule:
         db_molecule.smiles = molecule.smiles
         db.commit()
@@ -26,7 +33,9 @@ def update_molecule(db: Session, identifier: str, molecule: schemas.MoleculeCrea
 
 
 def delete_molecule(db: Session, identifier: str):
-    db_molecule = db.query(models.Molecule).filter(models.Molecule.identifier == identifier).first()
+    db_molecule = db.query(models.Molecule)\
+        .filter(models.Molecule.identifier == identifier)\
+        .first()
     if db_molecule:
         db.delete(db_molecule)
         db.commit()
