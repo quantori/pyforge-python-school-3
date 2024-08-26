@@ -9,7 +9,7 @@ from src.users.exceptions import (
     CredentialsException,
     DuplicateEmailException,
     EmailNotFoundException,
-    NotEnoughPermissionException
+    NotEnoughPermissionException,
 )
 from src.users.models import User
 from src.users.repository import UserRepository, get_user_repository

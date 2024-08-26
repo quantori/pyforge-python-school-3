@@ -36,7 +36,12 @@ class Role(enum.Enum):
 
 
 role_scopes = {
-    Role.SUPER_ADMIN: [Scope.MOLECULES_WRITE, Scope.DRUGS_WRITE, Scope.USERS_READ, Scope.USERS_WRITE],
+    Role.SUPER_ADMIN: [
+        Scope.MOLECULES_WRITE,
+        Scope.DRUGS_WRITE,
+        Scope.USERS_READ,
+        Scope.USERS_WRITE,
+    ],
     Role.LAB_ADMIN: [Scope.MOLECULES_WRITE, Scope.DRUGS_WRITE],
     Role.HOSPITAL_ADMIN: [],
 }

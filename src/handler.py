@@ -3,8 +3,12 @@ from starlette import status
 from starlette.responses import JSONResponse
 from fastapi import Request
 from src.exceptions import BadRequestException, UnknownIdentifierException
-from src.users.exceptions import CredentialsException, DuplicateEmailException, EmailNotFoundException, \
-    NotEnoughPermissionException
+from src.users.exceptions import (
+    CredentialsException,
+    DuplicateEmailException,
+    EmailNotFoundException,
+    NotEnoughPermissionException,
+)
 
 
 def bad_request_exception_handler(request: Request, exc: BadRequestException):
@@ -15,7 +19,7 @@ def bad_request_exception_handler(request: Request, exc: BadRequestException):
 
 
 def unknown_identifier_exception_handler(
-        request: Request, exc: UnknownIdentifierException
+    request: Request, exc: UnknownIdentifierException
 ):
     return JSONResponse(
         status_code=status.HTTP_404_NOT_FOUND,
@@ -45,7 +49,7 @@ def email_not_found_exception_handler(request: Request, exc: EmailNotFoundExcept
 
 
 def not_enough_permission_exception_handler(
-        request: Request, exc: NotEnoughPermissionException
+    request: Request, exc: NotEnoughPermissionException
 ):
     return JSONResponse(
         status_code=status.HTTP_403_FORBIDDEN,
@@ -55,9 +59,13 @@ def not_enough_permission_exception_handler(
 
 def register_exception_handlers(app):
     app.add_exception_handler(BadRequestException, bad_request_exception_handler)
-    app.add_exception_handler(UnknownIdentifierException, unknown_identifier_exception_handler)
+    app.add_exception_handler(
+        UnknownIdentifierException, unknown_identifier_exception_handler
+    )
     app.add_exception_handler(CredentialsException, credentials_exception_handler)
-    app.add_exception_handler(DuplicateEmailException, duplicate_email_exception_handler)
+    app.add_exception_handler(
+        DuplicateEmailException, duplicate_email_exception_handler
+    )
     app.add_exception_handler(EmailNotFoundException, email_not_found_exception_handler)
     app.add_exception_handler(
         NotEnoughPermissionException, not_enough_permission_exception_handler
