@@ -1,16 +1,35 @@
+import enum
 from datetime import datetime, timezone, timedelta
 import jwt
 from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
 from src.configs import get_settings
 
+
+class Scope:
+    MOLECULES = "molecules"
+    DRUGS = "drugs"
+
+
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/token")
+oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl="/users/token",
+    scopes={
+        Scope.MOLECULES: "Access to every molecule endpoint",
+        Scope.DRUGS: "Access to every drug endpoint",
+    },
+)
 
 
-class Roles:
-    ADMIN = "admin"
-    USER = "user"
+class Role(enum.Enum):
+    SUPER_ADMIN = "SUPER_ADMIN"
+    LAB_ADMIN = "LAB_ADMIN"
+
+
+role_scopes = {
+    Role.SUPER_ADMIN: [Scope.MOLECULES, Scope.DRUGS],
+    Role.LAB_ADMIN: [Scope.MOLECULES],
+}
 
 
 def verify_password(plain_password, hashed_password):

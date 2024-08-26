@@ -1,5 +1,7 @@
 from pydantic import BaseModel
 
+from src.users.security import Role
+
 
 class Token(BaseModel):
     access_token: str
@@ -14,6 +16,7 @@ class RegisterRequest(BaseModel):
     username: str
     password: str
     full_name: str
+    role: Role
 
     model_config = {
         "json_schema_extra": {
@@ -22,6 +25,7 @@ class RegisterRequest(BaseModel):
                     "username": "gagamagaria",
                     "password": "gaioz2003",
                     "full_name": "Gaioz Tabatadze",
+                    "role": "super_admin"
                 }
             ]
         }

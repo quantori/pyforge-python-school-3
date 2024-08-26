@@ -20,7 +20,7 @@ def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     service: Annotated[UserService, Depends(get_user_service)],
 ):
-    return service.login(form_data.username, form_data.password)
+    return service.login(form_data.username, form_data.password, form_data.scopes)
 
 
 # @router.get("/me")

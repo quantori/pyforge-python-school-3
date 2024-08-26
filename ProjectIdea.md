@@ -174,9 +174,9 @@ substances are there in the medices they consume, or maybe to learn more about m
 
     - GET: /?page={page}&page_size={page_size}?name={name} Get all molecules, you can filter by name
 
-    - GET: /search/smiles_containing_substructure?substructure={substructure_smiles} Get all molecules containing a given substructure
+    - GET: /search/having_substructure?substructure={substructure_smiles} Get all molecules containing a given substructure
 
-    - GET: /search/substructures_of?smiles={smiles} Get all substructures of a molecule
+    - GET: /search/substructures?smiles={smiles} Get all substructures of a molecule
 
 ### `api/drugs/`
     

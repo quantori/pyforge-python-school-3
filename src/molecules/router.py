@@ -1,11 +1,12 @@
 from typing import Annotated
-from fastapi import Depends, status, Body, Path, Query, UploadFile, APIRouter
+from fastapi import Depends, status, Body, Path, Query, UploadFile, APIRouter, Security
 from src.molecules.schemas import MoleculeRequest, MoleculeResponse
 from src.molecules.dependencies import get_pagination_query_params
 from src.molecules.service import get_molecule_service
 from src.molecules.schemas import PaginationQueryParams
 from src.molecules.service import MoleculeService
-from src.users.service import require_roles
+from src.users.security import Scope
+from src.users.service import get_current_active_user
 
 router = APIRouter()
 
@@ -22,6 +23,7 @@ router = APIRouter()
     },
 )
 def add_molecule(
+    _: Annotated[None, Security(get_current_active_user, scopes=[Scope.MOLECULES])],
     molecule_request: Annotated[MoleculeRequest, Body(...)],
     service: Annotated[MoleculeService, Depends(get_molecule_service)],
 ) -> MoleculeResponse:
@@ -104,7 +106,33 @@ def delete_molecule(
 
 
 @router.get(
-    "/search/substructure_search",
+    "/search/substructures",
+    responses={
+        status.HTTP_200_OK: {"model": list[MoleculeResponse]},
+        status.HTTP_400_BAD_REQUEST: {
+            "model": str,
+            "description": "Probably due to Invalid SMILES string",
+        },
+    },
+)
+def substructure_search(
+    smiles: Annotated[
+        str,
+        Query(
+            ...,
+            description="Find substructures of the given SMILES string",
+        ),
+    ],
+    service: Annotated[MoleculeService, Depends(get_molecule_service)],
+) -> list[MoleculeResponse]:
+    """
+    Find all molecules that ARE SUBSTRUCTURES of the given smile, not vice vera.
+    """
+    return service.get_substructures(smiles)
+
+
+@router.get(
+    "/search/substructure_of",
     responses={
         status.HTTP_200_OK: {"model": list[MoleculeResponse]},
         status.HTTP_400_BAD_REQUEST: {
@@ -124,16 +152,15 @@ def substructure_search(
     service: Annotated[MoleculeService, Depends(get_molecule_service)],
 ) -> list[MoleculeResponse]:
     """
-    Find all molecules that ARE SUBSTRUCTURES of the given smile, not vice vera.
+    Find all molecules that the given smile IS SUBSTRUCTURE OF, not vice vera.
     """
-    return service.get_substructures(smiles)
+    return service.get_is_substructure_of(smiles)
 
 
 @router.post("/upload/upload_molecules_csv", status_code=status.HTTP_201_CREATED)
 def upload_molecules(
-    _: Annotated[None, Depends(require_roles(["admin"]))],
     file: UploadFile,
-    service: Annotated[MoleculeService, Depends(get_molecule_service)]
+    service: Annotated[MoleculeService, Depends(get_molecule_service)],
 ):
     """
     Upload a CSV file containing molecules to the repository.
