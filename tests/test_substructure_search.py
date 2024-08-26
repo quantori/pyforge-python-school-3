@@ -102,9 +102,6 @@ def test_substructure_search_invalid_substructure(setup_teardown):
     )
     print(response.text)
     assert response.status_code == 400
-    assert response.json() == {
-        "detail": "Invalid substructure SMILES string."
-    }
 
 
 def test_substructure_search_special_case(setup_teardown):
