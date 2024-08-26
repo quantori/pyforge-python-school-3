@@ -24,6 +24,7 @@ oauth2_scheme = OAuth2PasswordBearer(
 class Role(enum.Enum):
     SUPER_ADMIN = "SUPER_ADMIN"
     LAB_ADMIN = "LAB_ADMIN"
+    HOSPITAL_ADMIN = "HOSPITAL_ADMIN"
 
 
 role_scopes = {

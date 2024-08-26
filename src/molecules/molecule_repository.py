@@ -1,11 +1,7 @@
 from functools import lru_cache
-
-from sqlalchemy import insert
 from sqlalchemy.orm import sessionmaker
-
 from src.database import get_session_factory
 from src.molecules.models import Molecule
-from src.molecules.schemas import MoleculeRequest
 from src.repositories import SQLAlchemyRepository
 
 

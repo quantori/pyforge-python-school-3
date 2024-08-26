@@ -3,10 +3,12 @@ from typing import Annotated
 from fastapi import Depends
 from fastapi.security import SecurityScopes
 from jwt import InvalidTokenError
-from src.users.exceptions import CredentialsException
+
+from src.exceptions import UnknownIdentifierException
+from src.users.exceptions import CredentialsException, DuplicateEmailException, EmailNotFoundException
 from src.users.models import User
 from src.users.repository import UserRepository, get_user_repository
-from src.users.schemas import RegisterRequest
+from src.users.schemas import RegisterRequest, RegistrationResponse, UserResponse, UserRequest
 from src.users.security import (
     verify_password,
     decode_access_token,
@@ -14,25 +16,59 @@ from src.users.security import (
     get_password_hash,
     oauth2_scheme, role_scopes,
 )
+from src.utils import mark_as_tested
 
 
 class UserService:
     def __init__(self, user_repository: UserRepository):
         self._repository = user_repository
 
-    def register(self, register_request: RegisterRequest):
-        # TODO validate username
+    @mark_as_tested
+    def register(self, register_request: RegisterRequest) -> RegistrationResponse:
+        """
+        :raises DuplicateEmailException: if the email is already registered
+        """
+        if self.exists_by_email(register_request.email):
+            raise DuplicateEmailException(register_request.email)
         data = register_request.model_dump()
         data["password"] = get_password_hash(data["password"])
-        data["role"] = data["role"].value
         user = self._repository.save(data)
+        return RegistrationResponse.model_validate({"email": user.email})
+
+    @mark_as_tested
+    def find_by_id(self, user_id):
+        """
+        :raises UnknownIdentifierException: if the user is not found
+        """
+        if not self.exists_by_id(user_id):
+            raise UnknownIdentifierException(user_id)
+        user = self._repository.find_by_id(user_id)
         return user.to_response()
 
-    def find_by_username(self, username: str):
-        pass
+    def update(self, user_id, user_update_request: UserRequest):
+        raise NotImplementedError()
 
-    def find_by_id(self, user_id):
-        return self._repository.find_by_id(user_id).to_response()
+    def delete(self, user_id):
+        raise NotImplementedError()
+
+    def find_by_email(self, email: str) -> UserResponse:
+        """
+        :raises: EmailNotFoundException if the email is not found
+        """
+        found = self._repository.filter(email=email)
+        if len(found) == 0:
+            raise EmailNotFoundException(email)
+        resp = found[0].to_response()
+        return resp
+
+    def exists_by_id(self, user_id: int) -> bool:
+        return self._repository.find_by_id(user_id) is not None
+
+    def exists_by_email(self, email: str) -> bool:
+        return len(self._repository.filter(email=email)) > 0
+
+    def find_all(self, page: int = 0, page_size: int = 1000):
+        return self._repository.find_all(page, page_size)
 
     def authenticate_user(self, username: str, password: str) -> User | None:
         """
@@ -74,21 +110,21 @@ class UserService:
         user_scopes = role_scopes[user.role]
         if not all(scope in user_scopes for scope in scopes):
             raise CredentialsException("User does not have required scopes.")
-        token = create_access_token({"sub": user.username, "scopes": scopes})
+        token = create_access_token({"sub": user.email, "scopes": scopes})
         return {"access_token": token, "token_type": "bearer"}
 
 
 @lru_cache
 def get_user_service(
-    user_repository: Annotated[UserRepository, Depends(get_user_repository)]
+        user_repository: Annotated[UserRepository, Depends(get_user_repository)]
 ):
     return UserService(user_repository)
 
 
 def get_current_user(
-    scopes: SecurityScopes,
-    token: Annotated[str, Depends(oauth2_scheme)],
-    service: Annotated[UserService, Depends(get_user_service)],
+        scopes: SecurityScopes,
+        token: Annotated[str, Depends(oauth2_scheme)],
+        service: Annotated[UserService, Depends(get_user_service)],
 ):
     user, sop = service.get_user_and_scopes_from_token(token)
     if not all(scope in sop for scope in scopes.scopes):
@@ -97,7 +133,6 @@ def get_current_user(
 
 
 def get_current_active_user(
-    current_user: User = Depends(get_current_user),
+        current_user: User = Depends(get_current_user),
 ):
     return current_user
-

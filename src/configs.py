@@ -16,10 +16,9 @@ class Settings(BaseSettings):
     DB_NAME: str
     TEST_MODE: bool
     TEST_DB_URL: str
-
     CONTEXT_PATH: str
 
-    model_config = SettingsConfigDict(env_file=".env")
+    model_config = SettingsConfigDict(env_file="/home/gaioz/quantori/pyforge-python-school-3/.env")
 
     @property
     def database_url(self) -> str:

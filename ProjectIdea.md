@@ -298,7 +298,7 @@ substances are there in the medices they consume, or maybe to learn more about m
      
     - GET: /{user_id} Get a user by id
 
-    - GET: /  Get all users
+    - GET: /?page={page}&page_size={page_size} Get all users
    
     - DELETE: /{user_id} Delete a user by id
 
@@ -495,6 +495,8 @@ This is just a message to confirm that the user has been registered successfully
 
 ### UserRequest
 
+When updating a whole user, usually with higher roles
+
 - **email:** str
 - **password:** str
 - **full_name:** str
@@ -503,6 +505,8 @@ This is just a message to confirm that the user has been registered successfully
 
 
 ### UserResponse(HyperlinkResponse, UserRequest)
+
+when getting a user, usually with higher roles
 
 - **id:** int
 - **email:** str
