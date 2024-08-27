@@ -30,4 +30,4 @@ WORKDIR /app/
 
 EXPOSE 8000
 
-ENTRYPOINT ["fastapi", "run", "src/molecules/main.py"]
+ENTRYPOINT ["fastapi", "run", "src/main.py"]

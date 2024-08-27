@@ -69,6 +69,7 @@ def test_update_molecule(molecule_service, mock_repository):
     del ethane_request["molecule_id"]
     molecule_request = MoleculeRequest(**ethane_request)
     mock_repository.find_by_id.return_value = Molecule(**alkanes["ethane"])
+    mock_repository.filter.return_value = []
     molecule_service.update(101, molecule_request)
     mock_repository.update.assert_called_once_with(101, ethane_request)
 

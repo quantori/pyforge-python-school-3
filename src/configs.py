@@ -18,11 +18,9 @@ class Settings(BaseSettings):
     TEST_DB_URL: str
     CONTEXT_PATH: str
 
-    SUPERADMIN_EMAIL: str
-    SUPERADMIN_PASSWORD: str
-
     model_config = SettingsConfigDict(
-        env_file="/home/gaioz/quantori/pyforge-python-school-3/.env"
+        env_file=".env",
+        extra="ignore",
     )
 
     @property
