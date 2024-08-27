@@ -1,12 +1,10 @@
 from typing import Annotated
-from fastapi import Depends, status, Body, Path, Query, UploadFile, APIRouter, Security
+from fastapi import Depends, status, Body, Path, Query, UploadFile, APIRouter
 from src.molecules.schemas import MoleculeRequest, MoleculeResponse
 from src.molecules.dependencies import get_pagination_query_params
 from src.molecules.service import get_molecule_service
 from src.molecules.schemas import PaginationQueryParams
 from src.molecules.service import MoleculeService
-from src.users.security import Scope
-from src.users.service import get_current_active_user
 
 router = APIRouter()
 
@@ -23,9 +21,6 @@ router = APIRouter()
     },
 )
 def add_molecule(
-    _: Annotated[
-        None, Security(get_current_active_user, scopes=[Scope.MOLECULES_WRITE])
-    ],
     molecule_request: Annotated[MoleculeRequest, Body(...)],
     service: Annotated[MoleculeService, Depends(get_molecule_service)],
 ) -> MoleculeResponse:
@@ -78,9 +73,7 @@ def get_molecules(
     },
 )
 def update_molecule(
-    _: Annotated[
-        None, Security(get_current_active_user, scopes=[Scope.MOLECULES_WRITE])
-    ],
+
     molecule_id: Annotated[
         int, Path(..., description="Unique identifier for the molecule")
     ],
@@ -102,9 +95,6 @@ def update_molecule(
     },
 )
 def delete_molecule(
-    _: Annotated[
-        None, Security(get_current_active_user, scopes=[Scope.MOLECULES_WRITE])
-    ],
     molecule_id: Annotated[
         int, Path(..., description="Unique identifier for the molecule")
     ],
@@ -167,9 +157,6 @@ def substructure_search(
 
 @router.post("/upload/upload_molecules_csv", status_code=status.HTTP_201_CREATED)
 def upload_molecules(
-    _: Annotated[
-        None, Security(get_current_active_user, scopes=[Scope.MOLECULES_WRITE])
-    ],
     file: UploadFile,
     service: Annotated[MoleculeService, Depends(get_molecule_service)],
 ):
