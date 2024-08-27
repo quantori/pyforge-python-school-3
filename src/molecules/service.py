@@ -123,6 +123,23 @@ class MoleculeService:
 
         return substructures
 
+    def get_is_substructure_of(self, smiles: str) -> list[MoleculeResponse]:
+        """
+        Find all the molecules that this molecule is a substructure of.
+
+        :param smiles:
+        :return:  List of molecules that this molecule is a substructure of.
+        :raises InvalidSmilesException: if the smiles does not represent a valid molecule
+        """
+
+        mol = get_chem_molecule_from_smiles_or_raise_exception(smiles)
+        find_all = self._repository.find_all()
+        is_substructure_of = []
+        for molecule in find_all:
+            if molecule.to_chem().HasSubstructMatch(mol):
+                is_substructure_of.append(molecule.to_response())
+        return is_substructure_of
+
     def process_csv_file(self, file: UploadFile):
         """
         Process a CSV file and add molecules to the database. The CSV file must have the following columns:
