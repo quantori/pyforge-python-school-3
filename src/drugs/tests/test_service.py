@@ -6,6 +6,7 @@ from src.configs import get_settings
 from src.drugs.repository import DrugRepository
 from src.drugs.service import DrugService
 from src.database import Base
+from src.exceptions import BadRequestException
 from src.molecules.molecule_repository import MoleculeRepository
 from src.molecules.service import MoleculeService
 import src.drugs.tests.samle_data as sample_data
@@ -37,6 +38,13 @@ def test_save(init_db):
     assert response.name == sample_data.coffe_request.name
     assert response.description == sample_data.coffe_request.description
     assert len(response.molecules) == 3
+
+
+def test_save_with_nonexistent_molecule(init_db):
+    coffee_request = sample_data.coffe_request.copy()
+    coffee_request.molecules[0].molecule_id = 4
+    with pytest.raises(BadRequestException):
+        service.save(sample_data.coffe_request)
 
 
 

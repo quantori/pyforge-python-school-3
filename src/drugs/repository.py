@@ -17,16 +17,16 @@ class DrugRepository(SQLAlchemyRepository):
 
         I changed the usual behavour of the save method to return the drug object and the session object.
         This session is used in the service to close the session after the transaction is done.
-        This became necessary because if i close the session in the repository, the service will not be able to use
+        This became necessary because if I close the session in the repository, the service will not be able to use
         drug. molecules to get the molecules of the drug, as they are lazy loaded.
 
-        I realize now why you should pass the session to the repository methods, so that the service can control the
+        I realize now why it's better to pass the session object to every repository methods, so that the service can control the
         session lifecycle.
 
         :param data:
         :return:
         """
-        session = self._get_session()
+        session = super()._get_session()
         drug = Drug(name=data["name"], description=data.get("description"))
         session.add(drug)
         session.flush()
