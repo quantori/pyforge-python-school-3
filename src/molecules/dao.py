@@ -88,7 +88,76 @@ class MoleculeDAO(BaseDAO):
                 await session.execute(delete(cls.model).filter_by(id=mol_id))
                 await session.commit()
                 return mol_id
-   
+
+    @classmethod
+    async def find_by_substructure(
+        cls,
+        substructure_smiles: str,
+        limit: int = 100,
+        offset: int = 0
+    ) -> List[Dict]:
+        if not substructure_smiles:
+            raise ValueError("Substructure SMILES string cannot be empty")
+        substructure_mol = Chem.MolFromSmiles(substructure_smiles)
+        if substructure_mol is None:
+            raise ValueError("Invalid substructure SMILES string")
+
+        async with async_session_maker() as session:
+            try:
+                query = select(cls.model).offset(offset).limit(limit)
+                result = await session.execute(query)
+                molecules = result.scalars().all()
+
+                matches = []
+                for molecule in molecules:
+                    mol = Chem.MolFromSmiles(molecule.name)
+                    if mol and mol.HasSubstructMatch(substructure_mol):
+                        mol_data = {
+                            "id": molecule.id,
+                            "name": molecule.name,
+                        }
+                        matches.append(mol_data)
+
+                return matches
+            except SQLAlchemyError as e:
+                raise Exception("Database error occurred") from e
+            
+    @classmethod
+    async def find_by_substructure_iterator(
+        cls,
+        substructure_smiles: str, 
+        limit: int
+    ) -> AsyncIterator[Dict]:
+        if not substructure_smiles:
+            raise ValueError("Substructure SMILES string cannot be empty")
+        substructure_mol = Chem.MolFromSmiles(substructure_smiles)
+        if substructure_mol is None:
+            raise ValueError("Invalid substructure SMILES string")
+
+        async with async_session_maker() as session:
+            offset = 0
+            while True:
+                query = select(cls.model).offset(offset).limit(limit)
+                result = await session.execute(query)
+                molecules_batch = result.scalars().all()
+                
+                if not molecules_batch:
+                    break
+
+                matches = []
+                for molecule in molecules_batch:
+                    mol = Chem.MolFromSmiles(molecule.name)
+                    if mol and mol.HasSubstructMatch(substructure_mol):
+                        mol_data = {
+                            "id": molecule.id,
+                            "name": molecule.name,
+                        }
+                        matches.append(mol_data)
+
+                for match in matches:
+                    yield match
+
+                offset += limit    
 
     @classmethod
     async def upload_file(cls, file_content: str) -> int:

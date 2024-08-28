@@ -64,7 +64,10 @@ async def add_molecule(molecule: MoleculeAdd):
 async def retrieve_molecules(limit: int = 100) -> List[MoleculeResponse]:
     logger.info("Retrieving {limit} molecules")
     try:
-        response = [MoleculeResponse(**molecule) async for molecule in MoleculeDAO.find_all_molecules_iterator(limit)]
+        response = [
+            MoleculeResponse(**molecule)
+            async for molecule in MoleculeDAO.find_all_molecules_iterator(limit)
+            ]
         return response
     except Exception as e:
         logger.error(f"Error retrieving molecules: {e}")
@@ -116,16 +119,25 @@ async def delete_mol(mol_id: int) -> dict:
 
 
 @app.get("/substructure_search", tags=["Molecules"], response_model=List[Dict])
-async def substructure_search(substructure_name: str, limit: int = 100) -> List[Dict]:
+async def substructure_search(
+    substructure_name: str,
+    limit: int = 100
+    ) -> List[Dict]:
     if not substructure_name:
-        raise HTTPException(status_code=400, detail="Substructure SMILES string cannot be empty")
+        raise HTTPException(
+            status_code=400, 
+            detail="Substructure SMILES string cannot be empty"
+            )
     
     substructure_mol = Chem.MolFromSmiles(substructure_name)
     if substructure_mol is None:
         raise HTTPException(status_code=400, detail="Invalid SMILES string")
 
     try:
-        logger.info("Searching for molecules with substructure: %s", substructure_name)
+        logger.info(
+            "Searching for molecules with substructure: %s", 
+            substructure_name
+            )
         
         matches = [match async for match in MoleculeDAO.find_by_substructure_iterator(substructure_name, limit)]
         
