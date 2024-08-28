@@ -151,7 +151,7 @@ async def substructure_search(
                 substructure_name
             )
             raise HTTPException(
-                status_code=404, 
+                status_code=404,
                 detail="No molecules found matching the substructure"
             )
 
@@ -160,7 +160,7 @@ async def substructure_search(
     except ValueError as e:
         logger.warning(f"Bad request for substructure search: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
-    
+
     except Exception as e:
         logger.error(
             f"Internal server error during substructure search: {str(e)}"
