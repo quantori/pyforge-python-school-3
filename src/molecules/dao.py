@@ -27,9 +27,9 @@ class MoleculeDAO(BaseDAO):
 
     @classmethod
     async def find_all_molecules_iterator(
-        cls, 
+        cls,
         limit: int
-        ) -> AsyncIterator[Dict]:
+    ) -> AsyncIterator[Dict]:
         offset = 0
         while True:
             molecules_group = await cls.find_all_molecules(limit, offset)
@@ -164,7 +164,7 @@ class MoleculeDAO(BaseDAO):
                 for match in matches:
                     yield match
 
-                offset += limit    
+                offset += limit
 
     @classmethod
     async def upload_file(cls, file_content: str) -> int:

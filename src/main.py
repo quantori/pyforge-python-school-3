@@ -123,7 +123,7 @@ async def delete_mol(mol_id: int) -> dict:
 async def substructure_search(
     substructure_name: str,
     limit: int = 100
-    ) -> List[Dict]:
+) -> List[Dict]:
     if not substructure_name:
         raise HTTPException(
             status_code=400,
@@ -139,12 +139,15 @@ async def substructure_search(
             "Searching for molecules with substructure: %s",
             substructure_name
         )
-        iterator = MoleculeDAO.find_by_substructure_iterator(substructure_name, limit)
+        iterator = MoleculeDAO.find_by_substructure_iterator(
+            substructure_name,
+            limit
+        )
         matches = [match async for match in iterator]
 
         if not matches:
             logger.warning(
-                "No molecules found for substructure: %s", 
+                "No molecules found for substructure: %s",
                 substructure_name
             )
             raise HTTPException(
@@ -159,7 +162,9 @@ async def substructure_search(
         raise HTTPException(status_code=400, detail=str(e))
     
     except Exception as e:
-        logger.error(f"Internal server error during substructure search: {str(e)}")
+        logger.error(
+            f"Internal server error during substructure search: {str(e)}"
+        )
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
@@ -197,10 +202,12 @@ async def upload_file(file: UploadFile = File(...)):
             logger.debug(f"Processing molecule: ID={mol_id}, Name={name}")
             if not mol_id or not name:
                 logger.warning(f"Missing ID or name in file: {molecule}")
-                
+
             existing_molecule = await MoleculeDAO.find_full_data(mol_id)
             if existing_molecule:
-                logger.warning(f"Molecule with ID {mol_id} already exists, skipping.")
+                logger.warning(
+                    f"Molecule with ID {mol_id} already exists, skipping."
+                )
                 continue
 
             mol = Chem.MolFromSmiles(name)
