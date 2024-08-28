@@ -16,8 +16,9 @@ coffe_request = DrugRequest(
     name="Coffe",
     description="Best drug ever",
     molecules=[
-        DrugMoleculeRequest(molecule_id=1,
-                            smiles="CN1C=NC2=C1C(=O)N(C(=O)N2C)C", quantity=0.2, quantity_unit=QuantityUnit.MASS
-                            )
+        DrugMoleculeRequest(molecule_id=1, quantity=0.2, quantity_unit=QuantityUnit.MASS
+                            ),
+        DrugMoleculeRequest(molecule_id=2, quantity=0.3, quantity_unit=QuantityUnit.VOLUME),
+        DrugMoleculeRequest(molecule_id=3, quantity=0.1, quantity_unit=QuantityUnit.MOLAR)
     ],
 )

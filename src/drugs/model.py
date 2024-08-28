@@ -21,7 +21,7 @@ class DrugMolecule(Base):
     )
     quantity: Mapped[float] = mapped_column(Float, nullable=False)
     quantity_unit: Mapped[QuantityUnit] = mapped_column(nullable=False)
-
+    drug = relationship("Drug", back_populates="molecules")
     # Define relationships if needed
     # Example: molecule = relationship("Molecule", back_populates="drug_molecules")
 

@@ -57,6 +57,12 @@ class DrugRequest(BaseModel):
     }
 
 
+class DrugMoleculeResponse(BaseResponse):
+    molecule_id: Annotated[int, Field()]
+    quantity: Annotated[float, Field()]
+    quantity_unit: Annotated[QuantityUnit, Field()]
+
+
 class DrugResponse(BaseResponse):
     """
     """
@@ -68,4 +74,4 @@ class DrugResponse(BaseResponse):
     ]
     name: Annotated[str, Field()]
     description: Annotated[Optional[str], Field()]
-
+    molecules: Annotated[list[DrugMoleculeResponse], Field()]

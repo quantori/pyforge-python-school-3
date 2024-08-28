@@ -33,8 +33,7 @@ class DrugRepository(SQLAlchemyRepository):
 
         session.commit()
         session.refresh(drug)
-        session.close()
-        return drug
+        return drug, session
 
 
 @lru_cache

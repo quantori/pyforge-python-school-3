@@ -9,5 +9,7 @@ class DrugService:
         self._drug_repository = drug_repository
 
     def save(self, drug: DrugRequest):
-        drug = self._drug_repository.save(drug.model_dump())
-        return mapper.drug_to_response(drug)
+        drug, session = self._drug_repository.save(drug.model_dump())
+        ans = mapper.drug_to_response(drug)
+        session.close()
+        return ans

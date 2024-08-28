@@ -3,7 +3,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from src.configs import get_settings
-from src.drugs import mapper
 from src.drugs.repository import DrugRepository
 from src.drugs.service import DrugService
 from src.database import Base
@@ -30,14 +29,14 @@ def init_db():
     molecule_service.save(sample_data.water_request)
     molecule_service.save(sample_data.sugar_request)
     yield
-    Base.metadata.drop_all(engine)
+    # Base.metadata.drop_all(engine)
 
 
 def test_save(init_db):
     response = service.save(sample_data.coffe_request)
     assert response.name == sample_data.coffe_request.name
     assert response.description == sample_data.coffe_request.description
-
+    assert len(response.molecules) == 3
 
 
 
