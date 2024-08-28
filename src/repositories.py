@@ -40,7 +40,8 @@ class SQLAlchemyRepository:
     def filter(self, **kwargs):
         with self._get_session() as session:
             stmt = select(self._model_type).filter_by(**kwargs)
-            return session.execute(stmt).scalars().all()
+            ans = session.execute(stmt).scalars().all()
+            return ans
 
     def save(self, data: dict):
         session = self._get_session()

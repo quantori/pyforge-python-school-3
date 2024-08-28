@@ -37,10 +37,6 @@ def get_database_url():
 @lru_cache
 def get_session_factory():
     if Settings().TEST_MODE:
-        return sessionmaker(
-            bind=create_engine(
-                get_database_url(), connect_args={"check_same_thread": False}
-            )
-        )
+        return sessionmaker(bind=create_engine(get_database_url()))
 
     return sessionmaker(bind=create_engine(get_database_url()))

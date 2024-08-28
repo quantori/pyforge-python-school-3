@@ -1,13 +1,9 @@
 from __future__ import annotations
-
 import enum
-from typing import List, Annotated, Optional
-from sqlalchemy import ForeignKey
-from sqlalchemy.orm import Mapped
-from sqlalchemy.orm import mapped_column
-from sqlalchemy.orm import relationship
+from typing import List, Optional
+from sqlalchemy import ForeignKey, Integer, Float
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.database import Base
-from src.drugs.schema import DrugResponse
 
 
 class QuantityUnit(enum.Enum):
@@ -19,32 +15,26 @@ class QuantityUnit(enum.Enum):
 class DrugMolecule(Base):
     __tablename__ = "drug_molecule"
 
-    drug_id: Mapped[
-        Annotated[int, mapped_column(ForeignKey("drugs.drug_id"), primary_key=True)]
-    ]
-    molecule_id: Mapped[
-        Annotated[
-            int, mapped_column(ForeignKey("molecules.molecule_id"), primary_key=True)
-        ]
-    ]
-    quantity: Mapped[Annotated[float, mapped_column(nullable=False)]]
-    quantity_unit: Mapped[
-        Annotated[QuantityUnit, mapped_column(nullable=False)]
-    ]
+    drug_id: Mapped[int] = mapped_column(ForeignKey("drugs.drug_id"), primary_key=True)
+    molecule_id: Mapped[int] = mapped_column(
+        ForeignKey("molecules.molecule_id"), primary_key=True
+    )
+    quantity: Mapped[float] = mapped_column(Float, nullable=False)
+    quantity_unit: Mapped[QuantityUnit] = mapped_column(nullable=False)
+
+    # Define relationships if needed
+    # Example: molecule = relationship("Molecule", back_populates="drug_molecules")
 
 
 class Drug(Base):
-    drug_id: Mapped[Annotated[int, mapped_column(primary_key=True, autoincrement=True)]]
-    name: Mapped[Annotated[str, mapped_column(nullable=False)]]
-    description: Mapped[Annotated[Optional[str], mapped_column(nullable=True)]]
+    __tablename__ = "drugs"
 
-    molecules: Mapped[List[DrugMolecule]] = relationship()
+    drug_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(nullable=False)
+    description: Mapped[Optional[str]] = mapped_column(nullable=True)
 
-    def to_response(self):
-        return DrugResponse(
-            id=self.drug_id,
-            name=self.name,
-            description=self.description,
-            molecule_ids=[molecule.molecule_id for molecule in self.molecules],
-            links=[],
-        )
+    # Define the relationship with DrugMolecule
+    molecules: Mapped[List[DrugMolecule]] = relationship("DrugMolecule")
+
+    # Define relationships if needed
+    # Example: drug_molecules = relationship("DrugMolecule", back_populates="drug")
