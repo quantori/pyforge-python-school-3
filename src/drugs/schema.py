@@ -64,8 +64,8 @@ class DrugMoleculeResponse(BaseResponse):
 
 
 class DrugResponse(BaseResponse):
-    """
-    """
+    """ """
+
     drug_id: Annotated[
         int,
         Field(

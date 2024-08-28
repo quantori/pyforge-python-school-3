@@ -138,7 +138,7 @@ def substructure_search(
         },
     },
 )
-def substructure_search(
+def substructure_search_of(
     smiles: Annotated[
         str,
         Query(

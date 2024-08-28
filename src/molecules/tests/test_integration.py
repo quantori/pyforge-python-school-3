@@ -1,10 +1,6 @@
-"""
-Let's test the integration of the whole system
-"""
-
 import pytest
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine, StaticPool
+from sqlalchemy import create_engine
 from src.database import Base
 from src.molecules.service import get_molecule_service, MoleculeService
 from src.molecules.molecule_repository import MoleculeRepository
@@ -16,16 +12,15 @@ from src.molecules.tests.sample_data import (
 )
 from fastapi.testclient import TestClient
 from src.main import app
+from src.configs import get_settings
 
 # engine = create_engine("postgresql://user:password@localhost:5432/db_test")
 engine = create_engine(
-    "sqlite:///:memory:",
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
+    get_settings().TEST_DB_URL,
 )
 session_factory = sessionmaker(bind=engine)
-molecule_repository = MoleculeRepository(session_factory)
-molecule_service = MoleculeService(molecule_repository)
+molecule_repository = MoleculeRepository()
+molecule_service = MoleculeService(molecule_repository, session_factory)
 
 client = TestClient(app)
 app.dependency_overrides[get_molecule_service] = lambda: molecule_service

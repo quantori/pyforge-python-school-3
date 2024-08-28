@@ -1,7 +1,7 @@
 from __future__ import annotations
 import enum
 from typing import List, Optional
-from sqlalchemy import ForeignKey, Integer, Float
+from sqlalchemy import ForeignKey, Float
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.database import Base
 
@@ -34,7 +34,9 @@ class Drug(Base):
     description: Mapped[Optional[str]] = mapped_column(nullable=True)
 
     # Define the relationship with DrugMolecule
-    molecules: Mapped[List[DrugMolecule]] = relationship("DrugMolecule")
+    molecules: Mapped[List[DrugMolecule]] = relationship(
+        "DrugMolecule", back_populates="drug", cascade="all, " "delete-orphan"
+    )
 
     # Define relationships if needed
     # Example: drug_molecules = relationship("DrugMolecule", back_populates="drug")

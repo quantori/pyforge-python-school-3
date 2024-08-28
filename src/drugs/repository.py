@@ -1,17 +1,13 @@
 from functools import lru_cache
-
-from sqlalchemy.orm import sessionmaker
-
-from src.database import get_session_factory
 from src.drugs.model import Drug, DrugMolecule
 from src.repositories import SQLAlchemyRepository
 
 
 class DrugRepository(SQLAlchemyRepository):
-    def __init__(self, session_factory: sessionmaker):
-        super().__init__(Drug, session_factory)
+    def __init__(self):
+        super().__init__(Drug)
 
-    def save(self, data: dict):
+    def save(self, data: dict, session):
         """
         First create a drug, then drug_molecules. they will automatically fail if molecule_id is not found
 
@@ -20,13 +16,14 @@ class DrugRepository(SQLAlchemyRepository):
         This became necessary because if I close the session in the repository, the service will not be able to use
         drug. molecules to get the molecules of the drug, as they are lazy loaded.
 
-        I realize now why it's better to pass the session object to every repository methods, so that the service can control the
+        I realize now why it's better to pass the session object to every repository methods,
+        so that the service can control the
         session lifecycle.
 
+        :param session:
         :param data:
         :return:
         """
-        session = super()._get_session()
         drug = Drug(name=data["name"], description=data.get("description"))
         session.add(drug)
         session.flush()
@@ -41,9 +38,9 @@ class DrugRepository(SQLAlchemyRepository):
 
         session.commit()
         session.refresh(drug)
-        return drug, session
+        return drug
 
 
 @lru_cache
 def get_drug_repository():
-    return DrugRepository(get_session_factory())
+    return DrugRepository()

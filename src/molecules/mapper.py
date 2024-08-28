@@ -1,5 +1,3 @@
-
-
 def generate_links_from_id(molecule_id: int):
     return {
         "self": {

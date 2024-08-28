@@ -23,8 +23,9 @@ from src.molecules.utils import (
 class MoleculeService:
     required_columns = {"smiles", "name"}
 
-    def __init__(self, repository: MoleculeRepository):
+    def __init__(self, repository: MoleculeRepository, session_factory):
         self._repository = repository
+        self._session_factory = session_factory
 
     def exists_by_id(self, obj_id: int):
         """
@@ -32,7 +33,8 @@ class MoleculeService:
         :param obj_id: molecule id
         :return: True if the molecule exists, False otherwise
         """
-        return self._repository.find_by_id(obj_id) is not None
+        with self._session_factory() as session:
+            return self._repository.find_by_id(obj_id, session) is not None
 
     def find_by_id(self, obj_id: int):
         """
@@ -43,11 +45,11 @@ class MoleculeService:
         :return: found molecule
         :raises UnknownIdentifierException: if the molecule with the given id does not exist
         """
-
-        if not self.exists_by_id(obj_id):
-            raise UnknownIdentifierException(obj_id)
-        mol = self._repository.find_by_id(obj_id)
-        return mol.to_response()
+        with self._session_factory() as session:
+            if not self.exists_by_id(obj_id):
+                raise UnknownIdentifierException(obj_id)
+            mol = self._repository.find_by_id(obj_id, session)
+            return mol.to_response()
 
     def save(self, molecule_request: MoleculeRequest):
         """
@@ -56,11 +58,14 @@ class MoleculeService:
         :param molecule_request: Molecule data
         :return: Saved molecule
         """
-        same_smiles = self._repository.filter(smiles=molecule_request.smiles)
-        if len(same_smiles) > 0:
-            raise DuplicateSmilesException(molecule_request.smiles)
-        mol = self._repository.save(molecule_request.model_dump())
-        return mol.to_response()
+        with self._session_factory() as session:
+            same_smiles = self._repository.filter(
+                session, smiles=molecule_request.smiles
+            )
+            if len(same_smiles) > 0:
+                raise DuplicateSmilesException(molecule_request.smiles)
+            mol = self._repository.save(session, molecule_request.model_dump())
+            return mol.to_response()
 
     def update(self, obj_id: int, molecule_request: MoleculeRequest):
         """
@@ -72,15 +77,20 @@ class MoleculeService:
         :return: Updated molecule
         :raises UnknownIdentifierException: if the molecule with the given id does not exist
         """
-        if not self.exists_by_id(obj_id):
-            raise UnknownIdentifierException(obj_id)
+        with self._session_factory() as session:
+            if not self.exists_by_id(obj_id):
+                raise UnknownIdentifierException(obj_id)
 
-        same_smiles = self._repository.filter(smiles=molecule_request.smiles)
-        if len(same_smiles) > 0 and same_smiles[0].molecule_id != obj_id:
-            raise DuplicateSmilesException(molecule_request.smiles)
+            same_smiles = self._repository.filter(
+                smiles=molecule_request.smiles, session=session
+            )
+            if len(same_smiles) > 0 and same_smiles[0].molecule_id != obj_id:
+                raise DuplicateSmilesException(molecule_request.smiles)
 
-        mol = self._repository.update(obj_id, molecule_request.model_dump())
-        return mol.to_response()
+            mol = self._repository.update(
+                session, obj_id, molecule_request.model_dump()
+            )
+            return mol.to_response()
 
     def find_all(self, page: int = 0, page_size: int = 1000):
         """
@@ -90,10 +100,13 @@ class MoleculeService:
         :param page_size: Items per page, default is 1000
         :return: List of all molecules
         """
-        find_all = self._repository.find_all(page, page_size)
-        return [molecule.to_response() for molecule in find_all]
+        with self._session_factory() as session:
+            find_all = self._repository.find_all(
+                session=session, page=page, page_size=page_size
+            )
+            return [molecule.to_response() for molecule in find_all]
 
-    def delete(self, obj_id: int):
+    def delete(self, obj_id: int) -> bool:
         """
         Delete a molecule with the given id. If the molecule does not exist, raise an exception.
 
@@ -101,9 +114,10 @@ class MoleculeService:
         :return: True
         :raises UnknownIdentifierException: if the molecule with the given id does not exist
         """
-        if not self.exists_by_id(obj_id):
-            raise UnknownIdentifierException(obj_id)
-        return self._repository.delete(obj_id)
+        with self._session_factory() as session:
+            if not self.exists_by_id(obj_id):
+                raise UnknownIdentifierException(obj_id)
+            return self._repository.delete(session, obj_id)
 
     def get_substructures(self, smiles: str) -> list[MoleculeResponse]:
         """
@@ -114,14 +128,15 @@ class MoleculeService:
         :raises InvalidSmilesException: if the smiles does not represent a valid molecule
         """
 
-        mol = get_chem_molecule_from_smiles_or_raise_exception(smiles)
-        find_all = self._repository.find_all()
-        substructures = []
-        for molecule in find_all:
-            if mol.HasSubstructMatch(molecule.to_chem()):
-                substructures.append(molecule.to_response())
+        with self._session_factory() as session:
+            mol = get_chem_molecule_from_smiles_or_raise_exception(smiles)
+            find_all = self._repository.find_all(session)
+            substructures = []
+            for molecule in find_all:
+                if mol.HasSubstructMatch(molecule.to_chem()):
+                    substructures.append(molecule.to_response())
 
-        return substructures
+            return substructures
 
     def get_is_substructure_of(self, smiles: str) -> list[MoleculeResponse]:
         """
@@ -131,14 +146,14 @@ class MoleculeService:
         :return:  List of molecules that this molecule is a substructure of.
         :raises InvalidSmilesException: if the smiles does not represent a valid molecule
         """
-
-        mol = get_chem_molecule_from_smiles_or_raise_exception(smiles)
-        find_all = self._repository.find_all()
-        is_substructure_of = []
-        for molecule in find_all:
-            if molecule.to_chem().HasSubstructMatch(mol):
-                is_substructure_of.append(molecule.to_response())
-        return is_substructure_of
+        with self._session_factory() as session:
+            mol = get_chem_molecule_from_smiles_or_raise_exception(smiles)
+            find_all = self._repository.find_all(session)
+            is_substructure_of = []
+            for molecule in find_all:
+                if molecule.to_chem().HasSubstructMatch(mol):
+                    is_substructure_of.append(molecule.to_response())
+            return is_substructure_of
 
     def process_csv_file(self, file: UploadFile):
         """
@@ -188,4 +203,6 @@ class MoleculeService:
 
 @lru_cache
 def get_molecule_service():
-    return MoleculeService(get_molecule_repository())
+    return MoleculeService(
+        get_molecule_repository(), get_molecule_repository().session_factory
+    )
