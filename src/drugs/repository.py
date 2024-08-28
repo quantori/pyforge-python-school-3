@@ -15,6 +15,14 @@ class DrugRepository(SQLAlchemyRepository):
         """
         First create a drug, then drug_molecules. they will automatically fail if molecule_id is not found
 
+        I changed the usual behavour of the save method to return the drug object and the session object.
+        This session is used in the service to close the session after the transaction is done.
+        This became necessary because if i close the session in the repository, the service will not be able to use
+        drug. molecules to get the molecules of the drug, as they are lazy loaded.
+
+        I realize now why you should pass the session to the repository methods, so that the service can control the
+        session lifecycle.
+
         :param data:
         :return:
         """
