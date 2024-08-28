@@ -3,6 +3,20 @@ import requests
 ENDPOINT = "http://localhost:8000"
 
 
+def test_upload_file_invalid_json():
+    """Test uploading an invalid JSON file."""
+    files = {
+        'file': (
+            'molecules.json',
+            '{"mol_id": 5, "name": "C1=CC=CC=C1"',
+            'application/json'
+        )
+    }
+    response = requests.post(ENDPOINT + "/upload_file/", files=files)
+    assert response.status_code == 400
+    assert response.json() == {"detail": "Invalid JSON file"}
+
+    
 def test_upload_file_success():
     """Test successful file upload."""
     response = upload_molecules_json()
@@ -47,17 +61,3 @@ def test_delete_molecule():
     response = requests.delete(ENDPOINT + "/molecules/7")
     assert response.status_code == 200
     assert response.json() == {"message": "The molecule with id 7 is deleted!"}
-
-
-def test_upload_file_invalid_json():
-    """Test uploading an invalid JSON file."""
-    files = {
-        'file': (
-            'molecules.json',
-            '{"mol_id": 5, "name": "C1=CC=CC=C1"',
-            'application/json'
-        )
-    }
-    response = requests.post(ENDPOINT + "/upload_file/", files=files)
-    assert response.status_code == 400
-    assert response.json() == {"detail": "Invalid JSON file"}
