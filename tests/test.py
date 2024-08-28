@@ -3,7 +3,7 @@ import requests
 ENDPOINT = "http://localhost:8000"
 
 
-def upload_molecules_json(filename='src/molecules.json'):
+def upload_molecules_json(filename='molecules.json'):
     """Helper function to upload a molecules JSON file."""
     with open(filename, 'rb') as file:
         files = {'file': ('molecules.json', file, 'application/json')}
