@@ -16,7 +16,7 @@ def test_upload_file_invalid_json():
     assert response.status_code == 400
     assert response.json() == {"detail": "Invalid JSON file"}
 
-    
+
 def test_upload_file_success():
     """Test successful file upload."""
     response = upload_molecules_json()
