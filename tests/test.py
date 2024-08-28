@@ -1,6 +1,6 @@
 import requests
 
-ENDPOINT = "http://localhost:8011"
+ENDPOINT = "http://localhost:8000"
 
 
 def upload_molecules_json(filename='molecules.json'):
