@@ -6,20 +6,31 @@ from molecules.models import Molecule
 from database import async_session_maker
 from dao_dir.base import BaseDAO
 from rdkit import Chem
-from typing import List, Dict
+from typing import List, Dict, AsyncIterator
 
 
 class MoleculeDAO(BaseDAO):
     model = Molecule
 
     @classmethod
-    async def find_all_molecules(cls) -> List[Dict]:
+    async def find_all_molecules(cls, limit: int = 100, offset: int = 0) -> List[Dict]:
         async with async_session_maker() as session:
-            query = select(cls.model)
+            query = select(cls.model).limit(limit).offset(offset)
             result = await session.execute(query)
             return [
                 cls._model_to_dict(mol) for mol in result.scalars().all()
             ]
+    
+    @classmethod
+    async def find_all_molecules_iterator(cls, limit: int) -> AsyncIterator[Dict]:
+        offset = 0
+        while True:
+            molecules_group = await cls.find_all_molecules(limit, offset)
+            if not molecules_group:
+                break
+            for molecule in molecules_group:
+                yield molecule
+            offset += limit
 
     @classmethod
     async def find_full_data(cls, mol_id: int) -> Dict:
@@ -77,37 +88,7 @@ class MoleculeDAO(BaseDAO):
                 await session.execute(delete(cls.model).filter_by(id=mol_id))
                 await session.commit()
                 return mol_id
-
-    @classmethod
-    async def find_by_substructure(
-        cls,
-        substructure_smiles: str
-    ) -> List[Dict]:
-        if not substructure_smiles:
-            raise ValueError("Substructure SMILES string cannot be empty")
-        substructure_mol = Chem.MolFromSmiles(substructure_smiles)
-        if substructure_mol is None:
-            raise ValueError("Invalid substructure SMILES string")
-
-        async with async_session_maker() as session:
-            try:
-                query = select(cls.model)
-                result = await session.execute(query)
-                molecules = result.scalars().all()
-
-                matches = []
-                for molecule in molecules:
-                    mol = Chem.MolFromSmiles(molecule.name)
-                    if mol and mol.HasSubstructMatch(substructure_mol):
-                        mol_data = {
-                            "id": molecule.id,
-                            "name": molecule.name,
-                        }
-                        matches.append(mol_data)
-
-                return matches
-            except SQLAlchemyError as e:
-                raise Exception("Database error occurred") from e
+   
 
     @classmethod
     async def upload_file(cls, file_content: str) -> int:

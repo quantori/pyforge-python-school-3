@@ -61,15 +61,11 @@ async def add_molecule(molecule: MoleculeAdd):
         tags=["Molecules"],
         response_model=List[MoleculeResponse]
         )
-async def retrieve_molecules() -> List[MoleculeResponse]:
-    logger.info("Retrieving molecules")
+async def retrieve_molecules(limit: int = 100) -> List[MoleculeResponse]:
+    logger.info("Retrieving {limit} molecules")
     try:
-        molecules = await MoleculeDAO.find_all_molecules()
-        return [
-            MoleculeResponse(molecule.id, molecule.name)
-            for molecule in molecules
-        ]
-
+        response = [MoleculeResponse(**molecule) async for molecule in MoleculeDAO.find_all_molecules_iterator(limit)]
+        return response
     except Exception as e:
         logger.error(f"Error retrieving molecules: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
@@ -77,8 +73,10 @@ async def retrieve_molecules() -> List[MoleculeResponse]:
 
 @app.get("/molecules/{mol_id}", response_model=MoleculeResponse)
 async def get_molecule(mol_id: int):
+    logging.info(f"Received request for molecule ID: {mol_id}")
     mol_data = await MoleculeDAO.find_full_data(mol_id)
     if mol_data is None:
+        logging.warning(f"Molecule with ID {mol_id} not found")
         raise HTTPException(status_code=404, detail="Molecule not found")
     return mol_data
 
@@ -118,35 +116,31 @@ async def delete_mol(mol_id: int) -> dict:
 
 
 @app.get("/substructure_search", tags=["Molecules"], response_model=List[Dict])
-async def substructure_search(substructure_name: str) -> List[Dict]:
+async def substructure_search(substructure_name: str, limit: int = 100) -> List[Dict]:
+    if not substructure_name:
+        raise HTTPException(status_code=400, detail="Substructure SMILES string cannot be empty")
+    
+    substructure_mol = Chem.MolFromSmiles(substructure_name)
+    if substructure_mol is None:
+        raise HTTPException(status_code=400, detail="Invalid SMILES string")
+
     try:
-        logger.info(
-            "Searching for molecules with substructure: %s",
-            substructure_name
-            )
-        matches = await MoleculeDAO.find_by_substructure(substructure_name)
+        logger.info("Searching for molecules with substructure: %s", substructure_name)
+        
+        matches = [match async for match in MoleculeDAO.find_by_substructure_iterator(substructure_name, limit)]
+        
         if not matches:
-            logger.warning(
-                "No molecules found for substructure: %s",
-                substructure_name
-                )
-            raise HTTPException(
-                status_code=404,
-                detail="No molecules found matching the substructure"
-            )
-        if not Chem.MolFromSmiles(substructure_name):
-            raise HTTPException(
-                status_code=400,
-                detail="Invalid SMILES string"
-                )
+            logger.warning("No molecules found for substructure: %s", substructure_name)
+            raise HTTPException(status_code=404, detail="No molecules found matching the substructure")
+
         return matches
+
     except ValueError as e:
         logger.warning(f"Bad request for substructure search: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
+    
     except Exception as e:
-        logger.error(
-            f"Internal server error during substructure search: {str(e)}"
-            )
+        logger.error(f"Internal server error during substructure search: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 
@@ -184,8 +178,20 @@ async def upload_file(file: UploadFile = File(...)):
             logger.debug(f"Processing molecule: ID={mol_id}, Name={name}")
             if not mol_id or not name:
                 logger.warning(f"Missing ID or name in file: {molecule}")
+                
+            existing_molecule = await MoleculeDAO.find_full_data(mol_id)
+            if existing_molecule:
+                logger.warning(f"Molecule with ID {mol_id} already exists, skipping.")
                 continue
+
+            mol = Chem.MolFromSmiles(name)
+            if not mol:
+                logger.warning(f"Invalid SMILES: {name}, skipping.")
+                continue
+
+            await MoleculeDAO.add_mol(id=mol_id, name=name)
             added_count += 1
+
         except Exception as e:
             logger.error(f"Error processing molecule {molecule}: {str(e)}")
             continue
