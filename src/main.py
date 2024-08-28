@@ -64,10 +64,11 @@ async def add_molecule(molecule: MoleculeAdd):
 async def retrieve_molecules(limit: int = 100) -> List[MoleculeResponse]:
     logger.info("Retrieving {limit} molecules")
     try:
+        molecule_iterator = MoleculeDAO.find_all_molecules_iterator(limit)
         response = [
             MoleculeResponse(**molecule)
-            async for molecule in MoleculeDAO.find_all_molecules_iterator(limit)
-            ]
+            async for molecule in molecule_iterator
+        ]
         return response
     except Exception as e:
         logger.error(f"Error retrieving molecules: {e}")
@@ -125,25 +126,31 @@ async def substructure_search(
     ) -> List[Dict]:
     if not substructure_name:
         raise HTTPException(
-            status_code=400, 
+            status_code=400,
             detail="Substructure SMILES string cannot be empty"
-            )
-    
+        )
+
     substructure_mol = Chem.MolFromSmiles(substructure_name)
     if substructure_mol is None:
         raise HTTPException(status_code=400, detail="Invalid SMILES string")
 
     try:
         logger.info(
-            "Searching for molecules with substructure: %s", 
+            "Searching for molecules with substructure: %s",
             substructure_name
-            )
-        
-        matches = [match async for match in MoleculeDAO.find_by_substructure_iterator(substructure_name, limit)]
-        
+        )
+        iterator = MoleculeDAO.find_by_substructure_iterator(substructure_name, limit)
+        matches = [match async for match in iterator]
+
         if not matches:
-            logger.warning("No molecules found for substructure: %s", substructure_name)
-            raise HTTPException(status_code=404, detail="No molecules found matching the substructure")
+            logger.warning(
+                "No molecules found for substructure: %s", 
+                substructure_name
+            )
+            raise HTTPException(
+                status_code=404, 
+                detail="No molecules found matching the substructure"
+            )
 
         return matches
 

@@ -13,16 +13,23 @@ class MoleculeDAO(BaseDAO):
     model = Molecule
 
     @classmethod
-    async def find_all_molecules(cls, limit: int = 100, offset: int = 0) -> List[Dict]:
+    async def find_all_molecules(
+        cls,
+        limit: int = 100,
+        offset: int = 0
+    ) -> List[Dict]:
         async with async_session_maker() as session:
             query = select(cls.model).limit(limit).offset(offset)
             result = await session.execute(query)
             return [
                 cls._model_to_dict(mol) for mol in result.scalars().all()
             ]
-    
+
     @classmethod
-    async def find_all_molecules_iterator(cls, limit: int) -> AsyncIterator[Dict]:
+    async def find_all_molecules_iterator(
+        cls, 
+        limit: int
+        ) -> AsyncIterator[Dict]:
         offset = 0
         while True:
             molecules_group = await cls.find_all_molecules(limit, offset)
@@ -121,11 +128,11 @@ class MoleculeDAO(BaseDAO):
                 return matches
             except SQLAlchemyError as e:
                 raise Exception("Database error occurred") from e
-            
+
     @classmethod
     async def find_by_substructure_iterator(
         cls,
-        substructure_smiles: str, 
+        substructure_smiles: str,
         limit: int
     ) -> AsyncIterator[Dict]:
         if not substructure_smiles:
@@ -140,7 +147,7 @@ class MoleculeDAO(BaseDAO):
                 query = select(cls.model).offset(offset).limit(limit)
                 result = await session.execute(query)
                 molecules_batch = result.scalars().all()
-                
+
                 if not molecules_batch:
                     break
 
