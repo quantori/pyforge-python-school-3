@@ -30,9 +30,12 @@ class DrugMoleculeRequest(BaseModel):
 class DrugRequest(BaseModel):
     name: Annotated[str, Field(..., min_length=1)]
     description: Annotated[Optional[str], Field()]
-    molecules: Annotated[list[DrugMoleculeRequest], Field(..., min_length=0)]
+    molecules: Annotated[list[DrugMoleculeRequest], Field(..., min_length=1)]
 
     model_config = {
+        # "json_encoders": {
+        #     QuantityUnit: lambda v: v.value
+        # },
         "json_schema_extra": {
             "examples": [
                 {
@@ -40,16 +43,16 @@ class DrugRequest(BaseModel):
                     "description": "Best drug ever",
                     "molecules": [
                         {
-                            "smiles": "CN1C=NC2=C1C(=O)N(C(=O)N2C)C",
+                            "molecule_id": 1,
                             "quantity": 0.2,
                             "quantity_unit": "GRAM",
                         },
                         {
-                            "smiles": "OC[C@H]1O[C@@H](O[C@H]2[C@@H](O)[C@@H](CO)O[C@H](O)[C@H]2O)C(O)[C@@H](O)[C@H]1O",
+                            "molecule_id": 2,
                             "quantity": 5,
                             "quantity_unit": "GRAM",
                         },
-                        {"smiles": "O", "quantity": 150, "quantity_unit": "ML"},
+                        {"molecule_id": 3, "quantity": 150, "quantity_unit": "ML"},
                     ],
                 }
             ]
@@ -62,9 +65,14 @@ class DrugMoleculeResponse(BaseResponse):
     quantity: Annotated[float, Field()]
     quantity_unit: Annotated[QuantityUnit, Field()]
 
+    model_config = {
+        # "json_encoders": {
+        #     QuantityUnit: lambda v: v.value
+        # }
+    }
+
 
 class DrugResponse(BaseResponse):
-    """ """
 
     drug_id: Annotated[
         int,

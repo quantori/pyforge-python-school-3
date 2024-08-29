@@ -29,7 +29,7 @@ class MoleculeRequest(BaseModel):
         "json_schema_extra": {
             "examples": [
                 {"smiles": "CC(=O)Oc1ccccc1C(=O)O", "name": "Aspirin"},
-                {"smiles": "C"},
+                {"smiles": "C", "name": "methane"},
             ]
         }
     }

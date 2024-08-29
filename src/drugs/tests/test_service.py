@@ -9,7 +9,7 @@ from src.database import Base
 from src.exceptions import BadRequestException, UnknownIdentifierException
 from src.molecules.molecule_repository import MoleculeRepository
 from src.molecules.service import MoleculeService
-import src.drugs.tests.samle_data as sample_data
+import src.drugs.tests.sample_data as sample_data
 
 engine = create_engine(get_settings().TEST_DB_URL)
 session_factory = sessionmaker(bind=engine)
@@ -83,6 +83,3 @@ def test_find_all(init_db):
     assert response[0].name == coffe.name
     assert response[1].name == drunkenstein.name
     assert response[1].molecules[0].quantity == drunkenstein.molecules[0].quantity
-
-
-

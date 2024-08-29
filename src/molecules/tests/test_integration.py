@@ -48,6 +48,7 @@ def create_testing_files():
     generate_testing_files()
     yield
     import os
+
     os.remove("alkanes.csv")
     os.remove("invalid_header.csv")
     os.remove("decane_nonane_invalid_smiles.csv")
@@ -191,7 +192,9 @@ def test_file_upload(init_db_3_alkanes, create_testing_files):
 
     """
     with open("alkanes.csv", "rb") as file:
-        response = client.post("/molecules/upload/upload_molecules_csv", files={"file": file})
+        response = client.post(
+            "/molecules/upload/upload_molecules_csv", files={"file": file}
+        )
         response_json = response.json()
         assert response.status_code == 201
         assert response_json["number_of_molecules_added"] == 7
@@ -204,7 +207,9 @@ def test_file_upload_invalid_header(init_db_3_alkanes, create_testing_files):
     The response should be 400.
     """
     with open("invalid_header.csv", "rb") as file:
-        response = client.post("/molecules/upload/upload_molecules_csv", files={"file": file})
+        response = client.post(
+            "/molecules/upload/upload_molecules_csv", files={"file": file}
+        )
         assert response.status_code == 400
 
 
@@ -215,9 +220,9 @@ def test_decane_nonane_invalid_smiles(init_db_3_alkanes, create_testing_files):
     Only decane and nonane should not be added to the database, so the number of molecules added should be 5
     """
     with open("decane_nonane_invalid_smiles.csv", "rb") as file:
-        response = client.post("/molecules/upload/upload_molecules_csv", files={"file": file})
+        response = client.post(
+             "/molecules/upload/upload_molecules_csv", files={"file": file}
+        )
         assert response.status_code == 201
         response_json = response.json()
         assert response_json["number_of_molecules_added"] == 5
-
-

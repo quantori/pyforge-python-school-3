@@ -18,6 +18,7 @@ from src.molecules.utils import (
     get_chem_molecule_from_smiles_or_raise_exception,
     is_valid_smiles,
 )
+from src.database import get_session_factory
 
 
 class MoleculeService:
@@ -204,5 +205,6 @@ class MoleculeService:
 @lru_cache
 def get_molecule_service():
     return MoleculeService(
-        get_molecule_repository(), get_molecule_repository().session_factory
+        get_molecule_repository(),
+        get_session_factory()
     )

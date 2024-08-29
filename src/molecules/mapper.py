@@ -1,13 +1,21 @@
+from src.schemas import Link
+
+
 def generate_links_from_id(molecule_id: int):
     return {
-        "self": {
+        "self": Link.model_validate({
             "href": f"/molecules/{molecule_id}",
             "rel": "self",
             "type": "GET",
-        },
-        "substructures": {
-            "href": f"/substructure_search?molecule_id={molecule_id}",
+        }),
+        "molecules/search/substructures": Link.model_validate({
+            "href": f"/molecules/search/substructures?molecule_id={molecule_id}",
             "rel": "substructures",
             "type": "GET",
-        },
+        }),
+        "molecules/search/is_substructure_of": Link.model_validate({
+            "href": f"/molecules/search/is_substructure_of?molecule_id={molecule_id}",
+            "rel": "substructures",
+            "type": "GET"
+        })
     }

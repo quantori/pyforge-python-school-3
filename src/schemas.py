@@ -9,18 +9,18 @@ class Link(BaseModel):
     rel: str
     type: str
 
-    model_config = {
-        "json_schema_extra": {
-            "examples": [
-                {"href": "/molecules/1", "rel": "self", "type": "GET"},
-                {
-                    "href": "/substructure_search?smiles=C",
-                    "rel": "substructures",
-                    "type": "GET",
-                },
-            ]
-        }
-    }
+    # model_config = {
+    #     "json_schema_extra": {
+    #         "examples": [
+    #             {"href": "/molecules/1", "rel": "self", "type": "GET"},
+    #             {
+    #                 "href": "/substructure_search?smiles=C",
+    #                 "rel": "substructures",
+    #                 "type": "GET",
+    #             },
+    #         ]
+    #     }
+    # }
 
 
 class BaseResponse(BaseModel):
@@ -32,15 +32,15 @@ class BaseResponse(BaseModel):
         datetime.datetime, Field(description="Timestamp when the entity was updated")
     ] = None
 
-    model_config = {
-        "json_schema_extra": {
-            "examples": {
-                "self": {"href": "/molecules/1", "rel": "self", "type": "GET"},
-                "substructures": {
-                    "href": "/substructure_search?smiles=C",
-                    "rel": "substructures",
-                    "type": "GET",
-                },
-            }
-        }
-    }
+    # model_config = {
+    #     "json_schema_extra": {
+    #         "examples": {
+    #             "self": {"href": "/molecules/1", "rel": "self", "type": "GET"},
+    #             "substructures": {
+    #                 "href": "/substructure_search?smiles=C",
+    #                 "rel": "substructures",
+    #                 "type": "GET",
+    #             },
+    #         }
+    #     }
+    # }

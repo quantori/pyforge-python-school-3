@@ -1,9 +1,9 @@
 from sqlalchemy.exc import IntegrityError
-
 from src.drugs import mapper
-from src.drugs.repository import DrugRepository
+from src.drugs.repository import DrugRepository, get_drug_repository
 from src.drugs.schema import DrugRequest, DrugResponse
 from src.exceptions import BadRequestException, UnknownIdentifierException
+from src.database import get_session_factory
 
 
 class DrugService:
@@ -42,7 +42,6 @@ class DrugService:
 
     def delete(self, drug_id: int) -> bool:
         """
-
         :param drug_id:
         :return:
         :raises UnknownIdentifierException: if the drug with the given id does not exist
@@ -56,3 +55,9 @@ class DrugService:
         with self._session_factory() as session:
             drugs = self._drug_repository.find_all(session, page, page_size)
             return [mapper.drug_to_response(drug) for drug in drugs]
+
+
+def get_drug_service():
+    return DrugService(
+        drug_repository=get_drug_repository(), session_factory=get_session_factory()
+    )

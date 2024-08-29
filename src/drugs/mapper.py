@@ -1,20 +1,21 @@
 from src.drugs.model import Drug
 from src.drugs.schema import DrugResponse, DrugMoleculeResponse
 from src.molecules import mapper as molecule_mapper
+from src.schemas import Link
 
 
 def generate_links(drug_id: int):
     return {
-        "self": {
+        "self": Link.model_validate({
             "href": f"/drugs/{drug_id}",
             "rel": "self",
             "type": "GET",
-        },
-        "molecules": {
+        }),
+        "molecules": Link.model_validate({
             "href": f"/drugs/{drug_id}/molecules",
             "rel": "molecules",
             "type": "GET",
-        },
+        }),
     }
 
 
