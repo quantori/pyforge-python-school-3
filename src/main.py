@@ -13,8 +13,13 @@ app = FastAPI()
 app.include_router(molecule_router, prefix="/molecules")
 app.include_router(drug_router, prefix="/drugs")
 register_exception_handlers(app)
-
 service = get_molecule_service()
+
+
+@app.get("/")
+def get_server_id():
+    from os import getenv
+    return "Hello from  server" + getenv("SERVER_ID", "1")
 
 
 @app.on_event("startup")

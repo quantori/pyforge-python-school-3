@@ -19,8 +19,7 @@ class Settings(BaseSettings):
     CONTEXT_PATH: str
 
     model_config = SettingsConfigDict(
-        # env_file=".env",
-        env_file="/home/gaioz/quantori/pyforge-python-school-3/.env",
+        env_file=".env",
         extra="ignore",
     )
 
