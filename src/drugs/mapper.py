@@ -6,16 +6,20 @@ from src.schemas import Link
 
 def generate_links(drug_id: int):
     return {
-        "self": Link.model_validate({
-            "href": f"/drugs/{drug_id}",
-            "rel": "self",
-            "type": "GET",
-        }),
-        "molecules": Link.model_validate({
-            "href": f"/drugs/{drug_id}/molecules",
-            "rel": "molecules",
-            "type": "GET",
-        }),
+        "self": Link.model_validate(
+            {
+                "href": f"/drugs/{drug_id}",
+                "rel": "self",
+                "type": "GET",
+            }
+        ),
+        "molecules": Link.model_validate(
+            {
+                "href": f"/drugs/{drug_id}/molecules",
+                "rel": "molecules",
+                "type": "GET",
+            }
+        ),
     }
 
 

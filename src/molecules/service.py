@@ -204,7 +204,4 @@ class MoleculeService:
 
 @lru_cache
 def get_molecule_service():
-    return MoleculeService(
-        get_molecule_repository(),
-        get_session_factory()
-    )
+    return MoleculeService(get_molecule_repository(), get_session_factory())

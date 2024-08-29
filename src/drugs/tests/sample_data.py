@@ -18,8 +18,6 @@ sugar_request = MoleculeRequest.model_validate(
     {"name": "Sugar", "smiles": "C(C1C(C(C(C(O1)OC2(C(C(C(O2)CO)O)O)CO)O)O)O)O"}
 )
 
-
-
 ethanol_request = MoleculeRequest.model_validate({"name": "Ethanol", "smiles": "CCO"})
 
 coffe_request = DrugRequest(
@@ -50,6 +48,5 @@ drunkenstein = DrugRequest(
         ),
     ],
 )
-
 
 print(coffe_request.model_dump())

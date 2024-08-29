@@ -66,4 +66,3 @@ def delete(
     service: Annotated[DrugService, Depends(get_drug_service)],
 ) -> bool:
     return service.delete(drug_id)
-

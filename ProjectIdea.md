@@ -1,5 +1,9 @@
 # Project Idea
 
+This is just a conceptual plan for the project. This might change gradually as the project progresses.
+
+For the part that is already implemented, check out the CurrentProgress.md file.
+
 ## Introduction
 
 We were recommended by **Yaroslav Korkodinov** to add models:  Patients, Doctors and Drugs to the database. 
@@ -13,7 +17,7 @@ Patients can be prescribed with the most suitable drugs and each drug can be com
 suitable molecules.
 
 Maybe this does not sound very scientific and realistic, but I think it's at least nice for practicing. 
-I had to learn about hierarchies in sqlalchemy and complex relationships. Additionally I used OAuth2, jwt, and role based access control.
+I had to learn about hierarchies in sqlalchemy and complex relationships. Additionally project includes OAuth2, jwt, and role based access control.
 
 ## User Roles and Flows
 

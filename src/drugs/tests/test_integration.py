@@ -2,17 +2,15 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from starlette.testclient import TestClient
-
 from src.configs import get_settings
 from src.drugs.repository import DrugRepository
 from src.drugs.service import DrugService
 from src.drugs.service import get_drug_service
-from src.database import Base
-from src.drugs.model import *
 from src.main import app
 from src.molecules.molecule_repository import MoleculeRepository
 from src.molecules.service import MoleculeService, get_molecule_service
 from src.drugs.tests import sample_data
+from src.database import Base
 
 engine = create_engine(get_settings().TEST_DB_URL)
 
@@ -44,7 +42,9 @@ def init_db():
 
 
 def test_add_drug_find_by_id(init_db):
-    post = test_client.post("/drugs/", content=sample_data.coffe_request.model_dump_json())
+    post = test_client.post(
+        "/drugs/", content=sample_data.coffe_request.model_dump_json()
+    )
     assert post.status_code == 201
     response = post.json()
     assert response["name"] == sample_data.coffe_request.name
@@ -73,7 +73,9 @@ def test_find_by_id_with_nonexistent_id(init_db):
 
 
 def test_delete(init_db):
-    post = test_client.post("/drugs/", content=sample_data.coffe_request.model_dump_json())
+    post = test_client.post(
+        "/drugs/", content=sample_data.coffe_request.model_dump_json()
+    )
     assert post.status_code == 201
     response = post.json()
     drug_id = response["drug_id"]
@@ -88,9 +90,13 @@ def test_delete_with_nonexistent_id(init_db):
 
 
 def test_find_all(init_db):
-    post = test_client.post("/drugs/", content=sample_data.coffe_request.model_dump_json())
+    post = test_client.post(
+        "/drugs/", content=sample_data.coffe_request.model_dump_json()
+    )
     assert post.status_code == 201
-    post = test_client.post("/drugs/", content=sample_data.drunkenstein.model_dump_json())
+    post = test_client.post(
+        "/drugs/", content=sample_data.drunkenstein.model_dump_json()
+    )
     assert post.status_code == 201
 
     get = test_client.get("/drugs/")
@@ -99,6 +105,3 @@ def test_find_all(init_db):
     assert len(response) == 2
     assert response[0]["name"] == sample_data.coffe_request.name
     assert response[1]["name"] == sample_data.drunkenstein.name
-
-
-

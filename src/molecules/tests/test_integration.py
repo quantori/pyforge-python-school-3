@@ -221,7 +221,7 @@ def test_decane_nonane_invalid_smiles(init_db_3_alkanes, create_testing_files):
     """
     with open("decane_nonane_invalid_smiles.csv", "rb") as file:
         response = client.post(
-             "/molecules/upload/upload_molecules_csv", files={"file": file}
+            "/molecules/upload/upload_molecules_csv", files={"file": file}
         )
         assert response.status_code == 201
         response_json = response.json()

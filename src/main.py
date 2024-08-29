@@ -21,12 +21,20 @@ service = get_molecule_service()
 def add_3_molecules():
     # add caffeine, surcose and water molecules
     try:
-        service.save(MoleculeRequest.model_validate({"smiles": "CN1C=NC2=C1C(=O)N(C(=O)N2C)C", "name": "Caffeine"}))
+        service.save(
+            MoleculeRequest.model_validate(
+                {"smiles": "CN1C=NC2=C1C(=O)N(C(=O)N2C)C", "name": "Caffeine"}
+            )
+        )
     except DuplicateSmilesException:
         pass
 
     try:
-        service.save(MoleculeRequest.model_validate({"smiles": "C(C1C(C(C(C(O1)O)O)O)O)O", "name": "Sucrose"}))
+        service.save(
+            MoleculeRequest.model_validate(
+                {"smiles": "C(C1C(C(C(C(O1)O)O)O)O)O", "name": "Sucrose"}
+            )
+        )
     except DuplicateSmilesException:
         pass
 
@@ -34,6 +42,3 @@ def add_3_molecules():
         service.save(MoleculeRequest.model_validate({"smiles": "O", "name": "Water"}))
     except DuplicateSmilesException:
         pass
-
-
-
