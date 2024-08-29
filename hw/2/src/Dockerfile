@@ -1,26 +1,25 @@
-# Use an official Miniconda image as the base image
-FROM continuumio/miniconda3:latest
+# Use Miniconda base image
+FROM continuumio/miniconda3
 
-# Set the working directory
+# Set working directory
 WORKDIR /app
 
-# Install required system packages for mysqlclient
-RUN apt-get update && apt-get install -y \
-    pkg-config \
-    libmysqlclient-dev \
-    && rm -rf /var/lib/apt/lists/*
+# Install RDKit
+RUN conda install conda-forge::rdkit
 
-# Install RDKit via conda
-RUN conda install -c conda-forge rdkit
-
-# Copy the requirements file into the container
+# Install dependencies
 COPY requirements.txt .
-
-# Install Python dependencies
 RUN pip3 install -r requirements.txt
 
-# Copy the current directory contents into the container at /app
+# Activate environment and set it as default
+RUN echo "conda activate myenv" >> ~/.bashrc
+ENV PATH /opt/conda/envs/myenv/bin:$PATH
+
+# Copy application code
 COPY . .
 
-# Command to run the application
+# Expose the port FastAPI will run on
+EXPOSE 8000
+
+# Run the FastAPI application
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
