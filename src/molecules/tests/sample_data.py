@@ -1,6 +1,6 @@
 import collections
 
-from src.molecules.models import Molecule
+from src.molecules.model import Molecule
 
 # simplest organic compounds
 alkanes = collections.OrderedDict(

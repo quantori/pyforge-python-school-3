@@ -2,12 +2,12 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from src.configs import get_settings
+from src.config import get_settings
 from src.drugs.repository import DrugRepository
 from src.drugs.service import DrugService
 from src.database import Base
-from src.exceptions import BadRequestException, UnknownIdentifierException
-from src.molecules.molecule_repository import MoleculeRepository
+from src.exception import BadRequestException, UnknownIdentifierException
+from src.molecules.repository import MoleculeRepository
 from src.molecules.service import MoleculeService
 import src.drugs.tests.sample_data as sample_data
 

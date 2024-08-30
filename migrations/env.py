@@ -3,7 +3,7 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 from alembic import context
 from src.database import Base, get_database_url
-from src.molecules.models import *
+from src.molecules.model import *
 from src.drugs.model import *
 
 # this is the Alembic Config object, which provides

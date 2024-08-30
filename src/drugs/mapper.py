@@ -1,7 +1,7 @@
 from src.drugs.model import Drug
 from src.drugs.schema import DrugResponse, DrugMoleculeResponse
 from src.molecules import mapper as molecule_mapper
-from src.schemas import Link
+from src.schema import Link
 
 
 def generate_links(drug_id: int):

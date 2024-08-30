@@ -1,6 +1,6 @@
 from src.drugs.model import QuantityUnit
 from src.drugs.schema import DrugMoleculeRequest, DrugRequest
-from src.molecules.schemas import MoleculeRequest
+from src.molecules.schema import MoleculeRequest
 
 """
 Be sure to add theses molecules in the database one by one in the order they are defined here.

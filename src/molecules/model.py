@@ -1,7 +1,7 @@
 from typing import Annotated, Optional
 from sqlalchemy.orm import Mapped, mapped_column
 from src.database import Base
-from src.molecules.schemas import MoleculeResponse
+from src.molecules.schema import MoleculeResponse
 from rdkit import Chem
 
 

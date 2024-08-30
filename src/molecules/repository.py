@@ -1,6 +1,6 @@
 from functools import lru_cache
-from src.molecules.models import Molecule
-from src.repositories import SQLAlchemyRepository
+from src.molecules.model import Molecule
+from src.repository import SQLAlchemyRepository
 
 
 class MoleculeRepository(SQLAlchemyRepository):

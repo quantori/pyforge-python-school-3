@@ -2,7 +2,7 @@ from sqlalchemy.exc import IntegrityError
 from src.drugs import mapper
 from src.drugs.repository import DrugRepository, get_drug_repository
 from src.drugs.schema import DrugRequest, DrugResponse
-from src.exceptions import BadRequestException, UnknownIdentifierException
+from src.exception import BadRequestException, UnknownIdentifierException
 from src.database import get_session_factory
 
 

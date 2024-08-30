@@ -10,7 +10,7 @@ from sqlalchemy.orm import (
     sessionmaker,
 )
 
-from src.configs import Settings
+from src.config import Settings
 
 created_at = Annotated[datetime, mapped_column(server_default=func.now())]
 updated_at = Annotated[

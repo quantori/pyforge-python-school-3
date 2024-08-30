@@ -1,4 +1,4 @@
-from src.exceptions import BadRequestException
+from src.exception import BadRequestException
 
 
 class InvalidSmilesException(BadRequestException):

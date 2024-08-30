@@ -2,12 +2,12 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from starlette.testclient import TestClient
-from src.configs import get_settings
+from src.config import get_settings
 from src.drugs.repository import DrugRepository
 from src.drugs.service import DrugService
 from src.drugs.service import get_drug_service
 from src.main import app
-from src.molecules.molecule_repository import MoleculeRepository
+from src.molecules.repository import MoleculeRepository
 from src.molecules.service import MoleculeService, get_molecule_service
 from src.drugs.tests import sample_data
 from src.database import Base

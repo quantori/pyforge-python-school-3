@@ -2,7 +2,7 @@ from fastapi.encoders import jsonable_encoder
 from starlette import status
 from starlette.responses import JSONResponse
 from fastapi import Request
-from src.exceptions import BadRequestException, UnknownIdentifierException
+from src.exception import BadRequestException, UnknownIdentifierException
 
 
 def bad_request_exception_handler(request: Request, exc: BadRequestException):

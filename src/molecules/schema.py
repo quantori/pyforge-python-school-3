@@ -3,9 +3,9 @@ from typing import Annotated
 from black.linegen import Optional
 from fastapi import Query
 from pydantic import BaseModel, Field, field_validator
-from src.molecules.molecule_exceptions import InvalidSmilesException
+from src.molecules.exception import InvalidSmilesException
 from src.molecules.utils import is_valid_smiles
-from src.schemas import BaseResponse
+from src.schema import BaseResponse
 
 
 class MoleculeRequest(BaseModel):

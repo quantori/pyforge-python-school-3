@@ -1,10 +1,10 @@
 from fastapi import FastAPI
 
-from src.molecules.molecule_exceptions import DuplicateSmilesException
+from src.molecules.exception import DuplicateSmilesException
 from src.molecules.router import router as molecule_router
 from src.drugs.router import router as drug_router
 from src.handler import register_exception_handlers
-from src.molecules.schemas import MoleculeRequest
+from src.molecules.schema import MoleculeRequest
 from src.molecules.service import get_molecule_service
 
 app = FastAPI()
@@ -19,6 +19,7 @@ service = get_molecule_service()
 @app.get("/")
 def get_server_id():
     from os import getenv
+
     return "Hello from  server" + getenv("SERVER_ID", "1")
 
 

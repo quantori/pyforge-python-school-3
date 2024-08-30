@@ -3,8 +3,8 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from src.database import Base
 from src.molecules.service import get_molecule_service, MoleculeService
-from src.molecules.molecule_repository import MoleculeRepository
-from src.molecules.models import Molecule
+from src.molecules.repository import MoleculeRepository
+from src.molecules.model import Molecule
 from src.molecules.tests.sample_data import (
     alkanes,
     to_molecule_request_dict,
@@ -12,7 +12,7 @@ from src.molecules.tests.sample_data import (
 )
 from fastapi.testclient import TestClient
 from src.main import app
-from src.configs import get_settings
+from src.config import get_settings
 from src.molecules.tests.generate_csv_file import generate_testing_files
 
 # engine = create_engine("postgresql://user:password@localhost:5432/db_test")

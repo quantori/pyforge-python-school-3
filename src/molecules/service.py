@@ -3,17 +3,17 @@ from functools import lru_cache
 
 from fastapi import UploadFile
 
-from src.exceptions import UnknownIdentifierException
-from src.molecules.molecule_exceptions import (
+from src.exception import UnknownIdentifierException
+from src.molecules.exception import (
     DuplicateSmilesException,
     InvalidCsvHeaderColumnsException,
     InvalidSmilesException,
 )
-from src.molecules.molecule_repository import (
+from src.molecules.repository import (
     MoleculeRepository,
     get_molecule_repository,
 )
-from src.molecules.schemas import MoleculeRequest, MoleculeResponse
+from src.molecules.schema import MoleculeRequest, MoleculeResponse
 from src.molecules.utils import (
     get_chem_molecule_from_smiles_or_raise_exception,
     is_valid_smiles,

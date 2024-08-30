@@ -1,6 +1,6 @@
 from functools import lru_cache
 from src.drugs.model import Drug, DrugMolecule
-from src.repositories import SQLAlchemyRepository
+from src.repository import SQLAlchemyRepository
 
 
 class DrugRepository(SQLAlchemyRepository):

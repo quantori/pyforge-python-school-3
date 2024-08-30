@@ -1,6 +1,6 @@
 from typing import Annotated, Optional
 from pydantic import BaseModel, Field
-from src.schemas import BaseResponse
+from src.schema import BaseResponse
 from src.drugs.model import QuantityUnit
 
 

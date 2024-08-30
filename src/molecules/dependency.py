@@ -1,5 +1,5 @@
 from functools import lru_cache
-from src.molecules.schemas import PaginationQueryParams
+from src.molecules.schema import PaginationQueryParams
 
 
 @lru_cache

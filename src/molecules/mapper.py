@@ -1,4 +1,4 @@
-from src.schemas import Link
+from src.schema import Link
 
 
 def generate_links_from_id(molecule_id: int):
