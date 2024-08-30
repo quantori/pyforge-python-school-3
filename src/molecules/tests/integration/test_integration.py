@@ -175,7 +175,7 @@ def test_find_all_delete_by_id(init_db_3_alkanes):
 
 
 @pytest.mark.parametrize("limit", [1, 2, 3, 4])
-def test_substructures(limit, init_db_3_alkanes):
+def test_substructures(limit,init_db_3_alkanes):
     """
     Find the molecules which are substructures of propane.
 
