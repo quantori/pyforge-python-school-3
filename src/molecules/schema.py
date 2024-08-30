@@ -58,5 +58,3 @@ class MoleculeResponse(MoleculeRequest, BaseResponse):
             ]
         }
     }
-
-

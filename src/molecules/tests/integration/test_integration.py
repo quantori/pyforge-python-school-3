@@ -74,7 +74,7 @@ def test_add_molecule_find_all(init_db_3_alkanes):
         (0, 2, [alkanes["methane"], alkanes["ethane"]]),
         (4, 2, [alkanes["nonane"], alkanes["decane"]]),
         (3, 1, [alkanes["butane"]]),
-    ]
+    ],
 )
 def test_add_find_all_pagination(page, page_size, expected, init_db_3_alkanes):
     """
@@ -174,22 +174,41 @@ def test_find_all_delete_by_id(init_db_3_alkanes):
     assert len(response_json) == 0
 
 
-def test_substructures(init_db_3_alkanes):
-    response = client.get("molecules/search/substructures?smiles=CC")
+@pytest.mark.parametrize("limit", [1, 2, 3, 4])
+def test_substructures(limit, init_db_3_alkanes):
+    """
+    Find the molecules which are substructures of propane.
+
+    There are 3 other alkanes and all of them are bustructures of propane, so
+    limit amount of alkanes should be returned.
+    """
+    response = client.get(f"molecules/search/substructures?smiles=CCC&limit={limit}")
     response_json = response.json()
     assert response.status_code == 200
-    assert len(response_json) == 2
-    assert is_equal_dict_without_id(response_json[0], alkanes["methane"])
-    assert is_equal_dict_without_id(response_json[1], alkanes["ethane"])
+    assert len(response_json) == min(limit, 3)
+    for i in range(min(limit, 3)):
+        assert is_equal_dict_without_id(
+            response_json[i], alkanes[list(alkanes.keys())[i]]
+        )
 
 
-def test_substructures_of(init_db_3_alkanes):
-    response = client.get("molecules/search/substructure_of?smiles=CC")
+@pytest.mark.parametrize("limit", [1, 2, 3, 4])
+def test_substructures_of(limit, init_db_3_alkanes):
+    """
+    Find the molecules which the methane is substructure of.
+
+    There are 3 other alkanes and all of them are 'superstructures' of methane, so
+    limit amount of alkanes should be returned.
+
+    """
+    response = client.get(f"molecules/search/substructure_of?smiles=C&limit={limit}")
     response_json = response.json()
     assert response.status_code == 200
-    assert len(response_json) == 2
-    assert is_equal_dict_without_id(response_json[1], alkanes["propane"])
-    assert is_equal_dict_without_id(response_json[0], alkanes["ethane"])
+    assert len(response_json) == min(limit, 3)
+    for i in range(min(limit, 3)):
+        assert is_equal_dict_without_id(
+            response_json[i], alkanes[list(alkanes.keys())[i]]
+        )
 
 
 def test_file_upload(init_db_3_alkanes, create_testing_files):

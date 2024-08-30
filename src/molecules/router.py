@@ -120,17 +120,20 @@ def substructure_search(
         ),
     ],
     service: Annotated[MoleculeService, Depends(get_molecule_service)],
-) -> list[MoleculeResponse]:
+    limit: Annotated[
+        int, Query(description="Stop searching after finding this many molecules")
+    ] = 1000,
+):
     """
     Find all molecules that ARE SUBSTRUCTURES of the given smile, not vice vera.
     """
-    return service.get_substructures(smiles)
+    return service.get_substructures(smiles, limit)
 
 
 @router.get(
     "/search/substructure_of",
     responses={
-        status.HTTP_200_OK: {"model": list[MoleculeResponse]},
+        # status.HTTP_200_OK: {"model": list[MoleculeResponse]},
         status.HTTP_400_BAD_REQUEST: {
             "model": str,
             "description": "Probably due to Invalid SMILES string",
@@ -146,11 +149,17 @@ def substructure_search_of(
         ),
     ],
     service: Annotated[MoleculeService, Depends(get_molecule_service)],
-) -> list[MoleculeResponse]:
+    limit: Annotated[
+        int,
+        Query(
+            description="Stop searching after finding this many molecules",
+        ),
+    ] = 1000,
+):
     """
     Find all molecules that the given smile IS SUBSTRUCTURE OF, not vice vera.
     """
-    return service.get_is_substructure_of(smiles)
+    return service.get_is_substructure_of(smiles, limit)
 
 
 @router.post("/upload/upload_molecules_csv", status_code=status.HTTP_201_CREATED)

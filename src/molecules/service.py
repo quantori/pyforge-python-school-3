@@ -1,9 +1,8 @@
 import csv
 import io
+import logging
 from functools import lru_cache
-
 from fastapi import UploadFile
-
 from src.exception import UnknownIdentifierException
 from src.molecules.exception import (
     DuplicateSmilesException,
@@ -20,6 +19,8 @@ from src.molecules.utils import (
     is_valid_smiles,
 )
 from src.database import get_session_factory
+
+logger = logging.getLogger(__name__)
 
 
 class MoleculeService:
@@ -121,41 +122,51 @@ class MoleculeService:
                 raise UnknownIdentifierException(obj_id)
             return self._repository.delete(session, obj_id)
 
-    def get_substructures(self, smiles: str) -> list[MoleculeResponse]:
+    def get_substructures(
+        self, smiles: str, limit: int = 1000
+    ) -> list[MoleculeResponse]:
         """
         Find all molecules that are substructures of the given smiles.
 
+        :param limit:
         :param smiles: smiles string
         :return: List of molecules that are substructures of the given smiles
         :raises InvalidSmilesException: if the smiles does not represent a valid molecule
         """
 
-        with self._session_factory() as session:
-            mol = get_chem_molecule_from_smiles_or_raise_exception(smiles)
-            find_all = self._repository.find_all(session)
-            substructures = []
-            for molecule in find_all:
-                if mol.HasSubstructMatch(molecule.to_chem()):
-                    substructures.append(molecule.to_response())
+        mol = get_chem_molecule_from_smiles_or_raise_exception(smiles)
+        find_all = self.__iterate_on_find_all()
+        count = 0
 
-            return substructures
+        for molecule in find_all:
+            if mol.HasSubstructMatch(molecule.to_chem()):
+                yield molecule.to_response()
+                count += 1
+                if limit is not None and count >= limit:
+                    break
 
-    def get_is_substructure_of(self, smiles: str) -> list[MoleculeResponse]:
+    def get_is_substructure_of(
+        self, smiles: str, limit: int = 1000
+    ) -> list[MoleculeResponse]:
         """
         Find all the molecules that this molecule is a substructure of.
 
+        :param limit: stop searching after finding this many molecules
         :param smiles:
         :return:  List of molecules that this molecule is a substructure of.
         :raises InvalidSmilesException: if the smiles does not represent a valid molecule
         """
-        with self._session_factory() as session:
-            mol = get_chem_molecule_from_smiles_or_raise_exception(smiles)
-            find_all = self._repository.find_all(session)
-            is_substructure_of = []
-            for molecule in find_all:
-                if molecule.to_chem().HasSubstructMatch(mol):
-                    is_substructure_of.append(molecule.to_response())
-            return is_substructure_of
+
+        mol = get_chem_molecule_from_smiles_or_raise_exception(smiles)
+        find_all = self.__iterate_on_find_all()
+        count = 0
+
+        for molecule in find_all:
+            if molecule.to_chem().HasSubstructMatch(mol):
+                yield molecule.to_response()
+                count += 1
+                if limit is not None and count >= limit:
+                    break
 
     def process_csv_file(self, file: UploadFile):
         """
@@ -170,7 +181,7 @@ class MoleculeService:
         :return: Number of molecules added successfully
         """
 
-        csv_reader = csv.DictReader(io.TextIOWrapper(file.file, encoding='utf-8'))
+        csv_reader = csv.DictReader(io.TextIOWrapper(file.file, encoding="utf-8"))
 
         self.__validate_csv_header_columns(set(csv_reader.fieldnames))
 
@@ -182,17 +193,23 @@ class MoleculeService:
                     raise InvalidSmilesException(row["smiles"])
                 self.save(MoleculeRequest(smiles=row["smiles"], name=row["name"]))
                 number_of_molecules_added += 1
-            except Exception as e:
+            except InvalidSmilesException as e:
                 """
                 We are ignoring the exception and continuing to the next line. It is not important
                 whole file to be valid, we just want to add as many molecules as possible.
                 """
-                print(e)
+                logger.warning(
+                    f"Encountered invalid SMILES string: {e.smiles} in row: {row}"
+                )
+            except DuplicateSmilesException as e:
+                logger.warning(f"Duplicate SMILES string: {e.smiles} in row: {row}")
+            except Exception as e:
+                logger.error(f"Error processing row: {row}, error: {e}")
+
         return number_of_molecules_added
 
     def __validate_csv_header_columns(self, columns: set[str]):
         """
-
         :param columns:
         :return:
         :raises InvalidCsvHeaderColumnsException:
@@ -200,6 +217,33 @@ class MoleculeService:
         missing_columns = self.required_columns - columns
         if missing_columns:
             raise InvalidCsvHeaderColumnsException(missing_columns)
+
+    def __iterate_on_find_all(self, page_size: int = 100):
+        """
+        This is a helper method that will be used in substructure search methods, or other search methods implemented
+        int the future.
+
+        I will implement a simple iterator that will fetch
+        chunks of data from the at a time, not to fetch everything entirely.
+
+        Chunk size is defined by page_size. This value is purely implementation detail, could be
+        relevant when planning for performance. At this point, I thought it would
+        be too much if I move it to the settings or some global attribute.
+
+        :param page_size: Number of items to fetch at a time, default is 100
+        """
+
+        with self._session_factory() as session:
+            page = 0
+            while True:
+                chunk = self._repository.find_all(
+                    session=session, page=page, page_size=page_size
+                )
+                if len(chunk) == 0:
+                    break
+                for molecule in chunk:
+                    yield molecule
+                page += 1
 
 
 @lru_cache

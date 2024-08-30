@@ -1,10 +1,17 @@
 from functools import lru_cache
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
+import logging
+
+
+def setup_logging():
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    )
 
 
 class Settings(BaseSettings):
-
     SECRET_KEY: str
     ALGORITHM: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int
@@ -22,7 +29,8 @@ class Settings(BaseSettings):
     CONTEXT_PATH: str
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        # env_file=".env",
+        env_file="/home/gaioz/quantori/pyforge-python-school-3/.env",
         extra="ignore",
     )
 

@@ -16,7 +16,7 @@ class SQLAlchemyRepository:
     def find_by_id(self, obj_id, session):
         return session.get(self._model_type, obj_id)
 
-    def find_all(self, session, page=0, page_size=1000):
+    def find_all(self, session: Session, page=0, page_size=1000):
         """
 
         Find all instances of the model with pagination support
@@ -29,7 +29,6 @@ class SQLAlchemyRepository:
         stmt = select(self._model_type).limit(page_size).offset(page * page_size)
 
         result = session.execute(stmt).scalars().all()
-        session.flush()
         return result
 
     def filter(self, session, **kwargs):

@@ -117,13 +117,16 @@ def test_find_all(init_db):
     ],
 )
 def test_find_all_pagination(page, page_size, expected, init_db):
-    all_posts = [sample_data.coffe_request, sample_data.drunkenstein,
-                 sample_data.sample1, sample_data.sample2, sample_data.sample3]
+    all_posts = [
+        sample_data.coffe_request,
+        sample_data.drunkenstein,
+        sample_data.sample1,
+        sample_data.sample2,
+        sample_data.sample3,
+    ]
 
     for post in all_posts:
-        post = test_client.post(
-            "/drugs/", content=post.model_dump_json()
-        )
+        post = test_client.post("/drugs/", content=post.model_dump_json())
         assert post.status_code == 201
 
     get = test_client.get(f"/drugs/?page={page}&page_size={page_size}")

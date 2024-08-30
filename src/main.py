@@ -6,9 +6,13 @@ from src.drugs.router import router as drug_router
 from src.handler import register_exception_handlers
 from src.molecules.schema import MoleculeRequest
 from src.molecules.service import get_molecule_service
-from src.config import get_settings
+from src.config import get_settings, setup_logging
+
+
+setup_logging()
 
 app = FastAPI()
+
 
 # register the routers
 app.include_router(molecule_router, prefix="/molecules")
