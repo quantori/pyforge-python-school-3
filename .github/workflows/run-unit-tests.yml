@@ -6,10 +6,10 @@ name: Run Tests and Check Coverage
 on:
   push:
     branches:
-      - develop
+      - main,develop/drugs_and_molecules
   pull_request:
     branches:
-      - develop
+      - develop/drugs_and_molecules,main
 
 jobs:
   lint:
