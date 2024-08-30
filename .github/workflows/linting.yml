@@ -1,4 +1,4 @@
-name: Run Tests and Check Coverage
+name: linting
 
 on:
   push:

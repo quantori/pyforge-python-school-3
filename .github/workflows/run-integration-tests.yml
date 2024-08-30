@@ -1,4 +1,4 @@
-name: Run Tests and Check Coverage
+name: Run integration tests with coverage
 # This tests require a postgres database for running.
 # Let's say, Integration tests should cover at least 95% of the codebase
 # I added the --cov-fail-under=95 option
