@@ -68,25 +68,34 @@ def test_add_molecule_find_all(init_db_3_alkanes):
     assert len(response_json) == 4
 
 
-def test_add_find_all_pagination(init_db_3_alkanes):
-    decane_request = to_molecule_request_dict(alkanes["decane"])
-    response = client.post("/molecules/", json=decane_request)
-    response_json = response.json()
+@pytest.mark.parametrize(
+    "page, page_size, expected",
+    [
+        (0, 2, [alkanes["methane"], alkanes["ethane"]]),
+        (4, 2, [alkanes["nonane"], alkanes["decane"]]),
+        (3, 1, [alkanes["butane"]]),
+    ]
+)
+def test_add_find_all_pagination(page, page_size, expected, init_db_3_alkanes):
+    """
 
-    assert response.status_code == 201
-    assert is_equal_dict_without_id(response_json, alkanes["decane"])
+    3 alkanes are already in the database, so we add the rest of the alkanes to the database and test pagination.
 
-    response = client.get("/molecules/")
-    response_json = response.json()
+
+    :param expected: Means the ordered list of alkane dictionaries that are expected to be returned.
+
+
+    """
+    for molecule in list(alkanes.values())[3:]:
+        response = client.post("/molecules/", json=to_molecule_request_dict(molecule))
+        assert response.status_code == 201
+
+    response = client.get(f"/molecules/?page={page}&page_size={page_size}")
     assert response.status_code == 200
-    assert len(response_json) == 4
 
-    response = client.get("/molecules/?page=1&page_size=2")
     response_json = response.json()
-    assert response.status_code == 200
-    assert len(response_json) == 2
-    assert is_equal_dict_without_id(response_json[0], alkanes["propane"])
-    assert is_equal_dict_without_id(response_json[1], alkanes["decane"])
+    for i, molecule in enumerate(expected):
+        assert is_equal_dict_without_id(response_json[i], molecule)
 
 
 def test_add_get_molecule_by_id(init_db_3_alkanes):

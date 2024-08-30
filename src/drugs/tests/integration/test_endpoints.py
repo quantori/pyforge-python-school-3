@@ -105,3 +105,32 @@ def test_find_all(init_db):
     assert len(response) == 2
     assert response[0]["name"] == sample_data.coffe_request.name
     assert response[1]["name"] == sample_data.drunkenstein.name
+
+
+@pytest.mark.parametrize(
+    "page, page_size, expected",
+    [
+        (1, 1, [sample_data.drunkenstein]),
+        (0, 2, [sample_data.coffe_request, sample_data.drunkenstein]),
+        (1, 4, [sample_data.sample3]),
+        (3, 5, []),
+    ],
+)
+def test_find_all_pagination(page, page_size, expected, init_db):
+    all_posts = [sample_data.coffe_request, sample_data.drunkenstein,
+                 sample_data.sample1, sample_data.sample2, sample_data.sample3]
+
+    for post in all_posts:
+        post = test_client.post(
+            "/drugs/", content=post.model_dump_json()
+        )
+        assert post.status_code == 201
+
+    get = test_client.get(f"/drugs/?page={page}&page_size={page_size}")
+    assert get.status_code == 200
+    response = get.json()
+
+    for i, drug in enumerate(response):
+        assert drug["name"] == expected[i].name
+        assert drug["description"] == expected[i].description
+        assert len(drug["molecules"]) == len(expected[i].molecules)

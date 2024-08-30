@@ -10,3 +10,9 @@ services:
       POSTGRES_DB: test_db
     ports:
       - 54321:5432
+
+    networks:
+        - test_network
+
+networks:
+    test_network:

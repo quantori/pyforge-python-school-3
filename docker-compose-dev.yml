@@ -12,3 +12,9 @@ services:
     ports:
       - 12345:5432
 
+    networks:
+        - dev_network
+
+
+networks:
+    dev_network:

@@ -49,4 +49,44 @@ drunkenstein = DrugRequest(
     ],
 )
 
-print(coffe_request.model_dump())
+
+sample1 = DrugRequest(
+    name="Sample1",
+    description="contains 90% ethanol",
+    molecules=[
+        DrugMoleculeRequest(
+            molecule_id=2, quantity=10, quantity_unit=QuantityUnit.VOLUME
+        ),
+        DrugMoleculeRequest(
+            molecule_id=4, quantity=90, quantity_unit=QuantityUnit.VOLUME
+        ),
+    ],
+)
+
+
+sample2 = DrugRequest(
+    name="Sample2",
+    description="contains 80% ethanol",
+    molecules=[
+        DrugMoleculeRequest(
+            molecule_id=2, quantity=20, quantity_unit=QuantityUnit.VOLUME
+        ),
+        DrugMoleculeRequest(
+            molecule_id=4, quantity=80, quantity_unit=QuantityUnit.VOLUME
+        ),
+    ],
+)
+
+
+sample3 = DrugRequest(
+    name="Sample3",
+    description="contains 70% ethanol",
+    molecules=[
+        DrugMoleculeRequest(
+            molecule_id=2, quantity=30, quantity_unit=QuantityUnit.VOLUME
+        ),
+        DrugMoleculeRequest(
+            molecule_id=4, quantity=70, quantity_unit=QuantityUnit.VOLUME
+        ),
+    ],
+)
