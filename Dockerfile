@@ -21,13 +21,11 @@ RUN pip install rdkit
 
 WORKDIR /app/
 
-# Copy requirements.txt to the container at /app
 COPY requirements.txt .
 
-# Install the dependencies
 RUN pip install -r requirements.txt
 
-# Copy the content of the local src directory to the container at /app
+# Make sure alembic versions are generated before copying the src directory
 COPY . .
 
 EXPOSE 8000
