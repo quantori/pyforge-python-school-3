@@ -48,3 +48,4 @@ jobs:
           pytest --cov=src --cov-fail-under=95
         env:
           TEST_DB_URL: postgresql://test_user:test_password@localhost:54321/test_db
+

@@ -1,10 +1,8 @@
 import datetime
 from typing import Annotated
-
 from black.linegen import Optional
 from fastapi import Query
 from pydantic import BaseModel, Field, field_validator
-
 from src.molecules.molecule_exceptions import InvalidSmilesException
 from src.molecules.utils import is_valid_smiles
 from src.schemas import BaseResponse
@@ -31,16 +29,14 @@ class MoleculeRequest(BaseModel):
         "json_schema_extra": {
             "examples": [
                 {"smiles": "CC(=O)Oc1ccccc1C(=O)O", "name": "Aspirin"},
-                {"smiles": "C"},
+                {"smiles": "C", "name": "methane"},
             ]
         }
     }
 
 
 class MoleculeResponse(MoleculeRequest, BaseResponse):
-    molecule_id: Annotated[
-        int, Field(description="Unique identifier for the molecule")
-    ]
+    molecule_id: Annotated[int, Field(description="Unique identifier for the molecule")]
     created_at: Annotated[
         datetime.datetime, Field(description="Timestamp when the molecule was created")
     ] = None

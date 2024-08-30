@@ -1,10 +1,6 @@
-"""
-Let's test the integration of the whole system
-"""
-
 import pytest
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine, StaticPool
+from sqlalchemy import create_engine
 from src.database import Base
 from src.molecules.service import get_molecule_service, MoleculeService
 from src.molecules.molecule_repository import MoleculeRepository
@@ -16,16 +12,16 @@ from src.molecules.tests.sample_data import (
 )
 from fastapi.testclient import TestClient
 from src.main import app
+from src.configs import get_settings
+from src.molecules.tests.generate_csv_file import generate_testing_files
 
 # engine = create_engine("postgresql://user:password@localhost:5432/db_test")
 engine = create_engine(
-    "sqlite:///:memory:",
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
+    get_settings().TEST_DB_URL,
 )
 session_factory = sessionmaker(bind=engine)
-molecule_repository = MoleculeRepository(session_factory)
-molecule_service = MoleculeService(molecule_repository)
+molecule_repository = MoleculeRepository()
+molecule_service = MoleculeService(molecule_repository, session_factory)
 
 client = TestClient(app)
 app.dependency_overrides[get_molecule_service] = lambda: molecule_service
@@ -45,6 +41,17 @@ def init_db_3_alkanes():
             session.commit()
     yield
     Base.metadata.drop_all(engine)
+
+
+@pytest.fixture
+def create_testing_files():
+    generate_testing_files()
+    yield
+    import os
+
+    os.remove("alkanes.csv")
+    os.remove("invalid_header.csv")
+    os.remove("decane_nonane_invalid_smiles.csv")
 
 
 def test_add_molecule_find_all(init_db_3_alkanes):
@@ -174,3 +181,48 @@ def test_substructures_of(init_db_3_alkanes):
     assert len(response_json) == 2
     assert is_equal_dict_without_id(response_json[1], alkanes["propane"])
     assert is_equal_dict_without_id(response_json[0], alkanes["ethane"])
+
+
+def test_file_upload(init_db_3_alkanes, create_testing_files):
+    """
+    This tests alkanes.csv file which contains 10 alkanes, starting from methane to decane.
+
+    Since the first 3 alkanes are already in the database, the number of molecules added should be 7.
+
+
+    """
+    with open("alkanes.csv", "rb") as file:
+        response = client.post(
+            "/molecules/upload/upload_molecules_csv", files={"file": file}
+        )
+        response_json = response.json()
+        assert response.status_code == 201
+        assert response_json["number_of_molecules_added"] == 7
+
+
+def test_file_upload_invalid_header(init_db_3_alkanes, create_testing_files):
+    """
+    This tests invalid_header.csv file which has an invalid header.
+
+    The response should be 400.
+    """
+    with open("invalid_header.csv", "rb") as file:
+        response = client.post(
+            "/molecules/upload/upload_molecules_csv", files={"file": file}
+        )
+        assert response.status_code == 400
+
+
+def test_decane_nonane_invalid_smiles(init_db_3_alkanes, create_testing_files):
+    """
+    This tests decane_nonane_invalid_smiles.csv file which has invalid smiles for decane and nonane.
+
+    Only decane and nonane should not be added to the database, so the number of molecules added should be 5
+    """
+    with open("decane_nonane_invalid_smiles.csv", "rb") as file:
+        response = client.post(
+            "/molecules/upload/upload_molecules_csv", files={"file": file}
+        )
+        assert response.status_code == 201
+        response_json = response.json()
+        assert response_json["number_of_molecules_added"] == 5

@@ -31,6 +31,7 @@ def generate_csv_file_alkanes_decane_and_nonane_have_invalid_smiles():
                 writer.writerow([molecule["name"], molecule["smiles"]])
 
 
-generate_csv_file_alkanes()
-generate_csv_file_invalid_header()
-generate_csv_file_alkanes_decane_and_nonane_have_invalid_smiles()
+def generate_testing_files():
+    generate_csv_file_alkanes()
+    generate_csv_file_invalid_header()
+    generate_csv_file_alkanes_decane_and_nonane_have_invalid_smiles()

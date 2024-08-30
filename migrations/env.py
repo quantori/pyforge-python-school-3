@@ -4,7 +4,7 @@ from sqlalchemy import pool
 from alembic import context
 from src.database import Base, get_database_url
 from src.molecules.models import *
-
+from src.drugs.model import *
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

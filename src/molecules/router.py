@@ -73,7 +73,6 @@ def get_molecules(
     },
 )
 def update_molecule(
-
     molecule_id: Annotated[
         int, Path(..., description="Unique identifier for the molecule")
     ],
@@ -139,7 +138,7 @@ def substructure_search(
         },
     },
 )
-def substructure_search(
+def substructure_search_of(
     smiles: Annotated[
         str,
         Query(
