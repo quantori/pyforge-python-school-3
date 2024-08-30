@@ -1,4 +1,5 @@
 import csv
+import io
 from functools import lru_cache
 
 from fastapi import UploadFile
@@ -169,8 +170,7 @@ class MoleculeService:
         :return: Number of molecules added successfully
         """
 
-        contents = file.file.read().decode("utf-8")
-        csv_reader = csv.DictReader(contents.splitlines())
+        csv_reader = csv.DictReader(io.TextIOWrapper(file.file, encoding='utf-8'))
 
         self.__validate_csv_header_columns(set(csv_reader.fieldnames))
 
