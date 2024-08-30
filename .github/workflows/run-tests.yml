@@ -6,10 +6,14 @@ name: Run Tests and Check Coverage
 on:
   push:
     branches:
-      - main,develop/drugs_and_molecules,feature/add_drugs
+      - main
+      - develop/drugs_and_molecules
+      - feature/add_drugs
   pull_request:
     branches:
-      - develop/drugs_and_molecules,feature/add_drugs
+      - develop/drugs_and_molecules
+      - feature/add_drugs
+      - main
 
 
 jobs:
