@@ -6,25 +6,31 @@ from src.drugs.router import router as drug_router
 from src.handler import register_exception_handlers
 from src.molecules.schema import MoleculeRequest
 from src.molecules.service import get_molecule_service
+from src.config import get_settings
 
 app = FastAPI()
 
 # register the routers
 app.include_router(molecule_router, prefix="/molecules")
 app.include_router(drug_router, prefix="/drugs")
+
 register_exception_handlers(app)
-service = get_molecule_service()
 
 
 @app.get("/")
 def get_server_id():
     from os import getenv
 
-    return "Hello from  server" + getenv("SERVER_ID", "1")
+    return "Hello from  server " + getenv("SERVER_ID", "")
 
 
 @app.on_event("startup")
 def add_3_molecules():
+    service = get_molecule_service()
+
+    if not (get_settings().DEV_MODE or get_settings().TEST_MODE):
+        return
+
     # add caffeine, surcose and water molecules
     try:
         service.save(

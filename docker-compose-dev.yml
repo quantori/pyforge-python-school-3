@@ -1,0 +1,14 @@
+
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres
+    container_name: db_molecules_fastapi_dev
+    environment:
+      POSTGRES_USER: dev_user
+      POSTGRES_PASSWORD: dev_password
+      POSTGRES_DB: dev_db
+    ports:
+      - 12345:5432
+
