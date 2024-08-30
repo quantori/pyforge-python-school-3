@@ -5,6 +5,7 @@ from starlette import status
 
 from src.drugs.schema import DrugResponse, DrugRequest
 from src.drugs.service import get_drug_service, DrugService
+from src.schema import PaginationQueryParams, get_pagination_query_params
 
 router = APIRouter()
 
@@ -48,9 +49,10 @@ def get_by_id(
     responses={status.HTTP_200_OK: {"model": list[DrugResponse]}},
 )
 def get_all(
+    pagination_args: Annotated[PaginationQueryParams, Depends(get_pagination_query_params)],
     service: Annotated[DrugService, Depends(get_drug_service)],
 ) -> list[DrugResponse]:
-    return service.find_all()
+    return service.find_all(page_size=pagination_args.page_size, page=pagination_args.page)
 
 
 @router.delete(

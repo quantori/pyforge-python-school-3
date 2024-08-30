@@ -1,9 +1,8 @@
 from typing import Annotated
 from fastapi import Depends, status, Body, Path, Query, UploadFile, APIRouter
 from src.molecules.schema import MoleculeRequest, MoleculeResponse
-from src.molecules.dependency import get_pagination_query_params
 from src.molecules.service import get_molecule_service
-from src.molecules.schema import PaginationQueryParams
+from src.schema import PaginationQueryParams, get_pagination_query_params
 from src.molecules.service import MoleculeService
 
 router = APIRouter()

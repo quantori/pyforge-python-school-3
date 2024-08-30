@@ -1,7 +1,6 @@
 import datetime
 from typing import Annotated
 from black.linegen import Optional
-from fastapi import Query
 from pydantic import BaseModel, Field, field_validator
 from src.molecules.exception import InvalidSmilesException
 from src.molecules.utils import is_valid_smiles
@@ -61,12 +60,3 @@ class MoleculeResponse(MoleculeRequest, BaseResponse):
     }
 
 
-class PaginationQueryParams(BaseModel):
-    """Query parameters for paginated responses. Page is 0-indexed."""
-
-    page: Annotated[int, Query(0, description="Page number", ge=0)] = 0
-    page_size: Annotated[
-        int, Query(1000, description="Number of items per page", ge=1)
-    ] = 1000
-
-    model_config = {"json_schema_extra": {"examples": [{"page": 0, "limit": 1000}]}}

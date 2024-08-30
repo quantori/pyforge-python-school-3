@@ -1,6 +1,8 @@
 import datetime
+from functools import lru_cache
 from typing import Annotated
 
+from fastapi import Query
 from pydantic import BaseModel, Field
 
 
@@ -44,3 +46,19 @@ class BaseResponse(BaseModel):
     #         }
     #     }
     # }
+
+
+class PaginationQueryParams(BaseModel):
+    """Query parameters for paginated responses. Page is 0-indexed."""
+
+    page: Annotated[int, Query(0, description="Page number", ge=0)] = 0
+    page_size: Annotated[
+        int, Query(1000, description="Number of items per page", ge=1)
+    ] = 1000
+
+    model_config = {"json_schema_extra": {"examples": [{"page": 0, "limit": 1000}]}}
+
+
+@lru_cache
+def get_pagination_query_params(page: int = 0, page_size: int = 1000):
+    return PaginationQueryParams(page=page, page_size=page_size)
