@@ -26,7 +26,7 @@ jobs:
           id: build-docker-image
           run: |
             ls -la 
-            docker build -t molecules_api .
+            docker build -t gaiozi/molecules_api .
         - name: push the docker image
           id: push-docker-image
           run: docker push gaiozi/molecules_api:latest
