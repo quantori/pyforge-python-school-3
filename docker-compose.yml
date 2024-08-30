@@ -10,7 +10,9 @@ services:
       POSTGRES_DB: ${DB_NAME}
     ports:
       - ${DB_PORT}:5432
-    restart: always
+    volumes:
+        - db_data:/var/lib/postgresql/data
+
 
   web1:
     build: .
@@ -20,7 +22,7 @@ services:
       DB_HOST: postgres
     depends_on:
       - postgres
-    entrypoint: ["/bin/sh", "-c", "alembic revision --autogenerate && alembic upgrade head && fastapi run src/main.py"]
+    entrypoint: ["/bin/sh", "-c", "alembic upgrade head && fastapi run src/main.py"]
 
   web2:
     image: app
@@ -44,3 +46,8 @@ services:
     depends_on:
       - web1
       - web2
+
+
+volumes:
+    db_data:
+
