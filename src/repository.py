@@ -8,6 +8,9 @@ from src.database import Base
 class SQLAlchemyRepository:
     """
     Base class for all repositories that use SQLAlchemy.
+
+    Session does not commit automatically, so the service should commit the session after the transaction is done.
+
     """
 
     def __init__(self, model_type: Type[Base]):
@@ -39,7 +42,6 @@ class SQLAlchemyRepository:
     def save(self, session, data: dict):
         instance = self._model_type(**data)
         session.add(instance)
-        session.commit()
         session.refresh(instance)
         return instance
 
@@ -47,7 +49,6 @@ class SQLAlchemyRepository:
         instance = session.get(self._model_type, obj_id)
         for key, value in data.items():
             setattr(instance, key, value)
-        session.commit()
         session.refresh(instance)
         return instance
 
@@ -72,7 +73,6 @@ class SQLAlchemyRepository:
         try:
             instance = session.get(self._model_type, obj_id)
             session.delete(instance)
-            session.commit()
             return True
         except Exception:
             return False
