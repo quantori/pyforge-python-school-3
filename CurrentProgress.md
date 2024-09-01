@@ -21,7 +21,11 @@ Molecule groups are not implemented yet.
 
 # API routes
 
-## Molecules
+Get all routes support pagination with `page` and `pageSize` query parameters.
+
+Substructure search routes support a `limit` query parameter, which limits the number of results returned.
+
+## Molecules  `/molecules`
 
     - POST: Create a new molecule
 
@@ -30,6 +34,10 @@ Molecule groups are not implemented yet.
     - PUT: /{molecule_id} Update a molecule by id
 
     - POST: /upload Upload a csv file containing molecules info
+
+    - GET: /{molecule_id} Get a molecule by id
+
+    - GET: /?page={page}&pageSize={pageSize} Get all molecules with pagination
 
     - GET: /search?name={name} Search for a molecule by name
 
