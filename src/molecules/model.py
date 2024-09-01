@@ -10,7 +10,10 @@ class Molecule(Base):
         Annotated[int, mapped_column(primary_key=True, autoincrement=True)]
     ]
     smiles: Mapped[Annotated[str, mapped_column(unique=True)]]
-    name: Mapped[Annotated[Optional[str], mapped_column()]]
+    name: Mapped[Annotated[str, mapped_column()]]
+    # could not find a documentation for the float and numeric types in sqlalchemy yet
+    # I think this will work just fine for now
+    mass: Mapped[Annotated[float, mapped_column()]]
 
     def __repr__(self):
         return f"Molecule(molecule_id={self.molecule_id}, smiles={self.smiles}, name={self.name})"
