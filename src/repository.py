@@ -42,7 +42,6 @@ class SQLAlchemyRepository:
     def save(self, session, data: dict):
         instance = self._model_type(**data)
         session.add(instance)
-        session.refresh(instance)
         return instance
 
     def update(self, session, obj_id, data: dict):

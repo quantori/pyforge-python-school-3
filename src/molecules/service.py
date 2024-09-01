@@ -3,6 +3,8 @@ import io
 import logging
 from functools import lru_cache
 from fastapi import UploadFile
+from sqlalchemy.exc import IntegrityError
+
 from src.exception import UnknownIdentifierException
 from src.molecules.exception import (
     DuplicateSmilesException,
@@ -57,19 +59,32 @@ class MoleculeService:
 
     def save(self, molecule_request: MoleculeRequest):
         """
-        Simply save a new molecule to the database. If the smiles is not unique, the database will raise an exception.
+        Save a new molecule to the database. If the smiles is not unique,
+        the database will raise an exception, which is caught and re-raised
+        as a DuplicateSmilesException.
 
         :param molecule_request: Molecule data
         :return: Saved molecule
         """
+        logger.debug(f"inside method save from 75")
         with self._session_factory() as session:
-            same_smiles = self._repository.filter(
-                session, smiles=molecule_request.smiles
-            )
-            if len(same_smiles) > 0:
-                raise DuplicateSmilesException(molecule_request.smiles)
-            mol = self._repository.save(session, molecule_request.model_dump())
-            return mol.to_response()
+            # previous implementation was using filter to check for smiles duplicates, that was not efficient
+            # I have removed the filter method from the repository, and I am relying on the IntegrityError,
+            # Think this will work just fine.
+            try:
+                mol_json = mapper.request_to_model_json(molecule_request)
+                mol = self._repository.save(session, mol_json)
+                logger.debug(f"saved molecule {mol}")
+                session.flush()  # This will trigger the IntegrityError if the smiles is not unique
+                session.commit()  # Commit only if flush() is successful
+                return mapper.model_to_response(mol)
+            except IntegrityError as e:
+                session.rollback()  # Rollback in case of error
+                if "unique constraint" in str(e).lower():
+                    raise DuplicateSmilesException(molecule_request.smiles) from e
+                raise
+            finally:
+                logger.debug(f"leaving method save from 92")
 
     def update(self, obj_id: int, molecule_request: MoleculeRequest):
         """

@@ -47,7 +47,10 @@ class MoleculeResponse(BaseResponse):
     updated_at: Annotated[
         datetime.datetime, Field(description="Timestamp when the molecule was updated")
     ] = None
-    links: Annotated[dict[str, Link], Field(description="Links to self and substructures and superstructures")]
+    links: Annotated[
+        dict[str, Link],
+        Field(description="Links to self and substructures and superstructures"),
+    ]
 
     model_config = {
         "json_schema_extra": {
@@ -75,7 +78,7 @@ class MoleculeResponse(BaseResponse):
                             "rel": "superstructures",
                             "type": "GET",
                         },
-                    }
+                    },
                 }
             ]
         }

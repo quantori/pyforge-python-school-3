@@ -1,6 +1,9 @@
 import collections
 
 from src.molecules.model import Molecule
+import logging
+
+logger = logging.getLogger(__name__)
 
 # simplest organic compounds
 alkanes = collections.OrderedDict(
@@ -27,9 +30,9 @@ def is_equal(molecule: Molecule, molecule_dict: dict):
     """
 
     return (
-        molecule.molecule_id == molecule_dict["molecule_id"]
-        and molecule.smiles == molecule_dict["smiles"]
-        and molecule.name == molecule_dict["name"]
+            molecule.molecule_id == molecule_dict["molecule_id"]
+            and molecule.smiles == molecule_dict["smiles"]
+            and molecule.name == molecule_dict["name"]
     )
 
 
@@ -41,8 +44,8 @@ def is_equal_dict_without_id(molecule_dict1: dict, molecule_dict2: dict):
     """
 
     return (
-        molecule_dict1["smiles"] == molecule_dict2["smiles"]
-        and molecule_dict1["name"] == molecule_dict2["name"]
+            molecule_dict1["smiles"] == molecule_dict2["smiles"]
+            and molecule_dict1["name"] == molecule_dict2["name"]
     )
 
 
@@ -57,3 +60,60 @@ def to_molecule_request_dict(molecule_dict: dict):
     copyo = molecule_dict.copy()
     del copyo["molecule_id"]
     return copyo
+
+
+alkane_request_jsons = {
+    i: (lambda: {"name": f"Alkane {i}", "smiles": "C" * i})() for i in range(1, 100)
+}
+
+
+def validate_response_dict_for_ith_alkane(response_dict, i):
+    alkane = alkane_request_jsons[i]
+
+    if response_dict["name"] != alkane["name"]:
+        logger.error(f"response_dict['name'] != alkane['name']")
+        return False
+
+    if response_dict["smiles"] != alkane["smiles"]:
+        logger.error(f"response_dict['smiles'] != alkane['smiles']")
+        return False
+
+    if response_dict["molecule_id"] is None:
+        logger.error(f"response_dict['molecule_id'] is None")
+        return False
+
+    if response_dict["created_at"] is None:
+        logger.error(f"response_dict['created_at'] is None")
+        return False
+
+    if response_dict["updated_at"] is None:
+        logger.error(f"response_dict['updated_at'] is None")
+        return False
+
+    expected_links = {
+        "self": {
+            "href": f"/molecules/{response_dict['molecule_id']}",
+            "rel": "self",
+            "type": "GET",
+        },
+        "substructures": {
+            "href": f"/molecules/search/substructures?smiles={response_dict['smiles']}",
+            "rel": "substructures",
+            "type": "GET",
+        },
+        "superstructures": {
+            "href": f"/molecules/search/superstructures?smiles={response_dict['smiles']}",
+            "rel": "superstructures",
+            "type": "GET",
+        },
+    }
+
+    if response_dict["links"] != expected_links:
+        # print first difference
+        for key in response_dict["links"]:
+            if response_dict["links"][key] != expected_links[key]:
+                logger.error(f"response_dict['links'][{key}] != expected_links[{key}]")
+                return False
+        return False
+
+    return True
