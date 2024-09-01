@@ -16,7 +16,7 @@ from src.molecules.tests.sample_data import alkanes, is_equal
 from src.config import get_settings
 
 engine = create_engine(get_settings().TEST_DB_URL)
-session_factory = sessionmaker(bind=engine)
+session_factory = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 molecule_repository = MoleculeRepository()
 
 

@@ -19,6 +19,7 @@ from src.molecules.utils import (
     is_valid_smiles,
 )
 from src.database import get_session_factory
+from src.molecules import mapper
 
 logger = logging.getLogger(__name__)
 
@@ -49,10 +50,10 @@ class MoleculeService:
         :raises UnknownIdentifierException: if the molecule with the given id does not exist
         """
         with self._session_factory() as session:
-            if not self.exists_by_id(obj_id):
-                raise UnknownIdentifierException(obj_id)
             mol = self._repository.find_by_id(obj_id, session)
-            return mol.to_response()
+            if mol is None:
+                raise UnknownIdentifierException(obj_id)
+            return mapper.model_to_response(mol)
 
     def save(self, molecule_request: MoleculeRequest):
         """

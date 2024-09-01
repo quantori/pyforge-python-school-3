@@ -27,34 +27,56 @@ class MoleculeRequest(BaseModel):
     model_config = {
         "json_schema_extra": {
             "examples": [
-                {"smiles": "CC(=O)Oc1ccccc1C(=O)O", "name": "Aspirin"},
-                {"smiles": "C", "name": "methane"},
+                {
+                    "smiles": "C",
+                    "name": "Methane",
+                }
             ]
         }
     }
 
 
-class MoleculeResponse(MoleculeRequest, BaseResponse):
+class MoleculeResponse(BaseResponse):
     molecule_id: Annotated[int, Field(description="Unique identifier for the molecule")]
+    smiles: Annotated[str, Field(description="SMILES string of the molecule")]
+    name: Annotated[Optional[str], Field(description="Name of the molecule")]
+    mass: Annotated[float, Field(description="Molecular mass of the molecule")]
     created_at: Annotated[
         datetime.datetime, Field(description="Timestamp when the molecule was created")
     ] = None
     updated_at: Annotated[
         datetime.datetime, Field(description="Timestamp when the molecule was updated")
     ] = None
+    links: Annotated[dict[str, Link], Field(description="Links to self and substructures and superstructures")]
 
     model_config = {
         "json_schema_extra": {
             "examples": [
                 {
                     "molecule_id": 1,
-                    "smiles": "CC(=O)Oc1ccccc1C(=O)O",
-                    "name": "Aspirin",
-                },
-                {
-                    "molecule_id": 2,
                     "smiles": "C",
-                },
+                    "name": "Methane",
+                    "mass": 16.04,
+                    "created_at": "2021-06-01T12:00:00",
+                    "updated_at": "2021-06-01T12:00:00",
+                    "links": {
+                        "self": {
+                            "href": "/molecules/1",
+                            "rel": "self",
+                            "type": "GET",
+                        },
+                        "substructures": {
+                            "href": "/molecules/search/substructures?smiles={C}",
+                            "rel": "substructures",
+                            "type": "GET",
+                        },
+                        "superstructures": {
+                            "href": "/molecules/search/superstructures?smiles={C}",
+                            "rel": "superstructures",
+                            "type": "GET",
+                        },
+                    }
+                }
             ]
         }
     }
