@@ -4,7 +4,7 @@ from black.linegen import Optional
 from pydantic import BaseModel, Field, field_validator
 from src.molecules.exception import InvalidSmilesException
 from src.molecules.utils import is_valid_smiles
-from src.schema import BaseResponse
+from src.schema import BaseResponse, Link
 
 
 class MoleculeRequest(BaseModel):
@@ -58,3 +58,26 @@ class MoleculeResponse(MoleculeRequest, BaseResponse):
             ]
         }
     }
+
+
+class MoleculeCollectionResponse(BaseResponse):
+    """
+    Response schema for the collection of molecules
+
+    If this is a response from substances search, you will not see pagination attributes
+    page, pageSize, and links will be empty.
+
+
+    """
+
+    total: Annotated[int, Field(..., description="Total number of molecules")]
+    page: Annotated[Optional[int], Field(description="Current page number")]
+    page_size: Annotated[Optional[int], Field(description="Number of items per page")]
+    data: Annotated[list[MoleculeResponse], Field(description="List of molecules")]
+    links: Annotated[
+        dict[str, Link],
+        Field(
+            description="nextPage and previousPage links. If current page is 0, "
+            "previousPage will be empty"
+        ),
+    ]

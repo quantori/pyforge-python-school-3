@@ -123,6 +123,11 @@ page, pageSize, and links will be empty.
             href: molecules/?page=2&pageSize=10
             method: GET
         }
+    
+        prevPage: {
+            href: molecules/?page=1&pageSize=10
+            method: GET
+        }
 
     }`
     

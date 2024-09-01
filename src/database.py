@@ -36,4 +36,6 @@ def get_database_url():
 
 @lru_cache
 def get_session_factory():
-    return sessionmaker(bind=create_engine(get_database_url()), autoflush=False, autocommit=False)
+    return sessionmaker(
+        bind=create_engine(get_database_url()), autoflush=False, autocommit=False
+    )
