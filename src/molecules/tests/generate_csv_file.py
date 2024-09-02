@@ -35,3 +35,11 @@ def generate_testing_files():
     generate_csv_file_alkanes()
     generate_csv_file_invalid_header()
     generate_csv_file_alkanes_decane_and_nonane_have_invalid_smiles()
+
+
+def generate_large_csv_file():
+    with open("large.csv", mode="w") as file:
+        writer = csv.writer(file)
+        writer.writerow(["name", "smiles"])
+        for i in range(1, 500):
+            writer.writerow([f"Alkane {i}", "C" * i])

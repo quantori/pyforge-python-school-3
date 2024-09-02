@@ -79,4 +79,3 @@ def validate_response_dict_for_alkane(response_dict, alkane):
 def validate_response_dict_for_ith_alkane(response_dict, i):
     alkane = alkane_request_jsons[i]
     return validate_response_dict_for_alkane(response_dict, alkane)
-

@@ -1,11 +1,9 @@
 import os
 import random
-
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-
 from src.config import get_settings
 from src.database import Base
 from src.main import app
@@ -22,7 +20,7 @@ from src.molecules.tests.testing_utils import (
 engine = create_engine(
     get_settings().TEST_DB_URL,
 )
-session_factory = sessionmaker(bind=engine)
+session_factory = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 molecule_repository = MoleculeRepository()
 molecule_service = MoleculeService(molecule_repository, session_factory)
 
@@ -174,9 +172,7 @@ def test_file_upload(init_db, create_testing_files):
     """
     post_consecutive_alkanes(1, 3)
     with open("alkanes.csv", "rb") as file:
-        response = client.post(
-            "/molecules/upload", files={"file": file}
-        )
+        response = client.post("/molecules/upload", files={"file": file})
         response_json = response.json()
         assert response.status_code == 201
         assert response_json["number_of_molecules_added"] == 7
@@ -189,9 +185,7 @@ def test_file_upload_invalid_header(init_db, create_testing_files):
     The response should be 400.
     """
     with open("invalid_header.csv", "rb") as file:
-        response = client.post(
-            "/molecules/upload", files={"file": file}
-        )
+        response = client.post("/molecules/upload", files={"file": file})
         assert response.status_code == 400
 
 
@@ -203,9 +197,7 @@ def test_decane_nonane_invalid_smiles(init_db, create_testing_files):
     """
     post_consecutive_alkanes(1, 3)
     with open("decane_nonane_invalid_smiles.csv", "rb") as file:
-        response = client.post(
-            "/molecules/upload/", files={"file": file}
-        )
+        response = client.post("/molecules/upload/", files={"file": file})
         assert response.status_code == 201
         response_json = response.json()
         assert response_json["number_of_molecules_added"] == 5

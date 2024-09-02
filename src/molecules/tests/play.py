@@ -1,0 +1,3 @@
+from generate_csv_file import generate_large_csv_file
+
+generate_large_csv_file()

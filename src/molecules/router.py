@@ -16,7 +16,7 @@ router = APIRouter()
     "/",
     status_code=201,
     responses={
-        status.HTTP_201_CREATED: {"model": MoleculeResponse},
+        # status.HTTP_201_CREATED: {"model": MoleculeResponse},
         status.HTTP_400_BAD_REQUEST: {
             "model": str,
             "description": "Probably due to Invalid SMILES string, or smiles uniqueness violation",
@@ -34,7 +34,7 @@ def add_molecule(
     "/{molecule_id}",
     status_code=200,
     responses={
-        status.HTTP_200_OK: {"model": MoleculeResponse},
+        # status.HTTP_200_OK: {"model": MoleculeResponse},
         status.HTTP_404_NOT_FOUND: {
             "model": str,
             "description": "Molecule with the given ID not found",
@@ -46,7 +46,7 @@ def get_molecule(
         int, Path(..., description="Unique identifier for the molecule")
     ],
     service: Annotated[MoleculeService, Depends(get_molecule_service)],
-) -> MoleculeResponse:
+):
     return service.find_by_id(molecule_id)
 
 
@@ -54,7 +54,7 @@ def get_molecule(
     "/",
     status_code=200,
     responses={
-        status.HTTP_200_OK: {"model": list[MoleculeResponse]},
+        # status.HTTP_200_OK: {"model": list[MoleculeResponse]},
     },
 )
 def get_molecules(
@@ -68,7 +68,7 @@ def get_molecules(
     "/{molecule_id}",
     status_code=200,
     responses={
-        status.HTTP_200_OK: {"model": MoleculeResponse},
+        # status.HTTP_200_OK: {"model": MoleculeResponse},
         status.HTTP_404_NOT_FOUND: {
             "model": str,
             "description": "Molecule with the given ID not found",
@@ -113,7 +113,7 @@ def delete_molecule(
 @router.get(
     "/search/substructures",
     responses={
-        status.HTTP_200_OK: {"model": list[MoleculeResponse]},
+        # status.HTTP_200_OK: {"model": list[MoleculeResponse]},
         status.HTTP_400_BAD_REQUEST: {
             "model": str,
             "description": "Probably due to Invalid SMILES string",

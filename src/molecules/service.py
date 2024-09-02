@@ -169,14 +169,12 @@ class MoleculeService:
         :raises InvalidSmilesException: if the smiles does not represent a valid molecule
         """
 
-        get_chem_molecule_from_smiles_or_raise_exception(smiles)
+        mol = get_chem_molecule_from_smiles_or_raise_exception(smiles)
         find_all = self.__iterate_on_find_all()
         count = 0
 
         for molecule in find_all:
-            if molecule.to_chem().HasSubstructMatch(
-                get_chem_service().get_chem(smiles)
-            ):
+            if get_chem_service().get_chem(molecule.smiles).HasSubstructMatch(mol):
                 yield mapper.model_to_response(molecule)
                 count += 1
                 if limit is not None and count >= limit:

@@ -58,7 +58,7 @@ class MoleculeUpdateRequest(BaseModel):
 
     model_config = {
         "json_schema_extra": {
-            "examples": {"name": "MethaneChanged"},
+            "examples": [{"name": "MethaneChanged"}],
         }
     }
 
