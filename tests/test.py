@@ -11,40 +11,25 @@ REDIS_URL = getenv("REDIS_URL")
 redis_client = redis.from_url(REDIS_URL)
 
 
-def test_cache_molecule_by_id():
-    """Test that molecule data is cached in Redis."""
-    molecule_id = 4
-    redis_key = f"molecule:{molecule_id}"
-
-    redis_client.delete(redis_key)
-    response = requests.get(ENDPOINT + f"/molecules/{molecule_id}")
-    assert response.status_code == 200
-    expected_data = response.json()
-
-    cached_data = redis_client.get(redis_key)
-    assert cached_data is not None
-    assert json.loads(cached_data) == expected_data
-
-
-def test_use_cached_molecule():
-    """Test that a cached molecule is used on subsequent requests."""
-    molecule_id = 4
-    redis_key = f"molecule:{molecule_id}"
+def test_use_cached_substructure():
+    """Test that a cached substructure is used on subsequent requests."""
+    substructure_name = "example_substructure"
+    redis_key = f"substructure:{substructure_name}"
 
     cached_data = redis_client.get(redis_key)
     assert cached_data is not None
 
-    response = requests.get(ENDPOINT + f"/molecules/{molecule_id}")
+    response = requests.get(ENDPOINT + f"/substructures/{substructure_name}")
     assert response.status_code == 200
     assert response.json() == json.loads(cached_data)
 
 
 def test_cache_expiration():
     """Test that the cache expires after the specified time."""
-    molecule_id = 4
-    redis_key = f"molecule:{molecule_id}"
+    substructure_name = "example_substructure"
+    redis_key = f"substructure:{substructure_name}"
 
-    response = requests.get(ENDPOINT + f"/molecules/{molecule_id}")
+    response = requests.get(ENDPOINT + f"/substructures/{substructure_name}")
     assert response.status_code == 200
 
     redis_client.expire(redis_key, 2)
@@ -56,24 +41,28 @@ def test_cache_expiration():
 
 
 def test_cache_invalidation_on_update():
-    """Test that the cache is invalidated when a molecule is updated."""
-    molecule_id = 2
-    redis_key = f"molecule:{molecule_id}"
+    """Test that the cache is invalidated when a substructure is updated."""
+    substructure_name = "example_substructure"
+    redis_key = f"substructure:{substructure_name}"
 
-    response = requests.get(ENDPOINT + f"/molecules/{molecule_id}")
+    response = requests.get(ENDPOINT + f"/substructures/{substructure_name}")
     assert response.status_code == 200
 
     cached_data = redis_client.get(redis_key)
     assert cached_data is not None
 
     response = requests.put(
-        ENDPOINT + f"/molecules/{molecule_id}",
-        params={"name": "CNO"}
+        ENDPOINT + f"/substructures/{substructure_name}",
+        params={"new_name": "new_substructure_name"}
     )
     assert response.status_code == 200
 
+    updated_redis_key = f"substructure:new_substructure_name"
     cached_data = redis_client.get(redis_key)
     assert cached_data is None
+
+    new_cached_data = redis_client.get(updated_redis_key)
+    assert new_cached_data is not None
 
 
 def test_redis_connection_failure(monkeypatch):
@@ -83,8 +72,8 @@ def test_redis_connection_failure(monkeypatch):
 
     monkeypatch.setattr(redis.Redis, 'get', mock_redis_client)
 
-    molecule_id = 4
-    response = requests.get(ENDPOINT + f"/molecules/{molecule_id}")
+    substructure_name = "example_substructure"
+    response = requests.get(ENDPOINT + f"/substructures/{substructure_name}")
 
     assert response.status_code == 200
     assert response.json() is not None
