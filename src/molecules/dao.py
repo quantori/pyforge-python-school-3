@@ -165,7 +165,7 @@ class MoleculeDAO(BaseDAO):
                         for match in matches:
                             yield match
                     offset += limit
-                
+
                 except Exception:
                     raise
 
