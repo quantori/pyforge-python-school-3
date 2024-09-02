@@ -1,6 +1,91 @@
 import requests
+import json
+import redis
+import time
+from os import getenv
+
 
 ENDPOINT = "http://localhost:8000"
+REDIS_URL = getenv("REDIS_URL")
+
+redis_client = redis.from_url(REDIS_URL)
+
+
+def test_cache_molecule_by_id():
+    """Test that molecule data is cached in Redis."""
+    molecule_id = 4
+    redis_key = f"molecule:{molecule_id}"
+    
+    redis_client.delete(redis_key)
+    response = requests.get(ENDPOINT + f"/molecules/{molecule_id}")
+    assert response.status_code == 200
+    expected_data = response.json()
+    
+    cached_data = redis_client.get(redis_key)
+    assert cached_data is not None
+    assert json.loads(cached_data) == expected_data
+
+def test_use_cached_molecule():
+    """Test that a cached molecule is used on subsequent requests."""
+    molecule_id = 4
+    redis_key = f"molecule:{molecule_id}"
+    
+    cached_data = redis_client.get(redis_key)
+    assert cached_data is not None
+
+    response = requests.get(ENDPOINT + f"/molecules/{molecule_id}")
+    assert response.status_code == 200
+    assert response.json() == json.loads(cached_data)
+
+def test_cache_expiration():
+    """Test that the cache expires after the specified time."""
+    molecule_id = 4
+    redis_key = f"molecule:{molecule_id}"
+    
+    response = requests.get(ENDPOINT + f"/molecules/{molecule_id}")
+    assert response.status_code == 200
+    
+    redis_client.expire(redis_key, 2)
+    
+    time.sleep(3)
+    
+    cached_data = redis_client.get(redis_key)
+    assert cached_data is None
+
+
+def test_cache_invalidation_on_update():
+    """Test that the cache is invalidated when a molecule is updated."""
+    molecule_id = 2
+    redis_key = f"molecule:{molecule_id}"
+    
+    response = requests.get(ENDPOINT + f"/molecules/{molecule_id}")
+    assert response.status_code == 200
+    
+    cached_data = redis_client.get(redis_key)
+    assert cached_data is not None
+    
+    response = requests.put(
+        ENDPOINT + f"/molecules/{molecule_id}",
+        params={"name": "CNO"}
+    )
+    assert response.status_code == 200
+
+    cached_data = redis_client.get(redis_key)
+    assert cached_data is None
+
+
+def test_redis_connection_failure(monkeypatch):
+    """Test that the application handles Redis connection failure."""
+    def mock_redis_client(*args, **kwargs):
+        raise redis.exceptions.ConnectionError
+
+    monkeypatch.setattr(redis.Redis, 'get', mock_redis_client)
+    
+    molecule_id = 4
+    response = requests.get(ENDPOINT + f"/molecules/{molecule_id}")
+
+    assert response.status_code == 200
+    assert response.json() is not None
 
 
 def upload_molecules_json(filename='molecules.json'):

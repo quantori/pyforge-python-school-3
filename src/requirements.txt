@@ -11,3 +11,4 @@ sqlalchemy[asyncio]
 alembic
 python-dotenv
 pydantic-settings
+redis

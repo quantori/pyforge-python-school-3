@@ -144,27 +144,30 @@ class MoleculeDAO(BaseDAO):
         async with async_session_maker() as session:
             offset = 0
             while True:
-                query = select(cls.model).offset(offset).limit(limit)
-                result = await session.execute(query)
-                molecules_batch = result.scalars().all()
+                try:
+                    query = select(cls.model).offset(offset).limit(limit)
+                    result = await session.execute(query)
+                    molecules_batch = result.scalars().all()
 
-                if not molecules_batch:
-                    break
+                    if not molecules_batch:
+                        break
 
-                matches = []
-                for molecule in molecules_batch:
-                    mol = Chem.MolFromSmiles(molecule.name)
-                    if mol and mol.HasSubstructMatch(substructure_mol):
-                        mol_data = {
-                            "id": molecule.id,
-                            "name": molecule.name,
-                        }
-                        matches.append(mol_data)
-
-                for match in matches:
-                    yield match
-
-                offset += limit
+                    matches = []
+                    for molecule in molecules_batch:
+                        mol = Chem.MolFromSmiles(molecule.name)
+                        if mol and mol.HasSubstructMatch(substructure_mol):
+                            mol_data = {
+                                "id": molecule.id,
+                                "name": molecule.name,
+                            }
+                            matches.append(mol_data)
+                    if matches:
+                        for match in matches:
+                            yield match
+                    offset += limit
+                
+                except Exception:
+                    raise
 
     @classmethod
     async def upload_file(cls, file_content: str) -> int:

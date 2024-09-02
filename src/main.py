@@ -8,8 +8,14 @@ from molecules.schema import MoleculeAdd, MoleculeResponse
 from molecules.dao import MoleculeDAO
 from typing import List, Dict
 from dotenv import load_dotenv
+import redis
+import traceback
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    filename='app.log',
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
@@ -17,10 +23,24 @@ app = FastAPI()
 load_dotenv(".env")
 
 DB_URL = getenv("DB_URL")
+REDIS_URL = getenv("REDIS_URL")
+
+redis_client = redis.from_url(REDIS_URL)
+
+try:
+    redis_client.ping()
+    logger.info("Successfully connected to Redis")
+except redis.ConnectionError:
+    logger.error("Unable to connect to Redis")
+
 
 if DB_URL is None:
     logger.error("Database URL is not in env")
     raise ValueError("Database URL is not in env")
+
+if REDIS_URL is None:
+    logger.error("Redis URL is not in env")
+    raise ValueError("Redis URL is not in env")
 
 
 @app.get("/")
@@ -119,52 +139,78 @@ async def delete_mol(mol_id: int) -> dict:
         raise HTTPException(status_code=404, detail="Molecule not found")
 
 
+def get_cached_result(key: str):
+    try:
+        result = redis_client.get(key)
+        if result:
+            decoded_result = json.loads(result)
+            logger.info(f"Cache hit for key: {key}")
+            return decoded_result
+        else:
+            logger.info(f"Cache miss for key: {key}")
+    except redis.RedisError as e:
+        logger.error(f"Redis error during cache retrieval: {e}")
+    except json.JSONDecodeError as e:
+        logger.error(f"JSON decode error: {e}")
+    return None
+
+
+def set_cache(key: str, value: dict, expiration: int = 60):
+    try:
+        json_value = json.dumps(value)
+        logger.info(f"Caching data for key: {key} with value: {json_value}")
+        redis_client.setex(key, expiration, json_value)
+        logger.info(f"Cache set for key: {key}")
+    except redis.RedisError as e:
+        logger.error(f"Redis error during cache setting: {e}")
+    except json.JSONDecodeError as e:
+        logger.error(f"JSON encode error: {e}")
+
+
 @app.get("/substructure_search", tags=["Molecules"], response_model=List[Dict])
 async def substructure_search(
     substructure_name: str,
     limit: int = 100
 ) -> List[Dict]:
+    logger.info(f"Received request for substructure_search with substructure_name={substructure_name} and limit={limit}")
+
     if not substructure_name:
-        raise HTTPException(
-            status_code=400,
-            detail="Substructure SMILES string cannot be empty"
-        )
+        logger.error("Substructure SMILES string cannot be empty")
+        raise HTTPException(status_code=400, detail="Substructure SMILES string cannot be empty")
 
     substructure_mol = Chem.MolFromSmiles(substructure_name)
     if substructure_mol is None:
+        logger.error("Invalid SMILES string")
         raise HTTPException(status_code=400, detail="Invalid SMILES string")
-
+    
     try:
-        logger.info(
-            "Searching for molecules with substructure: %s",
-            substructure_name
-        )
-        iterator = MoleculeDAO.find_by_substructure_iterator(
-            substructure_name,
-            limit
-        )
+        key = f"substructure_search:{substructure_name}:{limit}"
+        cached_result = get_cached_result(key)
+        if cached_result:
+            logger.info(f"Returning cached result for substructure: {substructure_name}")
+            return {"source": "cache", "data": cached_result}
+
+        logger.info(f"Searching for molecules with substructure: {substructure_name}")
+        iterator = MoleculeDAO.find_by_substructure_iterator(substructure_name, limit)
         matches = [match async for match in iterator]
 
         if not matches:
-            logger.warning(
-                "No molecules found for substructure: %s",
-                substructure_name
-            )
-            raise HTTPException(
-                status_code=404,
-                detail="No molecules found matching the substructure"
-            )
+            logger.warning(f"No molecules found for substructure: {substructure_name}")
+            raise HTTPException(status_code=404, detail="No molecules found matching the substructure")
 
+        logger.info(f"Setting cache for key: {key} with {len(matches)} matches")
+        set_cache(key, matches, expiration=300)
+        logger.info("Substructure search completed successfully")
         return matches
 
+    except HTTPException as e:
+        logger.warning(f"HTTP error during substructure search: {e.detail}")
+        raise e
     except ValueError as e:
-        logger.warning(f"Bad request for substructure search: {str(e)}")
-        raise HTTPException(status_code=400, detail=str(e))
-
+        logger.warning(f"Bad request for substructure search: {e}")
+        raise HTTPException(status_code=400, detail="Bad request")
     except Exception as e:
-        logger.error(
-            f"Internal server error during substructure search: {str(e)}"
-        )
+        logger.error(f"An error occurred: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal Server Error")
 
 

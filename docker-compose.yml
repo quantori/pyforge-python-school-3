@@ -12,12 +12,15 @@ services:
       - .env
     environment:
       SERVER_ID: SERVER-1
+      DB_URL: ${DB_URL}
+      REDIS_URL: ${REDIS_URL} 
     networks:
       - mynetwork
     ports:
       - "8011:8000"
     depends_on:
       - db
+      - redis
 
 
   web2:
@@ -34,6 +37,7 @@ services:
     environment:
       SERVER_ID: SERVER-2
       DB_URL: ${DB_URL}
+      REDIS_URL: ${REDIS_URL}
     networks:
       - mynetwork
     ports:
@@ -85,6 +89,24 @@ services:
                -c checkpoint_completion_target=0.7
                -c wal_buffers=16MB
                -c default_statistics_target=100
+
+
+  redis:
+    image: redis:alpine
+    container_name: redis_cache
+    networks:
+      - mynetwork
+    ports:
+      - "6379:6379"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 256M
+        reservations:
+          cpus: "0.10"
+          memory: 128M
+
 
 networks:
   mynetwork:

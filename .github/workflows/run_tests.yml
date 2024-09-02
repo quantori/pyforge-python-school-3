@@ -5,14 +5,13 @@ on:
     branches:
       - main  
       - develop
-      - feature/3
+      - feature/*
 
   pull_request:
     branches:
       - main
       - develop
-      - feature/3
-
+      - feature/*
 
 jobs:
   lint:
@@ -38,6 +37,23 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
 
+  cache:
+    name: Cache Docker layers
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.docker
+            /tmp/.buildx-cache
+          key: ${{ runner.os }}-docker-${{ hashFiles('**/Dockerfile') }}
+          restore-keys: |
+            ${{ runner.os }}-docker-
+
   test:
     name: Run tests with pytest
     runs-on: ubuntu-latest
@@ -57,8 +73,15 @@ jobs:
       - name: Start Docker containers
         run: docker-compose up -d
 
-      - name: Install Python dependencies
-        run: docker-compose exec -T web1 pip install -r requirements.txt
+      - name: Wait for Redis
+        run: |
+          for i in {1..30}; do
+            if docker-compose exec -T redis redis-cli ping | grep -q PONG; then
+              break
+            fi
+            sleep 1
+          done
+        shell: bash
 
       - name: Wait for PostgreSQL
         run: |
@@ -69,7 +92,10 @@ jobs:
             sleep 1
           done
         shell: bash
-      
+
+      - name: Install Python dependencies
+        run: docker-compose exec -T web1 pip install -r requirements.txt
+
       - name: Run Alembic migrations
         run: docker-compose exec -T web1 alembic upgrade head
         
