@@ -57,7 +57,7 @@ def test_cache_invalidation_on_update():
     )
     assert response.status_code == 200
 
-    updated_redis_key = f"substructure:new_substructure_name"
+    updated_redis_key = "substructure:new_substructure_name"
     cached_data = redis_client.get(redis_key)
     assert cached_data is None
 
