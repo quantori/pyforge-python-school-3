@@ -1,3 +1,4 @@
+import os
 import random
 
 import pytest
@@ -10,9 +11,11 @@ from src.database import Base
 from src.main import app
 from src.molecules.repository import MoleculeRepository
 from src.molecules.service import get_molecule_service, MoleculeService
-from src.molecules.tests.sample_data import (
+from src.molecules.tests.generate_csv_file import generate_testing_files
+from src.molecules.tests.testing_utils import (
     alkane_request_jsons,
-    validate_response_dict_for_ith_alkane, validate_response_dict_for_alkane,
+    validate_response_dict_for_ith_alkane,
+    validate_response_dict_for_alkane,
 )
 
 # engine = create_engine("postgresql://user:password@localhost:5432/db_test")
@@ -25,8 +28,6 @@ molecule_service = MoleculeService(molecule_repository, session_factory)
 
 client = TestClient(app)
 app.dependency_overrides[get_molecule_service] = lambda: molecule_service
-
-import logging
 
 
 @pytest.fixture
@@ -45,7 +46,8 @@ def post_consecutive_alkanes(start_number, amount):
     This is helper method to set up the rest of the tests. It posts alkanes from start_number to end_number
     and returns the responses.
 
-    Every response is validated to ensure that the response is correct, so can be used in the rest of the tests directly.
+    Every response is validated to ensure that the response is correct, so can be used in the rest of the tests
+    directly.
     :param start_number: the number of the first alkane to post
     :param amount: the number of alkanes to post, auto-capped so that start_number + amount < 100,
     """
@@ -61,7 +63,7 @@ def post_consecutive_alkanes(start_number, amount):
     return responses
 
 
-@pytest.mark.parametrize("i", [random.randint(1, 100) for _ in range(5)])
+@pytest.mark.parametrize("i", [random.randint(1, 99) for _ in range(5)])
 def test_save_molecule(i, init_db):
     post_consecutive_alkanes(i, 1)
 
@@ -124,3 +126,86 @@ def test_delete_molecule(i, init_db):
     assert response.status_code == 200
     response = client.get(f"/molecules/{responses[i]['molecule_id']}")
     assert response.status_code == 404
+
+
+@pytest.mark.parametrize("i", [random.randint(1, 19) for _ in range(10)])
+def test_substructures(i, init_db):
+    responses = post_consecutive_alkanes(1, 20)
+    response = client.get(
+        f"/molecules/search/substructures?smiles={responses[i]['smiles']}"
+    )
+    assert response.status_code == 200
+    response_json = response.json()
+    # every alkane up to i should be in the response
+    for j in range(1, i + 1):
+        assert validate_response_dict_for_ith_alkane(response_json[j], j + 1)
+
+
+@pytest.mark.parametrize("i", [random.randint(1, 20) for _ in range(10)])
+def test_superstructures(i, init_db):
+    responses = post_consecutive_alkanes(1, 20)
+    response = client.get(
+        f"/molecules/search/superstructures?smiles={responses[i - 1]['smiles']}"
+    )
+    assert response.status_code == 200
+    response_json = response.json()
+    # every alkane from i should be in the response
+    for j in range(i, 20):
+        assert validate_response_dict_for_ith_alkane(response_json[j - i], j)
+
+
+@pytest.fixture
+def create_testing_files():
+    generate_testing_files()
+    yield
+
+    os.remove("alkanes.csv")
+    os.remove("invalid_header.csv")
+    os.remove("decane_nonane_invalid_smiles.csv")
+
+
+def test_file_upload(init_db, create_testing_files):
+    """
+    This tests alkanes.csv file which contains 10 alkanes, starting from methane to decane.
+
+    Since the first 3 alkanes are already in the database, the number of molecules added should be 7.
+
+
+    """
+    post_consecutive_alkanes(1, 3)
+    with open("alkanes.csv", "rb") as file:
+        response = client.post(
+            "/molecules/upload", files={"file": file}
+        )
+        response_json = response.json()
+        assert response.status_code == 201
+        assert response_json["number_of_molecules_added"] == 7
+
+
+def test_file_upload_invalid_header(init_db, create_testing_files):
+    """
+    This tests invalid_header.csv file which has an invalid header.
+
+    The response should be 400.
+    """
+    with open("invalid_header.csv", "rb") as file:
+        response = client.post(
+            "/molecules/upload", files={"file": file}
+        )
+        assert response.status_code == 400
+
+
+def test_decane_nonane_invalid_smiles(init_db, create_testing_files):
+    """
+    This tests decane_nonane_invalid_smiles.csv file which has invalid smiles for decane and nonane.
+
+    Only decane and nonane should not be added to the database, so the number of molecules added should be 5
+    """
+    post_consecutive_alkanes(1, 3)
+    with open("decane_nonane_invalid_smiles.csv", "rb") as file:
+        response = client.post(
+            "/molecules/upload/", files={"file": file}
+        )
+        assert response.status_code == 201
+        response_json = response.json()
+        assert response_json["number_of_molecules_added"] == 5

@@ -1,4 +1,4 @@
-from typing import Annotated, Optional
+from typing import Annotated
 from sqlalchemy.orm import Mapped, mapped_column
 from src.database import Base
 from src.molecules.schema import MoleculeResponse

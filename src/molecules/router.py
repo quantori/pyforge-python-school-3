@@ -2,7 +2,11 @@ from typing import Annotated
 from fastapi import Depends, status, Body, Path, Query, UploadFile, APIRouter
 from src.molecules.schema import MoleculeRequest, MoleculeResponse
 from src.molecules.service import get_molecule_service
-from src.schema import PaginationQueryParams, get_pagination_query_params, MoleculeUpdateRequest
+from src.schema import (
+    PaginationQueryParams,
+    get_pagination_query_params,
+    MoleculeUpdateRequest,
+)
 from src.molecules.service import MoleculeService
 
 router = APIRouter()
@@ -78,7 +82,6 @@ def update_molecule(
     molecule_request: Annotated[MoleculeUpdateRequest, Body(...)],
     service: Annotated[MoleculeService, Depends(get_molecule_service)],
 ) -> MoleculeResponse:
-
     """
     Does not really make sense to be able to change the id, smiles, molecular mass of a molecule.
     Only name is allowed to be changed.
@@ -137,7 +140,7 @@ def substructure_search(
 
 
 @router.get(
-    "/search/substructure_of",
+    "/search/superstructures",
     responses={
         # status.HTTP_200_OK: {"model": list[MoleculeResponse]},
         status.HTTP_400_BAD_REQUEST: {
@@ -165,10 +168,10 @@ def substructure_search_of(
     """
     Find all molecules that the given smile IS SUBSTRUCTURE OF, not vice vera.
     """
-    return service.get_is_substructure_of(smiles, limit)
+    return service.get_superstructures(smiles, limit)
 
 
-@router.post("/upload/upload_molecules_csv", status_code=status.HTTP_201_CREATED)
+@router.post("/upload", status_code=status.HTTP_201_CREATED)
 def upload_molecules(
     file: UploadFile,
     service: Annotated[MoleculeService, Depends(get_molecule_service)],

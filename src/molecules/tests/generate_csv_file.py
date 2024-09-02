@@ -1,4 +1,4 @@
-from src.molecules.tests.sample_data import alkanes
+from src.molecules.tests.testing_utils import alkanes
 
 # import csv writer
 import csv

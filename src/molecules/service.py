@@ -19,6 +19,7 @@ from src.molecules.schema import MoleculeRequest, MoleculeResponse
 from src.molecules.utils import (
     get_chem_molecule_from_smiles_or_raise_exception,
     is_valid_smiles,
+    get_chem_service,
 )
 from src.database import get_session_factory
 from src.molecules import mapper
@@ -67,7 +68,6 @@ class MoleculeService:
         :param molecule_request: Molecule data
         :return: Saved molecule
         """
-        logger.debug(f"inside method save from 75")
         with self._session_factory() as session:
             # previous implementation was using filter to check for smiles duplicates, that was not efficient
             # I have removed the filter method from the repository, and I am relying on the IntegrityError,
@@ -75,7 +75,6 @@ class MoleculeService:
             try:
                 mol_json = mapper.request_to_model_json(molecule_request)
                 mol = self._repository.save(session, mol_json)
-                logger.debug(f"saved molecule {mol}")
                 session.flush()  # This will trigger the IntegrityError if the smiles is not unique
                 session.commit()
                 return mapper.model_to_response(mol)
@@ -84,8 +83,6 @@ class MoleculeService:
                 if "unique constraint" in str(e).lower():
                     raise DuplicateSmilesException(molecule_request.smiles) from e
                 raise
-            finally:
-                logger.debug(f"leaving method save from 92")
 
     def update(self, obj_id: int, molecule_request: MoleculeUpdateRequest):
         """
@@ -154,13 +151,13 @@ class MoleculeService:
         count = 0
 
         for molecule in find_all:
-            if mol.HasSubstructMatch(molecule.to_chem()):
-                yield molecule.to_response()
+            if mol.HasSubstructMatch(get_chem_service().get_chem(molecule.smiles)):
+                yield mapper.model_to_response(molecule)
                 count += 1
                 if limit is not None and count >= limit:
                     break
 
-    def get_is_substructure_of(
+    def get_superstructures(
         self, smiles: str, limit: int = 1000
     ) -> list[MoleculeResponse]:
         """
@@ -172,13 +169,15 @@ class MoleculeService:
         :raises InvalidSmilesException: if the smiles does not represent a valid molecule
         """
 
-        mol = get_chem_molecule_from_smiles_or_raise_exception(smiles)
+        get_chem_molecule_from_smiles_or_raise_exception(smiles)
         find_all = self.__iterate_on_find_all()
         count = 0
 
         for molecule in find_all:
-            if molecule.to_chem().HasSubstructMatch(mol):
-                yield molecule.to_response()
+            if molecule.to_chem().HasSubstructMatch(
+                get_chem_service().get_chem(smiles)
+            ):
+                yield mapper.model_to_response(molecule)
                 count += 1
                 if limit is not None and count >= limit:
                     break

@@ -65,6 +65,11 @@ I can describe it.
     - GET: /{molecule_id} Get a molecule by id
 
     - GET: /?page={page}&pageSize={pageSize}&name={name}&minMass={minMass}&maxMass={maxMass}
+            &order={order}&orderBy={orderBy} 
+
+        Get a collection of molecules with optional query parameters
+        order: asc or desc
+        orderBy: name or mass
 
     - GET: /search/substructures?smiles={smiles}?limit={limit} Search for a molecule by substructure
     
