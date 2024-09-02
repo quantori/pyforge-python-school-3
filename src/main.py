@@ -9,7 +9,6 @@ from molecules.dao import MoleculeDAO
 from typing import List, Dict
 from dotenv import load_dotenv
 import redis
-import traceback
 
 logging.basicConfig(
     filename='app.log',
@@ -172,33 +171,52 @@ async def substructure_search(
     substructure_name: str,
     limit: int = 100
 ) -> List[Dict]:
-    logger.info(f"Received request for substructure_search with substructure_name={substructure_name} and limit={limit}")
+    logger.info(
+        f"substructure_name={substructure_name}, limit={limit}"
+    )
 
     if not substructure_name:
         logger.error("Substructure SMILES string cannot be empty")
-        raise HTTPException(status_code=400, detail="Substructure SMILES string cannot be empty")
+        raise HTTPException(
+            status_code=400,
+            detail="Substructure SMILES string cannot be empty"
+        )
 
     substructure_mol = Chem.MolFromSmiles(substructure_name)
     if substructure_mol is None:
         logger.error("Invalid SMILES string")
         raise HTTPException(status_code=400, detail="Invalid SMILES string")
-    
+
     try:
         key = f"substructure_search:{substructure_name}:{limit}"
         cached_result = get_cached_result(key)
         if cached_result:
-            logger.info(f"Returning cached result for substructure: {substructure_name}")
+            logger.info(
+                f"Returning cached result: {substructure_name}"
+            )
             return {"source": "cache", "data": cached_result}
 
-        logger.info(f"Searching for molecules with substructure: {substructure_name}")
-        iterator = MoleculeDAO.find_by_substructure_iterator(substructure_name, limit)
+        logger.info(
+            f"Searching for molecules with substructure: {substructure_name}"
+        )
+        iterator = MoleculeDAO.find_by_substructure_iterator(
+            substructure_name,
+            limit
+        )
         matches = [match async for match in iterator]
 
         if not matches:
-            logger.warning(f"No molecules found for substructure: {substructure_name}")
-            raise HTTPException(status_code=404, detail="No molecules found matching the substructure")
+            logger.warning(
+                f"No molecules found for substructure: {substructure_name}"
+            )
+            raise HTTPException(
+                status_code=404,
+                detail="No molecules found matching the substructure"
+            )
 
-        logger.info(f"Setting cache for key: {key} with {len(matches)} matches")
+        logger.info(
+            f"Setting cache for key: {key} with {len(matches)} matches"
+        )
         set_cache(key, matches, expiration=300)
         logger.info("Substructure search completed successfully")
         return matches
