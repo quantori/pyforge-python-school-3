@@ -16,6 +16,9 @@ def test_use_cached_substructure():
     substructure_name = "example_substructure"
     redis_key = f"substructure:{substructure_name}"
 
+    sample_data = {"name": substructure_name}
+    redis_client.setex(redis_key, 60, json.dumps(sample_data))
+
     cached_data = redis_client.get(redis_key)
     assert cached_data is not None
 
@@ -28,6 +31,9 @@ def test_cache_expiration():
     """Test that the cache expires after the specified time."""
     substructure_name = "example_substructure"
     redis_key = f"substructure:{substructure_name}"
+
+    sample_data = {"name": substructure_name}
+    redis_client.setex(redis_key, 60, json.dumps(sample_data))
 
     response = requests.get(ENDPOINT + f"/substructures/{substructure_name}")
     assert response.status_code == 200
@@ -45,6 +51,9 @@ def test_cache_invalidation_on_update():
     substructure_name = "example_substructure"
     redis_key = f"substructure:{substructure_name}"
 
+    sample_data = {"name": substructure_name}
+    redis_client.setex(redis_key, 60, json.dumps(sample_data))
+    
     response = requests.get(ENDPOINT + f"/substructures/{substructure_name}")
     assert response.status_code == 200
 
