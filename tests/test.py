@@ -53,7 +53,7 @@ def test_cache_invalidation_on_update():
 
     sample_data = {"name": substructure_name}
     redis_client.setex(redis_key, 60, json.dumps(sample_data))
-    
+
     response = requests.get(ENDPOINT + f"/substructures/{substructure_name}")
     assert response.status_code == 200
 
