@@ -22,6 +22,7 @@ from src.molecules.utils import (
 )
 from src.database import get_session_factory
 from src.molecules import mapper
+from src.schema import MoleculeUpdateRequest
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +77,7 @@ class MoleculeService:
                 mol = self._repository.save(session, mol_json)
                 logger.debug(f"saved molecule {mol}")
                 session.flush()  # This will trigger the IntegrityError if the smiles is not unique
-                session.commit()  # Commit only if flush() is successful
+                session.commit()
                 return mapper.model_to_response(mol)
             except IntegrityError as e:
                 session.rollback()  # Rollback in case of error
@@ -86,7 +87,7 @@ class MoleculeService:
             finally:
                 logger.debug(f"leaving method save from 92")
 
-    def update(self, obj_id: int, molecule_request: MoleculeRequest):
+    def update(self, obj_id: int, molecule_request: MoleculeUpdateRequest):
         """
         Update a molecule with the given id.
         This is suitable for put request
@@ -97,19 +98,14 @@ class MoleculeService:
         :raises UnknownIdentifierException: if the molecule with the given id does not exist
         """
         with self._session_factory() as session:
-            if not self.exists_by_id(obj_id):
+            mol = self._repository.find_by_id(obj_id, session)
+            if mol is None:
                 raise UnknownIdentifierException(obj_id)
 
-            same_smiles = self._repository.filter(
-                smiles=molecule_request.smiles, session=session
-            )
-            if len(same_smiles) > 0 and same_smiles[0].molecule_id != obj_id:
-                raise DuplicateSmilesException(molecule_request.smiles)
-
-            mol = self._repository.update(
-                session, obj_id, molecule_request.model_dump()
-            )
-            return mol.to_response()
+            mol.name = molecule_request.name
+            session.commit()
+            ans = mapper.model_to_response(mol)
+            return ans
 
     def find_all(self, page: int = 0, page_size: int = 1000):
         """
@@ -134,9 +130,12 @@ class MoleculeService:
         :raises UnknownIdentifierException: if the molecule with the given id does not exist
         """
         with self._session_factory() as session:
-            if not self.exists_by_id(obj_id):
+            mol = self._repository.find_by_id(obj_id, session)
+            if mol is None:
                 raise UnknownIdentifierException(obj_id)
-            return self._repository.delete(session, obj_id)
+            ans = self._repository.delete(session, obj_id)
+            session.commit()
+            return ans
 
     def get_substructures(
         self, smiles: str, limit: int = 1000

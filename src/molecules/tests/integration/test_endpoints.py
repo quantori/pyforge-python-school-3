@@ -12,7 +12,7 @@ from src.molecules.repository import MoleculeRepository
 from src.molecules.service import get_molecule_service, MoleculeService
 from src.molecules.tests.sample_data import (
     alkane_request_jsons,
-    validate_response_dict_for_ith_alkane,
+    validate_response_dict_for_ith_alkane, validate_response_dict_for_alkane,
 )
 
 # engine = create_engine("postgresql://user:password@localhost:5432/db_test")
@@ -74,9 +74,53 @@ def test_save_duplicate_smiles(i, init_db):
     assert response.status_code == 400
 
 
-@pytest.mark.parametrigze("i", [random.randint(1, 19) for _ in range(5)])
+@pytest.mark.parametrize("i", [random.randint(1, 99) for _ in range(5)])
 def test_find_by_id(i, init_db):
-    responses = post_consecutive_alkanes(1, 20)
-    response = client.get(f"/molecules/{responses[i]['molecule_id']}")
+    response = post_consecutive_alkanes(i, 1)[0]
+    response_id = response["molecule_id"]
+    response = client.get(f"/molecules/{response_id}")
     assert response.status_code == 200
     assert validate_response_dict_for_ith_alkane(response.json(), i)
+
+
+@pytest.mark.parametrize("i", [random.randint(1, 99) for _ in range(5)])
+def test_find_by_id_not_found(i, init_db):
+    response = post_consecutive_alkanes(i, 1)[0]
+    response_id = response["molecule_id"]
+    response = client.get(f"/molecules/{response_id + 1}")
+    assert response.status_code == 404
+
+
+@pytest.mark.parametrize("i", [random.randint(1, 10) for _ in range(5)])
+def test_update_molecule(i, init_db):
+    """
+    Update the molecule 2 times, and check that the molecule is updated correctly.
+    """
+    responses = post_consecutive_alkanes(1, 11)
+    update_request1 = {"name": "UpdatedName"}
+    update_request2 = {"name": "UpdatedName2"}
+
+    for req in [update_request1, update_request2]:
+        response = client.patch(f"/molecules/{responses[i]['molecule_id']}", json=req)
+        assert response.status_code == 200
+        assert response.json()["name"] == req["name"]
+        js = response.json()
+        js["name"] = responses[i]["name"]
+        assert validate_response_dict_for_alkane(js, responses[i])
+
+
+@pytest.mark.parametrize("i", [random.randint(1, 10) for _ in range(5)])
+def test_update_molecule_not_found(i, init_db):
+    post_consecutive_alkanes(1, 11)
+    update_request = {"name": "UpdatedName"}
+    response = client.patch(f"/molecules/{100000}", json=update_request)
+    assert response.status_code == 404
+
+
+@pytest.mark.parametrize("i", [random.randint(1, 10) for _ in range(5)])
+def test_delete_molecule(i, init_db):
+    responses = post_consecutive_alkanes(1, 11)
+    response = client.delete(f"/molecules/{responses[i]['molecule_id']}")
+    assert response.status_code == 200
+    response = client.get(f"/molecules/{responses[i]['molecule_id']}")
+    assert response.status_code == 404

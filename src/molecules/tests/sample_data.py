@@ -67,8 +67,7 @@ alkane_request_jsons = {
 }
 
 
-def validate_response_dict_for_ith_alkane(response_dict, i):
-    alkane = alkane_request_jsons[i]
+def validate_response_dict_for_alkane(response_dict, alkane):
 
     if response_dict["name"] != alkane["name"]:
         logger.error(f"response_dict['name'] != alkane['name']")
@@ -117,3 +116,8 @@ def validate_response_dict_for_ith_alkane(response_dict, i):
         return False
 
     return True
+
+
+def validate_response_dict_for_ith_alkane(response_dict, i):
+    alkane = alkane_request_jsons[i]
+    return validate_response_dict_for_alkane(response_dict, alkane)

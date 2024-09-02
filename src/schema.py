@@ -48,6 +48,21 @@ class BaseResponse(BaseModel):
     # }
 
 
+class MoleculeUpdateRequest(BaseModel):
+    """
+    It does not really make sense to be able to change the id, smiles, molecular mass of a molecule,
+    so only name is allowed to be changed.
+    """
+
+    name: str
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": {"name": "MethaneChanged"},
+        }
+    }
+
+
 class PaginationQueryParams(BaseModel):
     """Query parameters for paginated responses. Page is 0-indexed."""
 

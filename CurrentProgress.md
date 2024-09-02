@@ -58,7 +58,7 @@ I can describe it.
 
     - DELETE: /{molecule_id} Delete a molecule by id
 
-    - PUT: /{molecule_id} Update a molecule by id
+    - PATCH: /{molecule_id} Update a molecule by id, only name can be updated
 
     - POST: /upload Upload a csv file containing molecules info
 
@@ -81,8 +81,13 @@ You can see data types as well as examples for each field.
     - name: string `Methane`
     - smiles: string `C`
 
+##### MoleculeUpdateRequest: Request body for updating a molecule
+
+Updating smiles and mass does not make sense, so only name can be updated.
+
+    - name: string `Methane`
+
 ##### MoleculeResponse: Response body for a molecule
- 
     
     - id: int `1`
     - name: string `Methane`

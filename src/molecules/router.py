@@ -2,7 +2,7 @@ from typing import Annotated
 from fastapi import Depends, status, Body, Path, Query, UploadFile, APIRouter
 from src.molecules.schema import MoleculeRequest, MoleculeResponse
 from src.molecules.service import get_molecule_service
-from src.schema import PaginationQueryParams, get_pagination_query_params
+from src.schema import PaginationQueryParams, get_pagination_query_params, MoleculeUpdateRequest
 from src.molecules.service import MoleculeService
 
 router = APIRouter()
@@ -60,7 +60,7 @@ def get_molecules(
     return service.find_all(pagination.page, pagination.page_size)
 
 
-@router.put(
+@router.patch(
     "/{molecule_id}",
     status_code=200,
     responses={
@@ -75,9 +75,15 @@ def update_molecule(
     molecule_id: Annotated[
         int, Path(..., description="Unique identifier for the molecule")
     ],
-    molecule_request: Annotated[MoleculeRequest, Body(...)],
+    molecule_request: Annotated[MoleculeUpdateRequest, Body(...)],
     service: Annotated[MoleculeService, Depends(get_molecule_service)],
 ) -> MoleculeResponse:
+
+    """
+    Does not really make sense to be able to change the id, smiles, molecular mass of a molecule.
+    Only name is allowed to be changed.
+    """
+
     return service.update(molecule_id, molecule_request)
 
 
