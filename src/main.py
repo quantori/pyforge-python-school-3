@@ -24,14 +24,6 @@ load_dotenv(".env")
 DB_URL = getenv("DB_URL")
 REDIS_URL = getenv("REDIS_URL")
 
-redis_client = redis.from_url(REDIS_URL)
-
-try:
-    redis_client.ping()
-    logger.info("Successfully connected to Redis")
-except redis.ConnectionError:
-    logger.error("Unable to connect to Redis")
-
 
 if DB_URL is None:
     logger.error("Database URL is not in env")
@@ -40,6 +32,15 @@ if DB_URL is None:
 if REDIS_URL is None:
     logger.error("Redis URL is not in env")
     raise ValueError("Redis URL is not in env")
+
+
+redis_client = redis.from_url(REDIS_URL)
+
+try:
+    redis_client.ping()
+    logger.info("Successfully connected to Redis")
+except redis.ConnectionError:
+    logger.error("Unable to connect to Redis")
 
 
 @app.get("/")
