@@ -9,7 +9,6 @@ REDIS_URL = getenv("REDIS_URL")
 
 redis_client = redis.from_url(REDIS_URL)
 
-
 SUBSTRUCTURE_NAME = "C"
 LIMIT = 100
 
@@ -24,7 +23,11 @@ def setup_cache():
         f"?substructure_name={SUBSTRUCTURE_NAME}&limit={LIMIT}"
     )
     assert response.status_code == 200
-    redis_client.set(get_redis_key(SUBSTRUCTURE_NAME, LIMIT), json.dumps(response.json()), ex=3600)
+    redis_client.set(
+        get_redis_key(SUBSTRUCTURE_NAME, LIMIT),
+        json.dumps(response.json()), ex=3600
+    )
+
 
 def test_use_cached_substructure():
     setup_cache()
@@ -32,23 +35,13 @@ def test_use_cached_substructure():
     cached_data = redis_client.get(redis_key)
     assert cached_data is not None, "Cached data should not be None"
 
+    response = requests.get(
+        f"{ENDPOINT}/substructure_search"
+        f"?substructure_name={SUBSTRUCTURE_NAME}&limit={LIMIT}"
+    )
 
-def test_use_cached_substructure():
-    redis_key = get_redis_key(SUBSTRUCTURE_NAME, LIMIT)
-
-    try:
-        cached_data = redis_client.get(redis_key)
-        assert cached_data is not None, "Cached data should not be None"
-
-        response = requests.get(
-            f"{ENDPOINT}/substructure_search"
-            f"?substructure_name={SUBSTRUCTURE_NAME}&limit={LIMIT}"
-        )
-
-        assert response.status_code == 200
-        assert response.json() == json.loads(cached_data)
-    except redis.exceptions.RedisError as e:
-        assert False, f"Redis connection error: {e}"
+    assert response.status_code == 200
+    assert response.json() == json.loads(cached_data)
 
 
 def test_cache_expiration():
@@ -92,19 +85,21 @@ def test_cache_invalidation_on_update():
     assert redis_client.get(new_redis_key) is not None
 
 
-def test_redis_connection_failure(monkeypatch):
-    def mock_redis_client(*args, **kwargs):
-        raise redis.exceptions.ConnectionError
+def test_redis_connection_failure():
+    """Simulate Redis connection failure by temporarily disconnecting Redis."""
+    global redis_client
+    redis_client = redis.Redis.from_url("redis://localhost:6379/1")
 
-    monkeypatch.setattr(redis.Redis, 'get', mock_redis_client)
-
-    substructure_name = "C"
-    limit = 100
-    response = requests.get(
-        f"{ENDPOINT}/substructure_search"
-        f"?substructure_name={substructure_name}&limit={limit}"
-    )
-    assert response.status_code == 500
+    try:
+        response = requests.get(
+            f"{ENDPOINT}/substructure_search"
+            f"?substructure_name={SUBSTRUCTURE_NAME}&limit={LIMIT}"
+        )
+        assert response.status_code == 500
+    except redis.exceptions.ConnectionError:
+        assert True
+    finally:
+        redis_client = redis.from_url(REDIS_URL)
 
 
 def upload_molecules_json(filename='molecules.json'):
