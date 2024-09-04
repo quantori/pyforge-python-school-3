@@ -10,12 +10,27 @@ REDIS_URL = getenv("REDIS_URL")
 redis_client = redis.from_url(REDIS_URL)
 
 
+SUBSTRUCTURE_NAME = "C"
+LIMIT = 100
+
+
 def get_redis_key(substructure_name, limit):
     return f"substructure_search:{substructure_name}:{limit}"
 
 
-SUBSTRUCTURE_NAME = "C"
-LIMIT = 100
+def setup_cache():
+    response = requests.get(
+        f"{ENDPOINT}/substructure_search"
+        f"?substructure_name={SUBSTRUCTURE_NAME}&limit={LIMIT}"
+    )
+    assert response.status_code == 200
+    redis_client.set(get_redis_key(SUBSTRUCTURE_NAME, LIMIT), json.dumps(response.json()), ex=3600)
+
+def test_use_cached_substructure():
+    setup_cache()
+    redis_key = get_redis_key(SUBSTRUCTURE_NAME, LIMIT)
+    cached_data = redis_client.get(redis_key)
+    assert cached_data is not None, "Cached data should not be None"
 
 
 def test_use_cached_substructure():
@@ -61,7 +76,7 @@ def test_cache_invalidation_on_update():
     )
     assert response.status_code == 200
 
-    redis_client.set(redis_key, json.dumps(response.json()), ex=60)
+    redis_client.set(redis_key, json.dumps(response.json()), ex=3600)
     cached_data = redis_client.get(redis_key)
     assert cached_data is not None, "Cached data should be present"
 
