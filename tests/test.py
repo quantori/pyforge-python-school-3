@@ -102,7 +102,7 @@ def test_redis_connection_failure():
         redis_client = redis.from_url(REDIS_URL)
 
 
-def upload_molecules_json(filename='src/molecules.json'):
+def upload_molecules_json(filename='molecules.json'):
     """Helper function to upload a molecules JSON file."""
     with open(filename, 'rb') as file:
         files = {'file': ('molecules.json', file, 'application/json')}
@@ -114,7 +114,7 @@ def test_upload_file_invalid_json():
     """Test uploading an invalid JSON file."""
     files = {
         'file': (
-            'src/molecules.json',
+            'molecules.json',
             '{"mol_id": 5, "name": "C1=CC=CC=C1"',
             'application/json'
         )
