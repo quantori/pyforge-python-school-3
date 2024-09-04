@@ -130,7 +130,7 @@ def test_upload_file_success():
     assert response.status_code == 201
     assert response.json() == {
         "message": "File uploaded and molecules parsed successfully",
-        "num_molecules": 1
+        "num_molecules": 10
     }
 
 
