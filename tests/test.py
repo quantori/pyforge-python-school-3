@@ -4,7 +4,7 @@ import redis
 import time
 from os import getenv
 
-ENDPOINT = "http://localhost:8000"
+ENDPOINT = "http://localhost:8011"
 REDIS_URL = getenv("REDIS_URL")
 
 redis_client = redis.from_url(REDIS_URL)
