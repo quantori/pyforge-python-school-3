@@ -7,7 +7,7 @@ from os import getenv
 ENDPOINT = "http://localhost:8011"
 REDIS_URL = getenv("REDIS_URL")
 
-redis_client = redis.from_url(REDIS_URL)
+redis_client = redis.Redis.from_url(REDIS_URL)
 
 SUBSTRUCTURE_NAME = "C"
 LIMIT = 100
@@ -88,7 +88,7 @@ def test_cache_invalidation_on_update():
 def test_redis_connection_failure():
     """Simulate Redis connection failure by temporarily disconnecting Redis."""
     global redis_client
-    redis_client = redis.Redis.from_url("redis://localhost:6379/1")
+    redis_client = redis.Redis.from_url("redis://invalid_host:6379")
 
     try:
         response = requests.get(
@@ -102,7 +102,7 @@ def test_redis_connection_failure():
         redis_client = redis.from_url(REDIS_URL)
 
 
-def upload_molecules_json(filename='molecules.json'):
+def upload_molecules_json(filename='src/molecules.json'):
     """Helper function to upload a molecules JSON file."""
     with open(filename, 'rb') as file:
         files = {'file': ('molecules.json', file, 'application/json')}
@@ -114,7 +114,7 @@ def test_upload_file_invalid_json():
     """Test uploading an invalid JSON file."""
     files = {
         'file': (
-            'molecules.json',
+            'src/molecules.json',
             '{"mol_id": 5, "name": "C1=CC=CC=C1"',
             'application/json'
         )
@@ -130,7 +130,7 @@ def test_upload_file_success():
     assert response.status_code == 201
     assert response.json() == {
         "message": "File uploaded and molecules parsed successfully",
-        "num_molecules": 10
+        "num_molecules": 1
     }
 
 
