@@ -3,6 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from src.database import Base
+from src.molecules.schema import SearchParams
 
 
 class SQLAlchemyRepository:
@@ -21,7 +22,6 @@ class SQLAlchemyRepository:
 
     def find_all(self, session: Session, page=0, page_size=1000):
         """
-
         Find all instances of the model with pagination support
 
         :param page: Zero indexed page number
@@ -30,7 +30,6 @@ class SQLAlchemyRepository:
         """
 
         stmt = select(self._model_type).limit(page_size).offset(page * page_size)
-
         result = session.execute(stmt).scalars().all()
         return result
 

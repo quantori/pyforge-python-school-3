@@ -2,10 +2,19 @@ from typing import Annotated
 from sqlalchemy.orm import Mapped, mapped_column
 from src.database import Base
 from src.molecules.schema import MoleculeResponse
-from rdkit import Chem
 
 
 class Molecule(Base):
+    """
+    Molecule model class.
+
+    Name attribute should have trigram index for fast search, I could not find a good way to do this
+    declaratively in SQLModel, so did this in the migration script. I used the pg_trgm extension and gist index.
+
+    There will be a lot of filtering and ordering on mass, so it should have an index. I also could
+    not find an orm-ic way to do this(Creating Indexes and Constraints with Naming Conventions on Mixins section in
+    ORM documentation looks suspicious), so I did this in the migration script as well.
+    """
     molecule_id: Mapped[
         Annotated[int, mapped_column(primary_key=True, autoincrement=True)]
     ]
@@ -33,6 +42,3 @@ class Molecule(Base):
         }
 
         return MoleculeResponse(links=links, **self.__dict__)
-
-    def to_chem(self):
-        return Chem.MolFromSmiles(self.smiles)

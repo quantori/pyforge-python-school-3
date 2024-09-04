@@ -15,7 +15,7 @@ from src.molecules.repository import (
     MoleculeRepository,
     get_molecule_repository,
 )
-from src.molecules.schema import MoleculeRequest, MoleculeResponse
+from src.molecules.schema import MoleculeRequest, MoleculeResponse, SearchParams
 from src.molecules.utils import (
     get_chem_molecule_from_smiles_or_raise_exception,
     is_valid_smiles,
@@ -104,19 +104,18 @@ class MoleculeService:
             ans = mapper.model_to_response(mol)
             return ans
 
-    def find_all(self, page: int = 0, page_size: int = 1000):
+    def find_all(self, page: int = 0, page_size: int = 1000, search_params: SearchParams = None):
         """
         Find all molecules in the database. Can be paginated. Default page size is 1000.
 
+        :param search_params: Search parameters
         :param page: Zero indexed page number, default is 0
         :param page_size: Items per page, default is 1000
         :return: List of all molecules
         """
         with self._session_factory() as session:
-            find_all = self._repository.find_all(
-                session=session, page=page, page_size=page_size
-            )
-            return [molecule.to_response() for molecule in find_all]
+            molecules = self._repository.find_all(session, page, page_size, search_params)
+            return [mapper.model_to_response(mol) for mol in molecules]
 
     def delete(self, obj_id: int) -> bool:
         """

@@ -1,5 +1,5 @@
 import datetime
-from typing import Annotated
+from typing import Annotated, Literal
 from black.linegen import Optional
 from pydantic import BaseModel, Field, field_validator
 from src.molecules.exception import InvalidSmilesException
@@ -103,6 +103,35 @@ class MoleculeCollectionResponse(BaseResponse):
         dict[str, Link],
         Field(
             description="nextPage and previousPage links. If current page is 0, "
-            "previousPage will be empty"
+                        "previousPage will be empty"
         ),
     ]
+
+
+# list for order_by possible values are "mass" for now, but can be extended in the future
+order_by_values = Literal["mass"]
+order_values = Literal["asc", "desc"]
+
+
+class SearchParams(BaseModel):
+    name: Annotated[Optional[str], Field(description="Name of the molecule")]
+    min_mass: Annotated[Optional[float], Field(description="Minimum mass of the molecule", gt=0)]
+    max_mass: Annotated[Optional[float], Field(description="Maximum mass of the molecule", gt=0)]
+    order_by: Annotated[Optional[order_by_values], Field(description="Order by mass")]
+    order: Annotated[Optional[order_values], Field(description="Order ascending or descending")]
+
+
+def get_search_params(
+    name: Optional[str] = None,
+    min_mass: Optional[float] = None,
+    max_mass: Optional[float] = None,
+    order_by: Optional[order_by_values] = None,
+    order: Optional[order_values] = None,
+):
+    return SearchParams(
+        name=name,
+        min_mass=min_mass,
+        max_mass=max_mass,
+        order_by=order_by,
+        order=order,
+    )

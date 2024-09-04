@@ -1,6 +1,6 @@
 from typing import Annotated
 from fastapi import Depends, status, Body, Path, Query, UploadFile, APIRouter
-from src.molecules.schema import MoleculeRequest, MoleculeResponse
+from src.molecules.schema import MoleculeRequest, MoleculeResponse, SearchParams, get_search_params
 from src.molecules.service import get_molecule_service
 from src.schema import (
     PaginationQueryParams,
@@ -60,8 +60,9 @@ def get_molecule(
 def get_molecules(
     service: Annotated[MoleculeService, Depends(get_molecule_service)],
     pagination: Annotated[PaginationQueryParams, Depends(get_pagination_query_params)],
+    search_params: Annotated[SearchParams, Depends(get_search_params)],
 ) -> list[MoleculeResponse]:
-    return service.find_all(pagination.page, pagination.page_size)
+    return service.find_all(pagination.page, pagination.page_size, search_params)
 
 
 @router.patch(
