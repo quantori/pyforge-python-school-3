@@ -22,7 +22,7 @@ def test_use_cached_substructure():
     cached_data = redis_client.get(redis_key)
     print(f"Redis key: {redis_key}")
     print(f"Cached data: {cached_data}")
-    
+
     assert cached_data is not None
 
     response = requests.get(
