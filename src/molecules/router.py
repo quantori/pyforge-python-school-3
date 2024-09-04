@@ -62,6 +62,20 @@ def get_molecules(
     pagination: Annotated[PaginationQueryParams, Depends(get_pagination_query_params)],
     search_params: Annotated[SearchParams, Depends(get_search_params)],
 ) -> list[MoleculeResponse]:
+    """
+    Get all molecules with pagination and search parameters with pagination support.
+
+    Search by name is a fuzzy search implemented by trigrams.
+
+    You can order the results by mass.
+
+    You can add min_mass and max_mass to filter the results.
+
+    If name is provided, then fuzzy search with trigrams is performed, results are ordered by similarity
+    and order_by and order are ignored. Filtering by mass is still possible.
+
+    """
+
     return service.find_all(pagination.page, pagination.page_size, search_params)
 
 
