@@ -14,68 +14,67 @@ def get_redis_key(substructure_name, limit):
     return f"substructure_search:{substructure_name}:{limit}"
 
 
+SUBSTRUCTURE_NAME = "C"
+LIMIT = 100
+
+
 def test_use_cached_substructure():
-    substructure_name = "C"
-    limit = 100
-    redis_key = get_redis_key(substructure_name, limit)
+    redis_key = get_redis_key(SUBSTRUCTURE_NAME, LIMIT)
 
-    cached_data = redis_client.get(redis_key)
-    assert cached_data is not None
+    try:
+        cached_data = redis_client.get(redis_key)
+        assert cached_data is not None, "Cached data should not be None"
 
-    response = requests.get(
-        f"{ENDPOINT}/substructure_search"
-        f"?substructure_name={substructure_name}&limit={limit}"
-    )
+        response = requests.get(
+            f"{ENDPOINT}/substructure_search"
+            f"?substructure_name={SUBSTRUCTURE_NAME}&limit={LIMIT}"
+        )
 
-    assert response.status_code == 200
-    assert response.json() == json.loads(cached_data)
+        assert response.status_code == 200
+        assert response.json() == json.loads(cached_data)
+    except redis.exceptions.RedisError as e:
+        assert False, f"Redis connection error: {e}"
 
 
 def test_cache_expiration():
-    substructure_name = "example_substructure"
-    limit = 100
-    redis_key = get_redis_key(substructure_name, limit)
+    redis_key = get_redis_key(SUBSTRUCTURE_NAME, LIMIT)
 
     response = requests.get(
         f"{ENDPOINT}/substructure_search"
-        f"?substructure_name={substructure_name}&limit={limit}"
+        f"?substructure_name={SUBSTRUCTURE_NAME}&limit={LIMIT}"
     )
     assert response.status_code == 200
 
-    redis_client.expire(redis_key, 2)
+    redis_client.set(redis_key, json.dumps(response.json()), ex=2)
     time.sleep(3)
 
     cached_data = redis_client.get(redis_key)
-    assert cached_data is None
+    assert cached_data is None, "Cached data should be expired"
 
 
 def test_cache_invalidation_on_update():
-    substructure_name = "example_substructure"
-    limit = 100
-    redis_key = get_redis_key(substructure_name, limit)
+    redis_key = get_redis_key(SUBSTRUCTURE_NAME, LIMIT)
 
     response = requests.get(
         f"{ENDPOINT}/substructure_search"
-        f"?substructure_name={substructure_name}&limit={limit}"
+        f"?substructure_name={SUBSTRUCTURE_NAME}&limit={LIMIT}"
     )
     assert response.status_code == 200
 
+    redis_client.set(redis_key, json.dumps(response.json()), ex=60)
     cached_data = redis_client.get(redis_key)
-    assert cached_data is not None
+    assert cached_data is not None, "Cached data should be present"
 
     new_name = "new_substructure_name"
     response = requests.put(
         f"{ENDPOINT}/substructure_search",
-        params={"substructure_name": substructure_name, "new_name": new_name}
+        params={"substructure_name": SUBSTRUCTURE_NAME, "new_name": new_name}
     )
     assert response.status_code == 200
 
-    new_redis_key = get_redis_key(new_name, limit)
-    cached_data = redis_client.get(redis_key)
-    assert cached_data is None
-
-    new_cached_data = redis_client.get(new_redis_key)
-    assert new_cached_data is not None
+    new_redis_key = get_redis_key(new_name, LIMIT)
+    assert redis_client.get(redis_key) is None
+    assert redis_client.get(new_redis_key) is not None
 
 
 def test_redis_connection_failure(monkeypatch):

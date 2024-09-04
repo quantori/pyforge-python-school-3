@@ -155,7 +155,7 @@ def get_cached_result(key: str):
     return None
 
 
-def set_cache(key: str, value: dict, expiration: int = 60):
+def set_cache(key: str, value: dict, expiration: int = 3600):
     try:
         json_value = json.dumps(value)
         logger.info(f"Caching data for key: {key} with value: {json_value}")
@@ -260,6 +260,7 @@ async def upload_file(file: UploadFile = File(...)):
         logger.warning(f"Failed to process file {file.filename}: {str(e)}")
         raise HTTPException(status_code=400, detail="Invalid JSON file")
     added_count = 0
+    cache_key = "uploaded_molecules"
     for molecule in molecules:
         try:
             mol_id = molecule.get("mol_id")
@@ -267,6 +268,7 @@ async def upload_file(file: UploadFile = File(...)):
             logger.debug(f"Processing molecule: ID={mol_id}, Name={name}")
             if not mol_id or not name:
                 logger.warning(f"Missing ID or name in file: {molecule}")
+                continue
 
             existing_molecule = await MoleculeDAO.find_full_data(mol_id)
             if existing_molecule:
@@ -286,6 +288,12 @@ async def upload_file(file: UploadFile = File(...)):
         except Exception as e:
             logger.error(f"Error processing molecule {molecule}: {str(e)}")
             continue
+
+    cached_data = {
+        "num_molecules": added_count
+    }
+    set_cache(cache_key, cached_data, expiration=300)
+
     logger.info(
         f"File processing complete. Number of molecules added: {added_count}"
         )
