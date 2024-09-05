@@ -1,29 +1,53 @@
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
 from src.main import app
+from database.database import Base
+from database.models import Molecule
 
+# Test database URL
+DATABASE_URL = "postgresql://postgres:password@localhost:5432/test_database"
+
+# Create an engine and session local
+test_engine = create_engine(DATABASE_URL)
+
+# Initialize the database
+Molecule.metadata.create_all(bind=test_engine)
+# Create a TestClient instance
 client = TestClient(app)
 
-# Sample molecules to use in tests
-sample_molecules = [
-    {"identifier": "water", "smiles": "O"},
-    {"identifier": "methane", "smiles": "C"},
-    {"identifier": "ethanol", "smiles": "CCO"},
-    {"identifier": "benzene", "smiles": "c1ccccc1"},
-    {"identifier": "acetic_acid", "smiles": "CC(=O)O"},
-    {"identifier": "aspirin", "smiles": "CC(=O)Oc1ccccc1C(=O)O"},
-]
 
-
-@pytest.fixture
+@pytest.fixture(scope="function")
 def setup_teardown():
-    # Setup: Add the sample molecules to the system
-    for molecule in sample_molecules:
-        client.post("/molecule", json=molecule)
+
+    client.post(
+        "/molecule",
+        json={"identifier": "water", "smiles": "O"}
+    )
+    client.post(
+        "/molecule",
+        json={"identifier": "methane", "smiles": "C"}
+    )
+    client.post(
+        "/molecule",
+        json={"identifier": "ethanol", "smiles": "CCO"}
+    )
+    client.post(
+        "/molecule",
+        json={"identifier": "benzene", "smiles": "c1ccccc1"}
+    )
+    client.post(
+        "/molecule",
+        json={"identifier": "acetic_acid", "smiles": "CC(O)=O"}
+    )
+    client.post(
+        "/molecule",
+        json={"identifier": "aspirin", "smiles": "CC(=O)Oc1ccccc1C(=O)O"}
+    )
+
     yield
-    # Teardown: Clear the molecules after tests
-    for molecule in sample_molecules:
-        client.delete(f"/molecule/{molecule['identifier']}")
+    # Teardown: Drop the database tables
+    Base.metadata.drop_all(bind=test_engine)
 
 
 def test_substructure_search_single_atom(setup_teardown):
@@ -31,11 +55,11 @@ def test_substructure_search_single_atom(setup_teardown):
     response = client.post("/search/", json={"substructure": "C"})
     result = response.json()
     expected = [
-        {"identifier": "methane", "smiles": "C"},
         {"identifier": "ethanol", "smiles": "CCO"},
+        {"identifier": "methane", "smiles": "C"},
         {"identifier": "benzene", "smiles": "c1ccccc1"},
-        {"identifier": "acetic_acid", "smiles": "CC(=O)O"},
         {"identifier": "aspirin", "smiles": "CC(=O)Oc1ccccc1C(=O)O"},
+        {"identifier": "acetic_acid", "smiles": "CC(O)=O"}
     ]
     assert result == expected
 
@@ -64,8 +88,8 @@ def test_substructure_search_exact_match(setup_teardown):
     assert response.status_code == 200
     result = response.json()
     expected = [
-        {"identifier": "acetic_acid", "smiles": "CC(=O)O"},
         {"identifier": "aspirin", "smiles": "CC(=O)Oc1ccccc1C(=O)O"},
+        {"identifier": "acetic_acid", "smiles": "CC(O)=O"},
     ]
     assert result == expected
 
@@ -80,8 +104,8 @@ def test_substructure_search_multiple_matches(setup_teardown):
     result = response.json()
     expected = [
         {"identifier": "ethanol", "smiles": "CCO"},
-        {"identifier": "acetic_acid", "smiles": "CC(=O)O"},
         {"identifier": "aspirin", "smiles": "CC(=O)Oc1ccccc1C(=O)O"},
+        {"identifier": "acetic_acid", "smiles": "CC(O)=O"},
     ]
     assert result == expected
 
