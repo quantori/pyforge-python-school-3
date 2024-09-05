@@ -1,18 +1,22 @@
+import json
+import logging
 from os import getenv
 from typing import List
 
-import logging
-from rdkit import Chem
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.responses import JSONResponse
-import json
+from rdkit import Chem
 from sqlalchemy.orm import Session
-from . import crud, schemas
+
 from database.database import init_db, SessionLocal
+from . import crud, schemas
 
 # Configure logging
 logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+                    format='%(asctime)s - '
+                           '%(name)s - '
+                           '%(levelname)s - '
+                           '%(message)s')
 logger = logging.getLogger(__name__)
 
 
@@ -30,7 +34,6 @@ app = FastAPI(
     default_response_class=PrettyJSONResponse
 
 )
-
 
 # Initialize the database
 init_db()
