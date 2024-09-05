@@ -125,7 +125,8 @@ def test_substructure_search_special_case(setup_teardown):
 
 def test_substructure_search_large_molecule(setup_teardown):
     # Test searching with a large molecule substructure
-    response = client.post("/search/", json={"substructure": "CC(=O)Oc1ccccc1"})
+    response = client.post("/search/",
+                           json={"substructure": "CC(=O)Oc1ccccc1"})
     assert response.status_code == 200
     result = response.json()
     expected = [
