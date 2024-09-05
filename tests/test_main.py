@@ -72,9 +72,11 @@ def test_add_molecule(setup_teardown):
 
 
 def test_get_molecule(setup_teardown):
-    response = client.get("/molecule/water")
+    response = client.get("/molecule/acetic_acid")
     assert response.status_code == 200
-    assert response.json() == {"identifier": "water", "smiles": "O"}
+    assert response.json() == {
+        "identifier": "acetic_acid",
+        "smiles": "CC(O)=O"}
 
     # Test getting a non-existing molecule
     response = client.get("/molecule/non_existing")
@@ -91,6 +93,10 @@ def test_update_molecule(setup_teardown):
         "identifier": "acetic_acid",
         "smiles": "CC(O)=OO"
     }
+    client.put(
+        "/molecule/acetic_acid",
+        json={"identifier": "acetic_acid", "smiles": "CC(O)=O"}
+    )
 
     # Test updating a non-existing molecule
     response = client.put(
@@ -108,6 +114,10 @@ def test_delete_molecule(setup_teardown):
     # Check the deletion
     response = client.get("/molecule/ethanol")
     assert response.status_code == 400
+    client.post(
+        "/molecule",
+        json={"identifier": "ethanol", "smiles": "CCO"}
+    )
 
 
 def test_list_molecules(setup_teardown):
