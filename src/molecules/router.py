@@ -4,13 +4,13 @@ from src.molecules.schema import (
     MoleculeRequest,
     MoleculeResponse,
     SearchParams,
-    get_search_params,
+    get_search_params, MoleculeCollectionResponse,
 )
 from src.molecules.service import get_molecule_service
 from src.schema import (
     PaginationQueryParams,
     get_pagination_query_params,
-    MoleculeUpdateRequest,
+    MoleculeUpdateRequest, Link,
 )
 from src.molecules.service import MoleculeService
 
@@ -29,8 +29,8 @@ router = APIRouter()
     },
 )
 def add_molecule(
-    molecule_request: Annotated[MoleculeRequest, Body(...)],
-    service: Annotated[MoleculeService, Depends(get_molecule_service)],
+        molecule_request: Annotated[MoleculeRequest, Body(...)],
+        service: Annotated[MoleculeService, Depends(get_molecule_service)],
 ) -> MoleculeResponse:
     return service.save(molecule_request)
 
@@ -47,10 +47,10 @@ def add_molecule(
     },
 )
 def get_molecule(
-    molecule_id: Annotated[
-        int, Path(..., description="Unique identifier for the molecule")
-    ],
-    service: Annotated[MoleculeService, Depends(get_molecule_service)],
+        molecule_id: Annotated[
+            int, Path(..., description="Unique identifier for the molecule")
+        ],
+        service: Annotated[MoleculeService, Depends(get_molecule_service)],
 ):
     return service.find_by_id(molecule_id)
 
@@ -63,10 +63,10 @@ def get_molecule(
     },
 )
 def get_molecules(
-    service: Annotated[MoleculeService, Depends(get_molecule_service)],
-    pagination: Annotated[PaginationQueryParams, Depends(get_pagination_query_params)],
-    search_params: Annotated[SearchParams, Depends(get_search_params)],
-) -> list[MoleculeResponse]:
+        service: Annotated[MoleculeService, Depends(get_molecule_service)],
+        pagination: Annotated[PaginationQueryParams, Depends(get_pagination_query_params)],
+        search_params: Annotated[SearchParams, Depends(get_search_params)],
+) -> MoleculeCollectionResponse:
     """
     Get all molecules with pagination and search parameters with pagination support.
 
@@ -81,7 +81,20 @@ def get_molecules(
 
     """
 
-    return service.find_all(pagination.page, pagination.page_size, search_params)
+    data = service.find_all(pagination.page, pagination.page_size, search_params)
+
+    return MoleculeCollectionResponse.model_validate(
+        {
+            "total": len(data),
+            "page": pagination.page,
+            "page_size": pagination.page_size,
+            "data": data,
+            "links": {
+                "next_page": Link.model_validate({"href": f"/molecules?page={pagination.page + 1}&pageSize={pagination.page_size}", "rel": "nextPage", "type": "GET"}),
+                "prev_page": Link.model_validate({"href": f"/molecules?page={max(0, pagination.page - 1)}&pageSize={pagination.page_size}", "rel": "prevPage", "type": "GET"}),
+            },
+        }
+    )
 
 
 @router.patch(
@@ -96,11 +109,11 @@ def get_molecules(
     },
 )
 def update_molecule(
-    molecule_id: Annotated[
-        int, Path(..., description="Unique identifier for the molecule")
-    ],
-    molecule_request: Annotated[MoleculeUpdateRequest, Body(...)],
-    service: Annotated[MoleculeService, Depends(get_molecule_service)],
+        molecule_id: Annotated[
+            int, Path(..., description="Unique identifier for the molecule")
+        ],
+        molecule_request: Annotated[MoleculeUpdateRequest, Body(...)],
+        service: Annotated[MoleculeService, Depends(get_molecule_service)],
 ) -> MoleculeResponse:
     """
     Does not really make sense to be able to change the id, smiles, molecular mass of a molecule.
@@ -122,10 +135,10 @@ def update_molecule(
     },
 )
 def delete_molecule(
-    molecule_id: Annotated[
-        int, Path(..., description="Unique identifier for the molecule")
-    ],
-    service: Annotated[MoleculeService, Depends(get_molecule_service)],
+        molecule_id: Annotated[
+            int, Path(..., description="Unique identifier for the molecule")
+        ],
+        service: Annotated[MoleculeService, Depends(get_molecule_service)],
 ) -> bool:
     return service.delete(molecule_id)
 
@@ -141,17 +154,17 @@ def delete_molecule(
     },
 )
 def substructure_search(
-    smiles: Annotated[
-        str,
-        Query(
-            ...,
-            description="Find substructures of the given SMILES string",
-        ),
-    ],
-    service: Annotated[MoleculeService, Depends(get_molecule_service)],
-    limit: Annotated[
-        int, Query(description="Stop searching after finding this many molecules")
-    ] = 1000,
+        smiles: Annotated[
+            str,
+            Query(
+                ...,
+                description="Find substructures of the given SMILES string",
+            ),
+        ],
+        service: Annotated[MoleculeService, Depends(get_molecule_service)],
+        limit: Annotated[
+            int, Query(description="Stop searching after finding this many molecules")
+        ] = 1000,
 ):
     """
     Find all molecules that ARE SUBSTRUCTURES of the given smile, not vice vera.
@@ -170,20 +183,20 @@ def substructure_search(
     },
 )
 def substructure_search_of(
-    smiles: Annotated[
-        str,
-        Query(
-            ...,
-            description="SMILES string that has to be substructure of the found molecules",
-        ),
-    ],
-    service: Annotated[MoleculeService, Depends(get_molecule_service)],
-    limit: Annotated[
-        int,
-        Query(
-            description="Stop searching after finding this many molecules",
-        ),
-    ] = 1000,
+        smiles: Annotated[
+            str,
+            Query(
+                ...,
+                description="SMILES string that has to be substructure of the found molecules",
+            ),
+        ],
+        service: Annotated[MoleculeService, Depends(get_molecule_service)],
+        limit: Annotated[
+            int,
+            Query(
+                description="Stop searching after finding this many molecules",
+            ),
+        ] = 1000,
 ):
     """
     Find all molecules that the given smile IS SUBSTRUCTURE OF, not vice vera.
@@ -193,8 +206,8 @@ def substructure_search_of(
 
 @router.post("/upload", status_code=status.HTTP_201_CREATED)
 def upload_molecules(
-    file: UploadFile,
-    service: Annotated[MoleculeService, Depends(get_molecule_service)],
+        file: UploadFile,
+        service: Annotated[MoleculeService, Depends(get_molecule_service)],
 ):
     """
     Upload a CSV file containing molecules to the repository.

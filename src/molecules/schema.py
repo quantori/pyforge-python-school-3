@@ -85,7 +85,7 @@ class MoleculeResponse(BaseResponse):
     }
 
 
-class MoleculeCollectionResponse(BaseResponse):
+class MoleculeCollectionResponse(BaseModel):
     """
     Response schema for the collection of molecules
 

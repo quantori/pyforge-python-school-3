@@ -231,11 +231,11 @@ def test_find_all(page, page_size, init_db):
     post_consecutive_alkanes(1, 10)
     response = client.get(f"/molecules/?page={page}&page_size={page_size}")
     assert response.status_code == 200
-    response_json = response.json()
-    assert len(response_json) <= page_size
+    data = response.json()["data"]
+    assert len(data) <= page_size
     for i in range(page_size * page, min(page_size * page, 10)):
         assert validate_response_dict_for_ith_alkane(
-            response_json[i - page_size * (page - 1)], i + 1
+            data[i - page_size * (page - 1)], i + 1
         )
 
 
@@ -252,7 +252,7 @@ def test_find_all_name_filter(_, init_db):
     response = client.get(f"/molecules/?name={alkane_requests[i]['name']}")
     assert response.status_code == 200
 
-    assert response.json()[0]["name"] == alkane_requests[i]["name"]
+    assert response.json()["data"][0]["name"] == alkane_requests[i]["name"]
 
 
 @pytest.mark.parametrize(
@@ -271,7 +271,7 @@ def test_find_all_name_mass_filter(min_mass, max_mass, expected_length, init_db)
 
     assert response.status_code == 200
 
-    body = response.json()
+    body = response.json()["data"]
     assert len(body) == expected_length
 
     for r in body:
@@ -314,8 +314,7 @@ def test_order_by_mass_mass_filters(order, min_mass, max_mass, init_db):
 
     assert response.status_code == 200
 
-    body = response.json()
-    print([(b["mass"], b["name"]) for b in body])
+    body = response.json()["data"]
     order = order if order else "asc"
 
     if order == "asc":
@@ -326,3 +325,48 @@ def test_order_by_mass_mass_filters(order, min_mass, max_mass, init_db):
         for i in range(len(body) - 1):
             assert body[i]["mass"] >= body[i + 1]["mass"]
             assert min_mass <= body[i]["mass"] <= max_mass
+
+
+def test_find_all_pagination(init_db):
+    post_consecutive_alkanes(1, 7)
+    response = client.get("/molecules/?page=0&pageSize=5")
+    assert response.status_code == 200
+    response_body = response.json()
+
+    assert response_body["page"] == 0
+    assert response_body["page_size"] == 5
+    assert response_body["total"] == 5
+
+    response = client.get(response_body["links"]["next_page"]["href"])
+    assert response.status_code == 200
+
+    response_body = response.json()
+
+    assert response_body["page"] == 1
+    assert response_body["page_size"] == 5
+    assert response_body["total"] == 2
+    assert len(response_body["data"]) == 2
+
+    response = client.get(response_body["links"]["prev_page"]["href"])
+    assert response.status_code == 200
+
+    response_body = response.json()
+
+    assert response_body["page"] == 0
+    assert response_body["page_size"] == 5
+    assert response_body["total"] == 5
+    assert len(response_body["data"]) == 5
+
+    response = client.get(response_body["links"]["prev_page"]["href"])
+
+    assert response.status_code == 200
+
+    response_body = response.json()
+
+    assert response_body["page"] == 0
+    assert response_body["page_size"] == 5
+    assert response_body["total"] == 5
+    assert len(response_body["data"]) == 5
+
+
+
