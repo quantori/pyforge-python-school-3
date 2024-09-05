@@ -57,7 +57,8 @@ def test_substructure_search_single_atom(setup_teardown):
     assert {"identifier": "methane", "smiles": "C"} in result
     assert {"identifier": "ethanol", "smiles": "CCO"} in result
     assert {"identifier": "acetic_acid", "smiles": "CC(O)=O"} in result
-    assert {"identifier": "aspirin", "smiles": "CC(=O)Oc1ccccc1C(=O)O"} in result
+    assert {"identifier": "aspirin",
+            "smiles": "CC(=O)Oc1ccccc1C(=O)O"} in result
 
 
 def test_substructure_search_ring(setup_teardown):
@@ -66,7 +67,8 @@ def test_substructure_search_ring(setup_teardown):
     assert response.status_code == 200
     result = response.json()
     assert {"identifier": "benzene", "smiles": "c1ccccc1"} in result
-    assert {"identifier": "aspirin", "smiles": "CC(=O)Oc1ccccc1C(=O)O"} in result
+    assert {"identifier": "aspirin",
+            "smiles": "CC(=O)Oc1ccccc1C(=O)O"} in result
 
 
 def test_substructure_search_exact_match(setup_teardown):
@@ -75,7 +77,8 @@ def test_substructure_search_exact_match(setup_teardown):
     assert response.status_code == 200
     result = response.json()
     assert {"identifier": "acetic_acid", "smiles": "CC(O)=O"} in result
-    assert {"identifier": "aspirin", "smiles": "CC(=O)Oc1ccccc1C(=O)O"} in result
+    assert {"identifier": "aspirin",
+            "smiles": "CC(=O)Oc1ccccc1C(=O)O"} in result
 
 
 def test_substructure_search_multiple_matches(setup_teardown):
@@ -85,7 +88,8 @@ def test_substructure_search_multiple_matches(setup_teardown):
     result = response.json()
     assert {"identifier": "ethanol", "smiles": "CCO"} in result
     assert {"identifier": "acetic_acid", "smiles": "CC(O)=O"} in result
-    assert {"identifier": "aspirin", "smiles": "CC(=O)Oc1ccccc1C(=O)O"} in result
+    assert {"identifier": "aspirin",
+            "smiles": "CC(=O)Oc1ccccc1C(=O)O"} in result
 
 
 def test_substructure_search_no_matches(setup_teardown):
@@ -110,4 +114,5 @@ def test_substructure_search_large_molecule(setup_teardown):
                            json={"substructure": "CC(=O)Oc1ccccc1"})
     assert response.status_code == 200
     result = response.json()
-    assert {"identifier": "aspirin", "smiles": "CC(=O)Oc1ccccc1C(=O)O"} in result
+    assert {"identifier": "aspirin",
+            "smiles": "CC(=O)Oc1ccccc1C(=O)O"} in result
