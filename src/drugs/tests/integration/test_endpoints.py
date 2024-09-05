@@ -129,7 +129,7 @@ def test_find_all_pagination(page, page_size, expected, init_db):
         post = test_client.post("/drugs/", content=post.model_dump_json())
         assert post.status_code == 201
 
-    get = test_client.get(f"/drugs/?page={page}&page_size={page_size}")
+    get = test_client.get(f"/drugs/?page={page}&pageSize={page_size}")
     assert get.status_code == 200
     response = get.json()
 

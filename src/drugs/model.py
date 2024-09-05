@@ -19,16 +19,17 @@ class DrugMolecule(Base):
     Deleting a molecule should not be allowed if it is used in a drug, but deleting a drug should
     delete all the related drug_molecule entries.
     """
+
     __tablename__ = "drug_molecule"
 
-    drug_id: Mapped[int] = mapped_column(ForeignKey("drugs.drug_id", ondelete="CASCADE"), primary_key=True)
+    drug_id: Mapped[int] = mapped_column(
+        ForeignKey("drugs.drug_id", ondelete="CASCADE"), primary_key=True
+    )
     molecule_id: Mapped[int] = mapped_column(
         ForeignKey("molecules.molecule_id", ondelete="RESTRICT"), primary_key=True
     )
     quantity: Mapped[float] = mapped_column(Float, nullable=False)
     quantity_unit: Mapped[QuantityUnit] = mapped_column(nullable=False)
-    # Define relationships if needed
-    # Example: molecule = relationship("Molecule", back_populates="drug_molecules")
 
 
 class Drug(Base):
@@ -39,9 +40,4 @@ class Drug(Base):
     description: Mapped[Optional[str]] = mapped_column(nullable=True)
 
     # Define the relationship with DrugMolecule
-    molecules: Mapped[List[DrugMolecule]] = relationship(
-        "DrugMolecule"
-    )
-
-    # Define relationships if needed
-    # Example: drug_molecules = relationship("DrugMolecule", back_populates="drug")
+    molecules: Mapped[List[DrugMolecule]] = relationship("DrugMolecule")

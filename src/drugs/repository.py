@@ -1,6 +1,13 @@
 from functools import lru_cache
+
+from sqlalchemy import delete
+from sqlalchemy.orm import Session
+
 from src.drugs.model import Drug, DrugMolecule
 from src.repository import SQLAlchemyRepository
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 class DrugRepository(SQLAlchemyRepository):
@@ -35,10 +42,19 @@ class DrugRepository(SQLAlchemyRepository):
                 quantity_unit=molecule["quantity_unit"],
             )
             session.add(drug_molecule)
+        session.flush()
 
-        session.commit()
-        session.refresh(drug)
         return drug
+
+    def delete(self, session: Session, obj_id):
+        try:
+            stmt = delete(Drug).where(Drug.drug_id == obj_id)
+            session.execute(stmt)
+            session.flush()
+            return True
+        except Exception as e:
+            logger.error(e)
+            return False
 
 
 @lru_cache

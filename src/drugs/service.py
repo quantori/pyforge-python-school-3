@@ -17,6 +17,7 @@ class DrugService:
             try:
                 drug = self._drug_repository.save(drug.model_dump(), session)
                 ans = mapper.drug_to_response(drug)
+                session.commit()
             except IntegrityError as e:
                 """
                 Here most probably if this exception is raised,
@@ -48,8 +49,12 @@ class DrugService:
         """
         with self._session_factory() as session:
             # this line checks if the drug exists and raises an exception if it does not
-            self.find_by_id(drug_id)
-            return self._drug_repository.delete(session=session, obj_id=drug_id)
+            drug = self._drug_repository.find_by_id(obj_id=drug_id, session=session)
+            if not drug:
+                raise UnknownIdentifierException(drug_id)
+            ans = self._drug_repository.delete(session=session, obj_id=drug_id)
+            session.commit()
+            return ans
 
     def find_all(self, page: int = 0, page_size: int = 1000):
         with self._session_factory() as session:

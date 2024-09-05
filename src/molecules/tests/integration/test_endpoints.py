@@ -367,6 +367,3 @@ def test_find_all_pagination(init_db):
     assert response_body["page_size"] == 5
     assert response_body["total"] == 5
     assert len(response_body["data"]) == 5
-
-
-

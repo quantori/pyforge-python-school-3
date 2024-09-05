@@ -12,7 +12,7 @@ from src.molecules.service import MoleculeService
 import src.drugs.tests.sample_data as sample_data
 
 engine = create_engine(get_settings().TEST_DB_URL)
-session_factory = sessionmaker(bind=engine)
+session_factory = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 repository = DrugRepository()
 service = DrugService(repository, session_factory)
 
