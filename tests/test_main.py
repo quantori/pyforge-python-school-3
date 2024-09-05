@@ -14,7 +14,10 @@ test_engine = create_engine(DATABASE_URL)
 
 # Initialize the database
 Molecule.metadata.create_all(bind=test_engine)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
+TestingSessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=test_engine)
 
 # Create a TestClient instance
 client = TestClient(app)
@@ -84,7 +87,10 @@ def test_update_molecule(setup_teardown):
         json={"identifier": "acetic_acid", "smiles": "CC(O)=OO"}
     )
     assert response.status_code == 200
-    assert response.json() == {"identifier": "acetic_acid", "smiles": "CC(O)=OO"}
+    assert response.json() == {
+        "identifier": "acetic_acid",
+        "smiles": "CC(O)=OO"
+    }
 
     # Test updating a non-existing molecule
     response = client.put(
@@ -117,7 +123,10 @@ def test_search_substructure(setup_teardown):
     result = response.json()
     assert len(result) > 0
     assert {"identifier": "ethanol", "smiles": "CCO"} in result
-    assert {"identifier": "aspirin", "smiles": "CC(=O)Oc1ccccc1C(=O)O"} in result
+    assert {
+               "identifier": "aspirin",
+               "smiles": "CC(=O)Oc1ccccc1C(=O)O"
+           } in result
 
     # Test invalid substructure
     response = client.post("/search/", json={"substructure": "invalid"})
