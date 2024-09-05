@@ -16,6 +16,15 @@ Everything is synchronous.
 
 Molecule groups are not implemented yet.
 
+Pay attention to relationship types of the crow foot notation.
+
+For example, we have 1:n relationship between molecules and drug_molecules because a drug should have at least one molecule.
+
+There is 0:n relationship between molecules and drug_molecules because a molecule can be in 0 or more drugs and so on.
+
+Molecule groups will be added soon.
+
+
 ![img.png](img.png)
 
 
@@ -140,6 +149,27 @@ page, pageSize, and links will be empty.
         }
 
     }`
-    
+
+
+## Drugs
+
+Endpoints and DTO for drugs.
+
+### Endpoints `/drugs`
+
+    - POST: Create a new drug
+
+    - DELETE: /{drug_id} Delete a drug by id
+
+    - GET: /{drug_id} Get a drug by id
+
+    - GET: /?page={page}&pageSize={pageSize}
+
+        Get a collection of drugs with pagination
+
+### Drug DTOs
+
+
     
 
+    

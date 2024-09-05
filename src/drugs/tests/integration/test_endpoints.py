@@ -1,5 +1,5 @@
 import pytest
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from starlette.testclient import TestClient
 from src.config import get_settings
@@ -14,7 +14,7 @@ from src.database import Base
 
 engine = create_engine(get_settings().TEST_DB_URL)
 
-session_factory = sessionmaker(bind=engine)
+session_factory = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 drug_repository = DrugRepository()
 drug_service = DrugService(drug_repository, session_factory)
 
