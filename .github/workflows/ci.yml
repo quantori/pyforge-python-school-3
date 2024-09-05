@@ -38,6 +38,11 @@ jobs:
         pip install -r requirements.txt
         pip install flake8 pytest
 
+    - name: Create test database
+      run: |
+        psql postgresql://postgres:password@localhost:5432/postgres -c "CREATE DATABASE test_database;"
+  
+
     - name: Lint with flake8
       run: |
         flake8 .
