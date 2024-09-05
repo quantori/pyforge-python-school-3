@@ -1,6 +1,5 @@
 from src.drugs.model import Drug
 from src.drugs.schema import DrugResponse, DrugMoleculeResponse
-from src.molecules import mapper as molecule_mapper
 from src.schema import Link
 
 

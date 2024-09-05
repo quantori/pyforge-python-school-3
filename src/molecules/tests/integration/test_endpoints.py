@@ -299,7 +299,7 @@ def test_order_by_mass_mass_filters(order, min_mass, max_mass, init_db):
         response = client.post("/molecules/", json=alkane)
         assert response.status_code == 201
 
-    query_builder = f"/molecules/?orderBy=mass&"
+    query_builder = "/molecules/?orderBy=mass&"
     if order:
         query_builder += f"order={order}&"
     if min_mass:
