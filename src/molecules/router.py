@@ -1,6 +1,11 @@
 from typing import Annotated
 from fastapi import Depends, status, Body, Path, Query, UploadFile, APIRouter
-from src.molecules.schema import MoleculeRequest, MoleculeResponse, SearchParams, get_search_params
+from src.molecules.schema import (
+    MoleculeRequest,
+    MoleculeResponse,
+    SearchParams,
+    get_search_params,
+)
 from src.molecules.service import get_molecule_service
 from src.schema import (
     PaginationQueryParams,

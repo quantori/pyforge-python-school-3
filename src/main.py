@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 
+from src.middleware import register_middlewares
 from src.molecules.exception import DuplicateSmilesException
 from src.molecules.router import router as molecule_router
 from src.drugs.router import router as drug_router
@@ -17,6 +18,7 @@ app.include_router(molecule_router, prefix="/molecules")
 app.include_router(drug_router, prefix="/drugs")
 
 register_exception_handlers(app)
+register_middlewares(app)
 
 
 @app.get("/")

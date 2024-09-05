@@ -15,6 +15,7 @@ class Molecule(Base):
     not find an orm-ic way to do this(Creating Indexes and Constraints with Naming Conventions on Mixins section in
     ORM documentation looks suspicious), so I did this in the migration script as well.
     """
+
     molecule_id: Mapped[
         Annotated[int, mapped_column(primary_key=True, autoincrement=True)]
     ]

@@ -15,7 +15,12 @@ from src.molecules.repository import (
     MoleculeRepository,
     get_molecule_repository,
 )
-from src.molecules.schema import MoleculeRequest, MoleculeResponse, SearchParams
+from src.molecules.schema import (
+    MoleculeRequest,
+    MoleculeResponse,
+    SearchParams,
+    get_search_params,
+)
 from src.molecules.utils import (
     get_chem_molecule_from_smiles_or_raise_exception,
     is_valid_smiles,
@@ -34,15 +39,6 @@ class MoleculeService:
     def __init__(self, repository: MoleculeRepository, session_factory):
         self._repository = repository
         self._session_factory = session_factory
-
-    def exists_by_id(self, obj_id: int):
-        """
-        Check if a molecule with the given id exists.
-        :param obj_id: molecule id
-        :return: True if the molecule exists, False otherwise
-        """
-        with self._session_factory() as session:
-            return self._repository.find_by_id(obj_id, session) is not None
 
     def find_by_id(self, obj_id: int):
         """
@@ -104,7 +100,9 @@ class MoleculeService:
             ans = mapper.model_to_response(mol)
             return ans
 
-    def find_all(self, page: int = 0, page_size: int = 1000, search_params: SearchParams = None):
+    def find_all(
+        self, page: int = 0, page_size: int = 1000, search_params: SearchParams = None
+    ):
         """
         Find all molecules in the database. Can be paginated. Default page size is 1000.
 
@@ -114,7 +112,10 @@ class MoleculeService:
         :return: List of all molecules
         """
         with self._session_factory() as session:
-            molecules = self._repository.find_all(session, page, page_size, search_params)
+            molecules = self._repository.find_all(
+                session, page, page_size, search_params
+            )
+
             return [mapper.model_to_response(mol) for mol in molecules]
 
     def delete(self, obj_id: int) -> bool:
@@ -248,9 +249,12 @@ class MoleculeService:
             page = 0
             while True:
                 chunk = self._repository.find_all(
-                    session=session, page=page, page_size=page_size
+                    session=session,
+                    page=page,
+                    page_size=page_size,
+                    search_params=get_search_params(),
                 )
-                if len(chunk) == 0:
+                if not chunk:
                     break
                 for molecule in chunk:
                     yield molecule

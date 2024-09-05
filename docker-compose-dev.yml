@@ -20,9 +20,15 @@ services:
     ports:
       - 12345:5432
 
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+
     networks:
         - dev_network
 
 
 networks:
     dev_network:
+
+volumes:
+    postgres_data_dev:

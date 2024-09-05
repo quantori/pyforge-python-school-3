@@ -3,7 +3,6 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from src.database import Base
-from src.molecules.schema import SearchParams
 
 
 class SQLAlchemyRepository:

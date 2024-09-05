@@ -2,7 +2,7 @@ import os
 import random
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from src.config import get_settings
 from src.database import Base
@@ -14,6 +14,8 @@ from src.molecules.tests.testing_utils import (
     alkane_request_jsons,
     validate_response_dict_for_ith_alkane,
     validate_response_dict_for_alkane,
+    heptane_isomer_requests,
+    get_imaginary_alkane_requests,
 )
 
 # engine = create_engine("postgresql://user:password@localhost:5432/db_test")
@@ -35,8 +37,19 @@ def init_db():
     """
     Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
-    yield
-    Base.metadata.drop_all(engine)
+    #
+    with engine.connect() as conn:
+        conn.execute(text("CREATE EXTENSION IF NOT EXISTS pg_trgm;"))
+        conn.execute(
+            text(
+                "CREATE INDEX IF NOT EXISTS pg_trgm_on_name_idx ON molecules USING gist (name gist_trgm_ops);"
+            )
+        )
+        conn.commit()
+
+    # yield
+    #
+    # Base.metadata.drop_all(engine)
 
 
 def post_consecutive_alkanes(start_number, amount):
@@ -57,6 +70,16 @@ def post_consecutive_alkanes(start_number, amount):
         assert response.status_code == 201
         response_json = response.json()
         assert validate_response_dict_for_ith_alkane(response_json, i)
+        responses.append(response_json)
+    return responses
+
+
+def post_heptane_isomers():
+    responses = []
+    for isomer in heptane_isomer_requests.values():
+        response = client.post("/molecules/", json=isomer)
+        assert response.status_code == 201
+        response_json = response.json()
         responses.append(response_json)
     return responses
 
@@ -201,3 +224,105 @@ def test_decane_nonane_invalid_smiles(init_db, create_testing_files):
         assert response.status_code == 201
         response_json = response.json()
         assert response_json["number_of_molecules_added"] == 5
+
+
+@pytest.mark.parametrize("page, page_size", [(1, 5), (2, 5), (1, 9), (1, 20)])
+def test_find_all(page, page_size, init_db):
+    post_consecutive_alkanes(1, 10)
+    response = client.get(f"/molecules/?page={page}&page_size={page_size}")
+    assert response.status_code == 200
+    response_json = response.json()
+    assert len(response_json) <= page_size
+    for i in range(page_size * page, min(page_size * page, 10)):
+        assert validate_response_dict_for_ith_alkane(
+            response_json[i - page_size * (page - 1)], i + 1
+        )
+
+
+@pytest.mark.parametrize("_", [_ for _ in range(5)])
+# just repeat the test 5 times, test uses randomness
+def test_find_all_name_filter(_, init_db):
+    alkane_requests = get_imaginary_alkane_requests(5, shuffle=True)
+
+    for alkane in alkane_requests:
+        response = client.post("/molecules/", json=alkane)
+        assert response.status_code == 201
+
+    i = random.randint(0, 4)
+    response = client.get(f"/molecules/?name={alkane_requests[i]['name']}")
+    assert response.status_code == 200
+
+    assert response.json()[0]["name"] == alkane_requests[i]["name"]
+
+
+@pytest.mark.parametrize(
+    "min_mass, max_mass, expected_length", [(0, 10, 0), (20, 50, 2), (13, 100, 5)]
+)
+def test_find_all_name_mass_filter(min_mass, max_mass, expected_length, init_db):
+    alkane_requests = get_imaginary_alkane_requests(5, shuffle=True)
+
+    for alkane in alkane_requests:
+        response = client.post("/molecules/", json=alkane)
+        assert response.status_code == 201
+
+    response = client.get(
+        f"/molecules/?name={'gaozane'}&minMass={min_mass}&maxMass={max_mass}"
+    )
+
+    assert response.status_code == 200
+
+    body = response.json()
+    assert len(body) == expected_length
+
+    for r in body:
+        assert min_mass <= r["mass"] <= max_mass
+
+
+@pytest.mark.parametrize(
+    "order,min_mass,max_mass",
+    [
+        ("asc", None, 100),
+        ("desc", 60, None),
+        ("asc", 10, 50),
+        (None, 10, 50),
+        (None, None, 50),
+        ("desc", None, 69),
+        (None, 69, None),
+        ("asc", 10, 100),
+    ],
+)
+def test_order_by_mass_mass_filters(order, min_mass, max_mass, init_db):
+
+    alkane_requests = get_imaginary_alkane_requests(5, shuffle=True)
+
+    for alkane in alkane_requests:
+        response = client.post("/molecules/", json=alkane)
+        assert response.status_code == 201
+
+    query_builder = f"/molecules/?orderBy=mass&"
+    if order:
+        query_builder += f"order={order}&"
+    if min_mass:
+        query_builder += f"minMass={min_mass}&"
+    if max_mass:
+        query_builder += f"maxMass={max_mass}&"
+
+    response = client.get(query_builder)
+
+    min_mass = min_mass if min_mass else 0
+    max_mass = max_mass if max_mass else 10**5
+
+    assert response.status_code == 200
+
+    body = response.json()
+    print([(b["mass"], b["name"]) for b in body])
+    order = order if order else "asc"
+
+    if order == "asc":
+        for i in range(len(body) - 1):
+            assert body[i]["mass"] <= body[i + 1]["mass"]
+            assert min_mass <= body[i]["mass"] <= max_mass
+    elif order == "desc":
+        for i in range(len(body) - 1):
+            assert body[i]["mass"] >= body[i + 1]["mass"]
+            assert min_mass <= body[i]["mass"] <= max_mass

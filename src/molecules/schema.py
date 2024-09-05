@@ -103,7 +103,7 @@ class MoleculeCollectionResponse(BaseResponse):
         dict[str, Link],
         Field(
             description="nextPage and previousPage links. If current page is 0, "
-                        "previousPage will be empty"
+            "previousPage will be empty"
         ),
     ]
 
@@ -115,23 +115,29 @@ order_values = Literal["asc", "desc"]
 
 class SearchParams(BaseModel):
     name: Annotated[Optional[str], Field(description="Name of the molecule")]
-    min_mass: Annotated[Optional[float], Field(description="Minimum mass of the molecule", gt=0)]
-    max_mass: Annotated[Optional[float], Field(description="Maximum mass of the molecule", gt=0)]
+    min_mass: Annotated[
+        Optional[float], Field(description="Minimum mass of the molecule", ge=0)
+    ]
+    max_mass: Annotated[
+        Optional[float], Field(description="Maximum mass of the molecule", ge=0)
+    ]
     order_by: Annotated[Optional[order_by_values], Field(description="Order by mass")]
-    order: Annotated[Optional[order_values], Field(description="Order ascending or descending")]
+    order: Annotated[
+        Optional[order_values], Field(description="Order ascending or descending")
+    ]
 
 
 def get_search_params(
     name: Optional[str] = None,
-    min_mass: Optional[float] = None,
-    max_mass: Optional[float] = None,
-    order_by: Optional[order_by_values] = None,
+    minMass: Optional[float] = None,
+    maxMass: Optional[float] = None,
+    orderBy: Optional[order_by_values] = None,
     order: Optional[order_values] = None,
 ):
     return SearchParams(
         name=name,
-        min_mass=min_mass,
-        max_mass=max_mass,
-        order_by=order_by,
+        min_mass=minMass,
+        max_mass=maxMass,
+        order_by=orderBy,
         order=order,
     )

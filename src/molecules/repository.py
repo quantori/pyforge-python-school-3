@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from sqlalchemy import text, and_, select
+from sqlalchemy import text
 from sqlmodel import Session
 
 from src.molecules.model import Molecule
@@ -12,7 +12,13 @@ class MoleculeRepository(SQLAlchemyRepository):
     def __init__(self):
         super().__init__(Molecule)
 
-    def find_all(self, session: Session, page=0, page_size=1000, search_params: SearchParams = None):
+    def find_all(
+        self,
+        session: Session,
+        page=0,
+        page_size=1000,
+        search_params: SearchParams = None,
+    ):
         """
         If name is provided, then fuzzy search with trigrams is performed, results are ordered by similarity,
         notice that in that case, order_by and order are ignored. Filtering by mass is still possible.
@@ -25,44 +31,46 @@ class MoleculeRepository(SQLAlchemyRepository):
         //TODO: This append is not a good practice, but I will keep it for now, I saw there are nice patterns
         //TODO: in sql alchemy querying guide, I will try to implement them later.
         """
-        query_builder = []
+
+        min_mass_filter = (
+            f" AND mass >= {search_params.min_mass}" if search_params.min_mass else ""
+        )
+
+        max_mass_filter = (
+            f" AND mass <= {search_params.max_mass}" if search_params.max_mass else ""
+        )
+
+        name_filter = f" AND name % '{search_params.name}'"
 
         if search_params.name:
-            query_builder.append(
-                f"""
-                select similarity('{search_params.name}', m.name) as sml,
-                       m.molecule_id,
-                       m.name,
-                       m.smiles,
-                       m.mass,
-                       m.created_at,
-                       m.updated_at
-                from molecules m
-                where m.name % '{search_params.name}'
-                """
-            )
-            if search_params.min_mass:
-                query_builder.append(f" and {search_params.min_mass} <= m.mass")
-            if search_params.max_mass:
-                query_builder.append(f" and {search_params.max_mass} >= m.mass")
-
-            query_builder.append(" order by sml desc")
-
+            query = f"""
+                SELECT similarity('{search_params.name}',m.name) as sml, * FROM molecules m
+                WHERE 1=1
+                {min_mass_filter}
+                {max_mass_filter}
+                {name_filter}
+                ORDER BY sml DESC
+                LIMIT {page_size} OFFSET {page * page_size}
+            """
         else:
-            query_builder.append("select * from molecules where 1 = 1")
+            order_by = (
+                f"ORDER BY {search_params.order_by}" if search_params.order_by else ""
+            )
+            order = (
+                ""
+                if not search_params.order_by
+                else search_params.order if search_params.order else "ASC"
+            )
+            query = f"""
+                SELECT * FROM molecules
+                WHERE 1=1
+                {min_mass_filter}
+                {max_mass_filter}
+                {order_by} {order}
+                LIMIT {page_size} OFFSET {page * page_size}
+            """
 
-            if search_params.min_mass:
-                query_builder.append(f" and {search_params.min_mass} <= mass")
-            if search_params.max_mass:
-                query_builder.append(f" and {search_params.max_mass} >= mass")
-
-            if search_params.order_by:
-                query_builder.append(f" order by {search_params.order_by} {search_params.order}")
-
-        query_builder.append(f" limit {page_size} offset {page * page_size}")
-
-        query = ''.join(query_builder)
-        return session.execute(text(query))
+        return session.execute(text(query)).all()
 
 
 @lru_cache

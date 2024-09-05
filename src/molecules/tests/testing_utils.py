@@ -1,5 +1,6 @@
 import collections
 import logging
+import random
 
 logger = logging.getLogger(__name__)
 
@@ -19,14 +20,12 @@ alkanes = collections.OrderedDict(
     }
 )
 
-
 alkane_request_jsons = {
     i: (lambda: {"name": f"Alkane {i}", "smiles": "C" * i})() for i in range(1, 100)
 }
 
 
 def validate_response_dict_for_alkane(response_dict, alkane):
-
     if response_dict["name"] != alkane["name"]:
         logger.error(f"{response_dict['name']} != {alkane['name']}")
         return False
@@ -79,3 +78,35 @@ def validate_response_dict_for_alkane(response_dict, alkane):
 def validate_response_dict_for_ith_alkane(response_dict, i):
     alkane = alkane_request_jsons[i]
     return validate_response_dict_for_alkane(response_dict, alkane)
+
+
+heptane_isomer_requests = {
+    1: {"smiles": "CCCCCCC", "name": "n-Heptane"},
+    2: {"smiles": "CCCCC(C)", "name": "2-Methylhexane"},
+    3: {"smiles": "CCCC(C)CC", "name": "3-Methylhexane"},
+    4: {"smiles": "CCCC(CC)C", "name": "2,2-Dimethylpentane"},
+    5: {"smiles": "CCC(C)(C)CC", "name": "2,3-Dimethylpentane"},
+    6: {"smiles": "CC(C)C(C)CC", "name": "2,4-Dimethylpentane"},
+    7: {"smiles": "CCC(CC)CC", "name": "3,3-Dimethylpentane"},
+    8: {"smiles": "CC(CCC)CC", "name": "3-Ethylpentane"},
+    9: {"smiles": "CC(C)(C)C(C)(C)", "name": "2,2,3-Trimethylbutane"},
+}
+
+
+def get_imaginary_alkane_requests(n, shuffle=False):
+    """
+    generates a list of alkanes with imaginary names,
+    first one is named "gaozane" and the rest are named "gaozane32", "gaozane48", etc. number means the mass
+
+    Used for testing the search endpoints
+    :param n: number of alkanes to generate
+    :param shuffle: whether to shuffle the list randomly
+    :return: list of alkanes
+    """
+    imaginary_alkane_requests = [
+        {"smiles": "C" * i, "name": f"gaozane{i * 16}"} for i in range(2, n + 1)
+    ]
+    imaginary_alkane_requests.insert(0, {"smiles": "C", "name": "gaozane"})
+    if shuffle:
+        random.shuffle(imaginary_alkane_requests)
+    return imaginary_alkane_requests
