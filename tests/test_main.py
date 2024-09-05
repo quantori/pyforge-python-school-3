@@ -54,5 +54,3 @@ def test_get_server():
     response = client.get("/")
     assert response.status_code == 200
     assert "server_id" in response.json()
-
-
