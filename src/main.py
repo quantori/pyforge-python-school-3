@@ -177,7 +177,7 @@ def set_cache(key: str, value: dict, expiration: int = 3600):
 
 @app.get("/substructure_search", tags=["Molecules"], response_model=List[Dict])
 async def substructure_search(
-    substructure_name: str, 
+    substructure_name: str,
     limit: int = 100
 ) -> List[Dict]:
     logger.info(
@@ -187,7 +187,7 @@ async def substructure_search(
     if not substructure_name:
         logger.error("Substructure SMILES string cannot be empty")
         raise HTTPException(
-            status_code=400, 
+            status_code=400,
             detail="Substructure SMILES string cannot be empty"
         )
 
@@ -210,14 +210,14 @@ async def substructure_search(
     except Exception as e:
         logger.error(f"Task execution failed: {e}")
         raise HTTPException(
-            status_code=500, 
+            status_code=500,
             detail="Internal server error during task execution"
         )
 
     if not result:
-        logger.warning(f"No molecules found for substructure: {substructure_name}")
+        logger.warning(f"No molecules found for {substructure_name}")
         raise HTTPException(
-            status_code=404, 
+            status_code=404,
             detail="No molecules found matching the substructure"
         )
 
@@ -227,7 +227,10 @@ async def substructure_search(
 
 
 @app.post("/tasks/substructure_search")
-async def create_substructure_search_task(substructure_name: str, limit: int = 100):
+async def create_substructure_search_task(
+    substructure_name: str,
+    limit: int = 100
+):
     if not substructure_name:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -244,7 +247,7 @@ async def get_task_result(task_id: str):
         return {"task_id": task_id, "status": "Task is still processing"}
     elif task_result.state == 'SUCCESS':
         return {
-            "task_id": task_id, "status": "Task completed", 
+            "task_id": task_id, "status": "Task completed",
             "result": task_result.result
         }
     else:
