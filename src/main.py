@@ -176,12 +176,21 @@ def set_cache(key: str, value: dict, expiration: int = 3600):
 
 
 @app.get("/substructure_search", tags=["Molecules"], response_model=List[Dict])
-async def substructure_search(substructure_name: str, limit: int = 100) -> List[Dict]:
-    logger.info(f"Received substructure search request: substructure_name={substructure_name}, limit={limit}")
+async def substructure_search(
+    substructure_name: str, 
+    limit: int = 100
+) -> List[Dict]:
+    logger.info(
+        f"Substructure search request: substructure_name={substructure_name}, 
+        limit={limit}"
+    )
 
     if not substructure_name:
         logger.error("Substructure SMILES string cannot be empty")
-        raise HTTPException(status_code=400, detail="Substructure SMILES string cannot be empty")
+        raise HTTPException(
+            status_code=400, 
+            detail="Substructure SMILES string cannot be empty"
+        )
 
     substructure_mol = Chem.MolFromSmiles(substructure_name)
     if substructure_mol is None:
@@ -194,18 +203,24 @@ async def substructure_search(substructure_name: str, limit: int = 100) -> List[
         logger.info(f"Cache hit: Returning cached result for key: {key}")
         return {"source": "cache", "data": cached_result}
 
-    logger.info(f"Cache miss: Initiating substructure search for {substructure_name}")
+    logger.info(f"Initiating substructure search for {substructure_name}")
 
     task = substructure_search_task.delay(substructure_name, limit)
     try:
         result = task.get(timeout=300)
     except Exception as e:
         logger.error(f"Task execution failed: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error during task execution")
+        raise HTTPException(
+            status_code=500, 
+            detail="Internal server error during task execution"
+        )
 
     if not result:
         logger.warning(f"No molecules found for substructure: {substructure_name}")
-        raise HTTPException(status_code=404, detail="No molecules found matching the substructure")
+        raise HTTPException(
+            status_code=404, 
+            detail="No molecules found matching the substructure"
+        )
 
     set_cache(key, result, expiration=3600)
     logger.info(f"Cache set: Stored result for key {key}")
@@ -222,13 +237,17 @@ async def create_substructure_search_task(substructure_name: str, limit: int = 1
     task = substructure_search_task.delay(substructure_name, limit)
     return {"task_id": task.id, "status": task.status}
 
+
 @app.get("/tasks/{task_id}")
 async def get_task_result(task_id: str):
     task_result = AsyncResult(task_id, app=celery)
     if task_result.state == 'PENDING':
         return {"task_id": task_id, "status": "Task is still processing"}
     elif task_result.state == 'SUCCESS':
-        return {"task_id": task_id, "status": "Task completed", "result": task_result.result}
+        return {
+            "task_id": task_id, "status": "Task completed", 
+            "result": task_result.result
+        }
     else:
         return {"task_id": task_id, "status": task_result.state}
 
