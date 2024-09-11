@@ -181,8 +181,7 @@ async def substructure_search(
     limit: int = 100
 ) -> List[Dict]:
     logger.info(
-        f"Substructure search request: substructure_name={substructure_name}, 
-        limit={limit}"
+        f"Request: substructure_name={substructure_name}, limit={limit}"
     )
 
     if not substructure_name:
