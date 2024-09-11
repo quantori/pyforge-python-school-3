@@ -4,7 +4,7 @@ ENV PATH="/opt/conda/envs/myenv/bin:$PATH"
 
 WORKDIR /app
 
-COPY requirements.txt /app/
+COPY requirements.txt .
 
 RUN conda create --name myenv python=3.9 -y && \
     conda run -n myenv pip install --no-cache-dir -r requirements.txt && \

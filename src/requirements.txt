@@ -12,3 +12,4 @@ alembic
 python-dotenv
 pydantic-settings
 redis
+celery[redis]

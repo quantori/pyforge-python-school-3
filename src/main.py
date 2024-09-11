@@ -9,10 +9,13 @@ from molecules.dao import MoleculeDAO
 from typing import List, Dict
 from dotenv import load_dotenv
 import redis
+from tasks import substructure_search_task
+from celery.result import AsyncResult
+from celery_worker import celery
 
 logging.basicConfig(
     filename='app.log',
-    level=logging.INFO,
+    level=logging.DEBUG,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
@@ -22,7 +25,7 @@ app = FastAPI()
 load_dotenv(".env")
 
 DB_URL = getenv("DB_URL")
-REDIS_URL = getenv("REDIS_URL")
+REDIS_URL = getenv("REDIS_URL", "redis://redis_cache:6379/0")
 
 
 if DB_URL is None:
@@ -34,13 +37,18 @@ if REDIS_URL is None:
     raise ValueError("Redis URL is not in env")
 
 
-redis_client = redis.from_url(REDIS_URL)
+redis_client = redis.StrictRedis(
+    host="redis_cache",
+    port=6379,
+    db=0
+)
 
 try:
     redis_client.ping()
-    logger.info("Successfully connected to Redis")
-except redis.ConnectionError:
-    logger.error("Unable to connect to Redis")
+    logger.info("Redis is available")
+except redis.ConnectionError as e:
+    logger.error(f"Redis connection failed: {e}")
+    raise HTTPException(status_code=500, detail="Redis connection failed")
 
 
 @app.get("/")
@@ -168,69 +176,61 @@ def set_cache(key: str, value: dict, expiration: int = 3600):
 
 
 @app.get("/substructure_search", tags=["Molecules"], response_model=List[Dict])
-async def substructure_search(
-    substructure_name: str,
-    limit: int = 100
-) -> List[Dict]:
-    logger.info(
-        f"substructure_name={substructure_name}, limit={limit}"
-    )
+async def substructure_search(substructure_name: str, limit: int = 100) -> List[Dict]:
+    logger.info(f"Received substructure search request: substructure_name={substructure_name}, limit={limit}")
 
     if not substructure_name:
         logger.error("Substructure SMILES string cannot be empty")
-        raise HTTPException(
-            status_code=400,
-            detail="Substructure SMILES string cannot be empty"
-        )
+        raise HTTPException(status_code=400, detail="Substructure SMILES string cannot be empty")
 
     substructure_mol = Chem.MolFromSmiles(substructure_name)
     if substructure_mol is None:
         logger.error("Invalid SMILES string")
         raise HTTPException(status_code=400, detail="Invalid SMILES string")
 
+    key = f"substructure_search:{substructure_name}:{limit}"
+    cached_result = get_cached_result(key)
+    if cached_result:
+        logger.info(f"Cache hit: Returning cached result for key: {key}")
+        return {"source": "cache", "data": cached_result}
+
+    logger.info(f"Cache miss: Initiating substructure search for {substructure_name}")
+
+    task = substructure_search_task.delay(substructure_name, limit)
     try:
-        key = f"substructure_search:{substructure_name}:{limit}"
-        cached_result = get_cached_result(key)
-        if cached_result:
-            logger.info(
-                f"Returning cached result: {substructure_name}"
-            )
-            return {"source": "cache", "data": cached_result}
-
-        logger.info(
-            f"Searching for molecules with substructure: {substructure_name}"
-        )
-        iterator = MoleculeDAO.find_by_substructure_iterator(
-            substructure_name,
-            limit
-        )
-        matches = [match async for match in iterator]
-
-        if not matches:
-            logger.warning(
-                f"No molecules found for substructure: {substructure_name}"
-            )
-            raise HTTPException(
-                status_code=404,
-                detail="No molecules found matching the substructure"
-            )
-
-        logger.info(
-            f"Setting cache for key: {key} with {len(matches)} matches"
-        )
-        set_cache(key, matches, expiration=300)
-        logger.info("Substructure search completed successfully")
-        return matches
-
-    except HTTPException as e:
-        logger.warning(f"HTTP error during substructure search: {e.detail}")
-        raise e
-    except ValueError as e:
-        logger.warning(f"Bad request for substructure search: {e}")
-        raise HTTPException(status_code=400, detail="Bad request")
+        result = task.get(timeout=300)
     except Exception as e:
-        logger.error(f"An error occurred: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Internal Server Error")
+        logger.error(f"Task execution failed: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error during task execution")
+
+    if not result:
+        logger.warning(f"No molecules found for substructure: {substructure_name}")
+        raise HTTPException(status_code=404, detail="No molecules found matching the substructure")
+
+    set_cache(key, result, expiration=3600)
+    logger.info(f"Cache set: Stored result for key {key}")
+    return {"source": "database", "data": result}
+
+
+@app.post("/tasks/substructure_search")
+async def create_substructure_search_task(substructure_name: str, limit: int = 100):
+    if not substructure_name:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Substructure SMILES string cannot be empty"
+        )
+    task = substructure_search_task.delay(substructure_name, limit)
+    return {"task_id": task.id, "status": task.status}
+
+@app.get("/tasks/{task_id}")
+async def get_task_result(task_id: str):
+    task_result = AsyncResult(task_id, app=celery)
+    if task_result.state == 'PENDING':
+        return {"task_id": task_id, "status": "Task is still processing"}
+    elif task_result.state == 'SUCCESS':
+        return {"task_id": task_id, "status": "Task completed", "result": task_result.result}
+    else:
+        return {"task_id": task_id, "status": task_result.state}
 
 
 @app.post(
@@ -281,7 +281,6 @@ async def upload_file(file: UploadFile = File(...)):
             if not mol:
                 logger.warning(f"Invalid SMILES: {name}, skipping.")
                 continue
-
             await MoleculeDAO.add_mol(id=mol_id, name=name)
             added_count += 1
 
@@ -306,4 +305,4 @@ async def upload_file(file: UploadFile = File(...)):
 if __name__ == "__main__":
     port = int(getenv("PORT", 8000))
     logger.info(f"Starting server on port {port}")
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    uvicorn.run(app, host="0.0.0.0", port=port, debug=True)

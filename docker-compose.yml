@@ -20,7 +20,7 @@ services:
       - "8011:8000"
     depends_on:
       - db
-      - redis
+      - redis_cache
 
 
   web2:
@@ -44,6 +44,7 @@ services:
       - "8012:8000"
     depends_on:
       - db
+      - redis_cache
 
   nginx:
     image: nginx:latest
@@ -91,9 +92,8 @@ services:
                -c default_statistics_target=100
 
 
-  redis:
+  redis_cache:
     image: redis:alpine
-    container_name: redis_cache
     networks:
       - mynetwork
     ports:
@@ -106,6 +106,21 @@ services:
         reservations:
           cpus: "0.10"
           memory: 128M
+
+
+  celery_worker:
+    build:
+      context: ./src
+      dockerfile: Dockerfile
+    command: celery -A celery_worker worker --loglevel=info
+    depends_on:
+      - redis_cache
+    volumes:
+      - ./src:/app
+    networks:
+      - mynetwork
+    environment:
+      REDIS_URL: redis://redis_cache:6379/0
 
 
 networks:
