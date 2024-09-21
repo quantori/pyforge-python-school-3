@@ -6,12 +6,22 @@ services:
     volumes:
       - ./src:/app
       - ./tests:/app/tests
+      - ./alembic.ini:/app/alembic.ini
+      - ./alembic:/app/alembic
+    env_file:
+      - .env
     environment:
       SERVER_ID: SERVER-1
+      DB_URL: ${DB_URL}
+      REDIS_URL: ${REDIS_URL}
     networks:
       - mynetwork
     ports:
       - "8011:8000"
+    depends_on:
+      - db
+      - redis_cache
+
 
   web2:
     build:
@@ -20,12 +30,21 @@ services:
     volumes:
       - ./src:/app
       - ./tests:/app/tests
+      - ./alembic.ini:/app/alembic.ini
+      - ./alembic:/app/alembic
+    env_file:
+      - .env
     environment:
       SERVER_ID: SERVER-2
+      DB_URL: ${DB_URL}
+      REDIS_URL: ${REDIS_URL}
     networks:
       - mynetwork
     ports:
       - "8012:8000"
+    depends_on:
+      - db
+      - redis_cache
 
   nginx:
     image: nginx:latest
@@ -39,6 +58,75 @@ services:
     networks:
       - mynetwork
 
+  db:
+    image: postgres:latest
+    container_name: postgres_molecule_app
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    networks:
+      - mynetwork
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data/pgdata
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+    command: >
+      postgres -c max_connections=1000
+               -c shared_buffers=256MB
+               -c effective_cache_size=768MB
+               -c maintenance_work_mem=64MB
+               -c checkpoint_completion_target=0.7
+               -c wal_buffers=16MB
+               -c default_statistics_target=100
+
+
+  redis_cache:
+    image: redis:alpine
+    networks:
+      - mynetwork
+    ports:
+      - "6379:6379"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 256M
+        reservations:
+          cpus: "0.10"
+          memory: 128M
+
+
+  celery_worker:
+    build:
+      context: ./src
+      dockerfile: Dockerfile
+    command: celery -A celery_worker worker --loglevel=info
+    depends_on:
+      - redis_cache
+    volumes:
+      - ./src:/app
+    networks:
+      - mynetwork
+    environment:
+      REDIS_URL: redis://redis_cache:6379/0
+
+
 networks:
   mynetwork:
     driver: bridge
+
+volumes:
+  pgdata:
+    driver: local
