@@ -84,16 +84,13 @@ class Molecule(BaseModel):
 # 1. Add molecule (smiles) and its identifier
 @app.post("/add")
 def add_molecule(molecule: Molecule):
-    if molecule not in molecules:
-        molecules[molecule.id] = {
-            "name": molecule.name,
-            "smiles": molecule.smiles,
-            "weight": molecule.weight,
-            "formula": molecule.formula
-        }
-        return {"message": "Molecule added successfully."}
-    else:
-        raise HTTPException(status_code=404, detail="Molecule already exists.")
+    molecules[molecule.id] = {
+        "name": molecule.name,
+        "smiles": molecule.smiles,
+        "weight": molecule.weight,
+        "formula": molecule.formula
+    }
+    return {"message": "Molecule added successfully."}
 
 # 2. Get molecule by identifier
 @app.get("/molecule/{molecule_id}")
@@ -186,4 +183,4 @@ def upload_image(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f'Error: {str(e)}')
 
-# Start the server using: uvicorn main:app --reload
+# Start the server using: uvicorn main:app --reload --port 8010
