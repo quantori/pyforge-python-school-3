@@ -4,12 +4,17 @@ from os import getenv
 from typing import List
 
 from fastapi import FastAPI, Depends, HTTPException
+import redis.asyncio as redis
+from contextlib import asynccontextmanager
+from celery.result import AsyncResult
+from .tasks import substructure_search_task
+from .celery_worker import celery_app
 from fastapi.responses import JSONResponse
-from rdkit import Chem
 from sqlalchemy.orm import Session
 
-from database.database import init_db, SessionLocal
+from database.database import SessionLocal, init_db
 from . import crud, schemas
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO,
@@ -27,17 +32,61 @@ class PrettyJSONResponse(JSONResponse):
 
 app = FastAPI(
     title="Molecule Management API",
-    version="2.1.0",
+    version="2.2.0",
     description="An API for managing molecules "
                 "and performing substructure searches "
                 "using RDKit and PostgreSQL.",
     default_response_class=PrettyJSONResponse
-
 )
 
-# Initialize the database
 init_db()
 
+not_found = "Molecule not found."
+
+# Initialize Redis client
+redis_client: redis.Redis
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global redis_client
+    # Startup event: Initialize Redis client
+    redis_client = redis.Redis(
+        host='redis',
+        port=6379,
+        db=0,
+        decode_responses=True
+    )
+    try:
+        # Yield control back to FastAPI to handle requests
+        yield
+    finally:
+        # Shutdown event: Close Redis connection
+        if redis_client:
+            await redis_client.close()
+
+
+# Function to get cached result
+async def get_cached_result(key: str) -> List[dict]:
+    try:
+        result = await redis_client.get(key)
+        if result:
+            # Decode JSON string back to list of dictionaries
+            return json.loads(result)
+        return []
+    except Exception as e:
+        logger.error(f"Error getting cache: {e}")
+        return []
+
+
+# Function to set cache
+async def set_cache(key: str, molecules: List[dict], expiration: int = 60):
+    try:
+        # Convert list of dictionaries to JSON string
+        json_value = json.dumps(molecules)
+        await redis_client.setex(key, expiration, json_value)
+    except Exception as e:
+        logger.error(f"Error setting cache: {e}")
 
 # Dependency to get the database session
 def get_db():
@@ -52,9 +101,6 @@ def get_db():
         yield db
     finally:
         db.close()
-
-
-not_found = "Molecule not found."
 
 
 @app.get("/", summary="Get Server ID")
@@ -224,69 +270,66 @@ async def list_molecules(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-def substructure_search(mols, mol):
+@app.post("/search/", summary="Substructure Search")
+async def start_substructure_search(query: schemas.SubstructureQuery, db: Session = Depends(get_db)):
     """
-    :param mols: list of molecules
-    :param mol: substructure
-    :return: matching molecules
-    """
-    # List to store molecules that contain the substructure (mol)
-    molecule = Chem.MolFromSmiles(mol)
-    logger.info(f"Searching for substructure matches: {mol}")
-    matching_molecules = [
-        smiles for smiles in mols if
-        Chem.MolFromSmiles(smiles).HasSubstructMatch(molecule)
-    ]
-    return matching_molecules
-
-
-@app.post("/search/",
-          summary="Substructure Search",
-          response_model=List[schemas.MoleculeResponse])
-async def search_substructure(
-        query: schemas.SubstructureQuery,
-        db: Session = Depends(get_db)):
-    """
-    Search for molecules containing a given substructure.
+    Start a background substructure search task.
 
     Args:
-        query (schemas.SubstructureQuery): A Pydantic model
-        containing the substructure's SMILES string.
-        db (Session): The database session.
+        query (schemas.SubstructureQuery): Substructure SMILES string.
+        db (Session): Database session.
 
     Returns:
-        list: A list of dictionaries,
-        each containing a molecule's identifier
-        and SMILES string that matches the substructure.
-
-    Raises:
-        HTTPException: If the substructure SMILES
-        string is invalid or another error occurs.
+        dict: Task ID and task status.
     """
-    logger.info(f"Searching for substructure: {query.substructure}")
     try:
-        # Convert the substructure SMILES string to an RDKit molecule
-        sub_mol = Chem.MolFromSmiles(query.substructure)
-        if sub_mol is None:
-            raise HTTPException(
-                status_code=400,
-                detail="Invalid substructure SMILES string."
-            )
+        logger.info(f"Starting substructure search for: {query.substructure}")
 
-        # Get all molecules from the database
-        all_molecules = crud.list_molecules(db, limit=500)
+        # Check if the result is already cached
+        cached_result = await get_cached_result(query.substructure)
+        if cached_result:
+            logger.info(f"Returning cached result for substructure: {query.substructure}")
+            return {"task_id": None, "status": "Completed (from cache)", "result": cached_result}
 
-        # Perform the substructure search
-        matching_molecules = [
-            mol for mol in all_molecules
-            if Chem.MolFromSmiles(mol.smiles).HasSubstructMatch(sub_mol)
-        ]
+        # Convert the iterator to a list of SMILES strings
+        all_molecules = [molecule.smiles for molecule in crud.list_molecules(db, limit=500)]
 
-        return matching_molecules
+        # Start the background task
+        task = substructure_search_task.delay(query.substructure, all_molecules)
+        return {"task_id": task.id, "status": task.status}
 
     except Exception as e:
-        logger.error(f"Error searching for substructure: {e}")
-        raise HTTPException(
-            status_code=400,
-            detail=str(e)
-        )
+        logger.error(f"Error starting substructure search: {e}")
+        raise HTTPException(status_code=500, detail="Failed to start substructure search.")
+
+
+@app.get("/search/search-result/{task_id}", summary="Get Substructure Search Result")
+async def get_task_result(task_id: str):
+    """
+    Retrieve the result of a substructure search task.
+
+    Args:
+        task_id (str): The ID of the background task.
+
+    Returns:
+        dict: Task status and result if completed.
+    """
+    task_result = AsyncResult(task_id, app=celery_app)
+
+    if task_result.state == 'PENDING':
+        return {"task_id": task_id, "status": "Task is still processing"}
+
+    elif task_result.state == 'SUCCESS':
+        result = task_result.result
+
+        # Cache the result if it's not already cached
+        cache_key = result["substructure"]
+        cached_result = await get_cached_result(cache_key)
+        if not cached_result:
+            await set_cache(cache_key, result)
+            logger.info(f"Cached result for substructure: {cache_key}")
+
+        return {"task_id": task_id, "status": "Task completed", "result": result}
+
+    else:
+        return {"task_id": task_id, "status": task_result.state}
