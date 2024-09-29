@@ -29,7 +29,11 @@ jobs:
         run: echo "PYTHONPATH=$PYTHONPATH:$(pwd)" >> $GITHUB_ENV
 
       - name: Install dependencies
-        run: conda run -n my-rdkit-env conda install -c conda-forge fastapi uvicorn -y # Install FastAPI and Uvicorn into my-rdkit-env
+        run: conda run -n my-rdkit-env conda install -c conda-forge fastapi uvicorn flake8 -y # Install FastAPI and Uvicorn into my-rdkit-env
 
       - name: Run tests
         run: conda run -n my-rdkit-env pytest tests/
+
+      - name: Run flake8
+        run: conda run -n my-rdkit-env flake8 src/ tests/
+        # test
