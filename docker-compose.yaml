@@ -12,7 +12,6 @@ services:
       SERVER_ID: "SERVER-1"
     ports:
       - "8020:8010" # host machine port:container port
-#    command: conda run --no-capture-output -n my-rdkit-env uvicorn src.main:app --host 0.0.0.0 --port 8010 --reload # раньше в докер композ у меня была прописана эта команда, но она была также прописана и в докерфайле. На самом деле её достаточно прописать либо там, либо здесь.
 
   web2:
     build: .
@@ -22,7 +21,6 @@ services:
       SERVER_ID: "SERVER-2"
     ports:
       - "8021:8010" # host machine port:container port
-#    command: conda run --no-capture-output -n my-rdkit-env uvicorn src.main:app --host 0.0.0.0 --port 8010 --reload # раньше в докер композ у меня была прописана эта команда, но она была также прописана и в докерфайле. На самом деле её достаточно прописать либо там, либо здесь.
 
   nginx:
     image: nginx:latest

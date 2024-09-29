@@ -1,7 +1,8 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException
-from pydantic import BaseModel
 from rdkit import Chem
 import os
+
+from src.models import Molecule, MoleculeUpdate
 
 app = FastAPI()
 
@@ -71,16 +72,6 @@ molecules = {
 UPLOAD_DIR = "./uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-
-class Molecule(BaseModel):
-    id: int
-    name: str
-    smiles: str
-    weight: float
-    formula: str
-
-
-
 # 1. Add molecule (smiles) and its identifier
 @app.post("/add")
 def add_molecule(molecule: Molecule):
@@ -102,7 +93,7 @@ def get_molecule_by_id(molecule_id: int):
 
 # 3. Updating a molecule by identifier
 @app.put("/update/molecule/{molecule_id}")
-def update_molecule(molecule_id, int, molecule: Molecule):
+def update_molecule(molecule_id: int, molecule: MoleculeUpdate):
     if molecule_id in molecules:
         molecules[molecule_id] = {
             "name": molecule.name,
