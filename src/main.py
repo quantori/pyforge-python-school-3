@@ -66,7 +66,7 @@ molecules = {
         "smiles": "[Na+].[Cl-]",
         "weight": 58.44247,
         "formula": "ClNa"
-    }
+    },
 }
 
 UPLOAD_DIR = "./uploads"
