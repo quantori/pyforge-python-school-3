@@ -1,0 +1,16 @@
+2024-09-30 15:44:54.740 +04 [118838] LOG:  starting PostgreSQL 12.17 on x86_64-conda-linux-gnu, compiled by x86_64-conda-linux-gnu-cc (Anaconda gcc) 11.2.0, 64-bit
+2024-09-30 15:44:54.740 +04 [118838] LOG:  listening on IPv4 address "127.0.0.1", port 5432
+2024-09-30 15:44:54.747 +04 [118838] LOG:  listening on Unix socket "/tmp/.s.PGSQL.5432"
+2024-09-30 15:44:54.758 +04 [118840] LOG:  database system was shut down at 2024-09-30 15:44:33 +04
+2024-09-30 15:44:54.761 +04 [118838] LOG:  database system is ready to accept connections
+2024-09-30 15:46:53.988 +04 [119008] ERROR:  syntax error at or near "CREATE" at character 24
+2024-09-30 15:46:53.988 +04 [119008] STATEMENT:  CREATE DATABASE chemdb
+	CREATE DATABASE chemdb;
+2024-09-30 17:23:11.722 +04 [144789] FATAL:  role "postgres" does not exist
+2024-09-30 17:23:26.525 +04 [144932] FATAL:  role "postgres" does not exist
+2024-09-30 17:23:38.364 +04 [145007] FATAL:  role "postgres" does not exist
+2024-09-30 17:23:47.278 +04 [145045] FATAL:  role "postgres" does not exist
+2024-09-30 17:27:56.176 +04 [147119] FATAL:  role "mslx22" does not exist
+2024-09-30 17:28:13.176 +04 [147190] FATAL:  role "postgres" does not exist
+2024-10-02 04:55:22.713 +04 [118845] LOG:  stats_timestamp 2024-10-02 04:55:22.91379+04 is later than collector's time 2024-10-02 04:55:22.713103+04 for database 12673
+2024-10-02 08:56:55.702 +04 [118845] LOG:  stats_timestamp 2024-10-02 08:56:55.735755+04 is later than collector's time 2024-10-02 08:56:55.702488+04 for database 0
