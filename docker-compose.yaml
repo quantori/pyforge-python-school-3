@@ -41,6 +41,8 @@ services:
     image: "redis:alpine"
     ports:
       - "6379:6379"
+# redis-cli -h localhost -p 6379
+# KEYS *
 
   nginx:
     image: nginx:latest
@@ -54,3 +56,4 @@ services:
 
 volumes:
   pg-data:
+  redis-data:
