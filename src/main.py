@@ -25,8 +25,7 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-# TODO:
-####### Connect to Redis
+# Redis Start
 redis_client = redis.Redis(host='redis', port=6379, db=0)
 
 def get_cached_result(key: str):
@@ -35,24 +34,9 @@ def get_cached_result(key: str):
         return json.loads(result)
     return None
 
-def set_cache(key: str, value: dict, expiration: int = 60):
+def set_cache(key: str, value: dict, expiration: int = 3600): # 3600 = 1 час
     redis_client.setex(key, expiration, json.dumps(value))
-
-@app.get("/search/")
-async def search(query: str):
-    cache_key = f"search:{query}"
-    cached_result = get_cached_result(cache_key)
-
-    if cached_result:
-        return {"source": "cache", "data": cached_result}
-
-    # Simulate a search operation (e.g., querying a database)
-    search_result = {"query": query, "result": "Some data"}  # Replace with actual search logic
-
-    set_cache(cache_key, search_result)
-
-    return {"source": "database", "data": search_result}
-#######
+# Redis End
 
 UPLOAD_DIR = "./uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -74,6 +58,81 @@ def add_molecule(molecule: schemas.MoleculeCreate, db: Session = Depends(get_db)
 
 @app.get("/molecule/{molecule_id}", response_model=schemas.Molecule)
 def get_molecule_by_id(molecule_id: int, db: Session = Depends(get_db)):
+    cache_key = f'molecule:{molecule_id}'
+
+    # 1. If the search result is found in the cache, return it immediately:
+    try:
+        cached_result = get_cached_result(cache_key)
+        if cached_result:
+            logging.info(f'Molecule with {molecule_id} found in cache.')
+            return cached_result
+    except redis.RedisError as e:
+        logging.warning(f'Redis is unavaliable: {e}')
+
+    # 2.1. If the search result is not cached, perform the search, cache the result, and then return it:
+    db_molecule = crud.get_molecule_by_id(db, molecule_id=molecule_id)
+    if db_molecule is None:
+        logging.info(f'Molecule with ID {molecule_id} not found.')
+        raise HTTPException(status_code=404, detail="Molecule not found.")
+
+    molecule_data = {
+        'id': db_molecule.id,
+        'name': db_molecule.name,
+        'smiles': db_molecule.smiles,
+        'weight': db_molecule.weight,
+        'formula': db_molecule.formula,
+    }
+
+    # 2.2. Cache the result and then return it:
+    try:
+        set_cache(cache_key, molecule_data, expiration=60)
+        logging.info(f'Molecule {db_molecule.name} with {db_molecule.id} added to cache.')
+    except redis.RedisError as e:
+        logging.warning(f'Could not cache data for molecule ID {molecule_id}: {e}')
+
+    return db_molecule
+
+
+@app.get("/molecules_list", response_model=list[schemas.Molecule])
+def get_all_molecules(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    cache_key = f'molecules_list:skip={skip}:limit={limit}'
+
+    # 1. If the search result is found in the cache, return it immediately:
+    try:
+        cached_result = get_cached_result(cache_key)
+        if cached_result:
+            logging.info(f'Molecule list with skip={skip} and limit={limit} found in cache.')
+            return cached_result
+    except redis.RedisError as e:
+        logging.warning(f'Redis is unavaliable: {e}')
+
+    # 2.1. If the search result is not cached, perform the search, cache the result, and then return it:
+    db_molecules = crud.get_all_molecules(db, skip=skip, limit=limit)
+    if not db_molecules:
+        logging.warning('No molecules found.')
+        raise HTTPException(status_code=404, detail="Molecules not found.")
+
+    molecules_data = [
+        {
+            'id': molecule.id,
+            'name': molecule.name,
+            'smiles': molecule.smiles,
+            'weight': molecule.weight,
+            'formula': molecule.formula
+        } for molecule in db_molecules
+    ]
+
+    # 2.2. Cache the result and then return it:
+    try:
+        set_cache(cache_key, molecules_data, expiration=60)
+        logging.info(f'List of molecules successfully added to cache with skip={skip} and limit={limit}.')
+    except redis.RedisError as e:
+        logging.warning(f'Could not cache molecule list for skip={skip} and limit={limit}: {e}')
+
+    return db_molecules
+
+@app.get("/molecule_no_cache/{molecule_id}", response_model=schemas.Molecule)
+def get_molecule_by_id_no_cache(molecule_id: int, db: Session = Depends(get_db)):
     logging.info('Getting molecule with ID: molecule_id.')
     db_molecule = crud.get_molecule_by_id(db, molecule_id=molecule_id)
     if db_molecule is None:
@@ -83,8 +142,8 @@ def get_molecule_by_id(molecule_id: int, db: Session = Depends(get_db)):
     return db_molecule
 
 
-@app.get("/molecules_list", response_model=list[schemas.Molecule])
-def get_all_molecules(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+@app.get("/molecules_list_no_cache", response_model=list[schemas.Molecule])
+def get_all_molecules_no_cache(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     logging.info(f'Getting molecules with skip={skip} and limit={limit}.')
     db_molecules = crud.get_all_molecules(db, skip=skip, limit=limit)
     if db_molecules is None:
@@ -92,7 +151,6 @@ def get_all_molecules(skip: int = 0, limit: int = 100, db: Session = Depends(get
         raise HTTPException(status_code=404, detail="Molecules not found.")
     logging.info(f'Got {len(db_molecules)} molecules.')
     return db_molecules
-
 
 @app.put("/update/molecule/{molecule_id}", response_model=schemas.MoleculeResponse)
 def update_molecule(molecule_id: int, molecule: schemas.MoleculeUpdate,
@@ -117,7 +175,7 @@ def update_molecule(molecule_id: int, molecule: schemas.MoleculeUpdate,
 
 @app.delete("/delete/molecule/{molecule_id}")
 def delete_molecule(molecule_id: int, db: Session = Depends(get_db)):
-    logging.ingo(f'Deleting molecule with ID: {molecule_id}')
+    logging.info(f'Deleting molecule with ID: {molecule_id}')
     db_molecule = crud.get_molecule_by_id(db, molecule_id=molecule_id)
     if db_molecule is None:
         logging.warning(f'Molecule with ID {molecule_id} not found.')
