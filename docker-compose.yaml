@@ -54,6 +54,16 @@ services:
       - web1
       - web2
 
+  tests:
+    build: . # на основе Dockerfile из текущего каталога (.)
+    command: pytest
+    volumes:
+      - .:/cont_prj_folder  # Монтируем весь каталог проекта, чтобы видеть все файлы проекта и использовать их
+    environment:
+      DATABASE_URL: "postgresql+psycopg2://chemuser:password@postgres:5432/chemdb"
+    depends_on:
+      - postgres
+
 volumes:
   pg-data:
   redis-data:

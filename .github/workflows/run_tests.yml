@@ -21,11 +21,6 @@ jobs:
           POSTGRES_USER: chemuser
           POSTGRES_PASSWORD: password
           POSTGRES_DB: chemdb
-        options: >-
-          --health-cmd="pg_isready -U chemuser"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
 
     steps:
     - name: Checkout code

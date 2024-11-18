@@ -17,34 +17,34 @@ from src.models import Molecule
 TEST_DATABASE_URL="postgresql+psycopg2://chemuser:password@postgres:5432/chemdb"
 print(TEST_DATABASE_URL)
 
-engine = create_engine(TEST_DATABASE_URL)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+engine = create_engine(TEST_DATABASE_URL) # объект подключения к базе данных
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine) # создаёт фабрику сессий для взаимодействия с базой
 
 # Создаем фикстуру для базы данных
-@pytest.fixture(scope="function")
+@pytest.fixture
 def test_db():
-    connection = engine.connect()
-    transaction = connection.begin()
-    session = TestingSessionLocal(bind=connection)
+    connection = engine.connect() # создаёт прямое соединение с базой
+    transaction = connection.begin() # открывает транзакцию, чтобы откатить все изменения после тестов
+    session = TestingSessionLocal(bind=connection) #  создаёт объект сессии для взаимодействия с базой
 
+    # Очистка ресурсов:
     try:
-        yield session
+        yield session # возвращает сессию тесту
     finally:
         transaction.rollback()
         connection.close()
 
 
-# Заменяем зависимость get_db на фикстуру test_db
-@pytest.fixture(scope="function")
+@pytest.fixture
 def client(test_db):
-    def override_get_db():
+    def override_get_db(): # заменяет зависимость get_db на фикстуру test_db для тестирования
         try:
             yield test_db
         finally:
             test_db.close()
 
-    app.dependency_overrides[get_db] = override_get_db
-    return TestClient(app)
+    app.dependency_overrides[get_db] = override_get_db # переопределяет зависимости в приложении
+    return TestClient(app) # клиент для отправки HTTP-запросов
 
 
 def test_get_all_molecules(client, test_db):
