@@ -14,8 +14,14 @@ from src.models import Molecule
 
 # Подключение к тестовой базе данных
 # TEST_DATABASE_URL = os.getenv("DATABASE_URL")
-TEST_DATABASE_URL="postgresql+psycopg2://chemuser:password@postgres:5432/chemdb"
-print(TEST_DATABASE_URL)
+# TEST_DATABASE_URL="postgresql+psycopg2://chemuser:password@localhost:5432/chemdb"
+# TEST_DATABASE_URL="postgresql+psycopg2://chemuser:password@localhost:5432/chemdb"
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # Путь к корню проекта. С ним формируем
+load_dotenv(dotenv_path=os.path.join(BASE_DIR, ".env"))
+
+TEST_DATABASE_URL = os.getenv("DATABASE_URL")
+print(f'here in database.py: {TEST_DATABASE_URL}')
 
 engine = create_engine(TEST_DATABASE_URL) # объект подключения к базе данных
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine) # создаёт фабрику сессий для взаимодействия с базой
