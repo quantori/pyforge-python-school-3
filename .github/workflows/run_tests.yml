@@ -12,24 +12,24 @@ jobs:
   run-tests:
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:13
-        ports:
-          - 5432:5432
-        env:
-          POSTGRES_USER: chemuser
-          POSTGRES_PASSWORD: password
-          POSTGRES_DB: chemdb
+#    services:
+#      postgres:
+#        image: postgres:13
+#        ports:
+#          - 5432:5432
+#        env:
+#          POSTGRES_USER: chemuser
+#          POSTGRES_PASSWORD: password
+#          POSTGRES_DB: chemdb
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Set up Python 3.12
-      uses: actions/setup-python@v4
-      with:
-        python-version: 3.12
+#    - name: Set up Python 3.12
+#      uses: actions/setup-python@v4
+#      with:
+#        python-version: 3.12
 
 #    - name: Install system dependencies
 #      run: |
