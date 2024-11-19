@@ -3,7 +3,6 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from fastapi.testclient import TestClient
-from dotenv import load_dotenv
 
 from src.main import app
 from src.database import Base, get_db

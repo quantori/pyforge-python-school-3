@@ -1,10 +1,7 @@
 services:
   postgres:
     image: postgres:13
-    environment:
-      POSTGRES_DB: chemdb
-      POSTGRES_USER: chemuser
-      POSTGRES_PASSWORD: password
+    env_file: ".env"
     ports:
       - "5432:5432"
     volumes:
@@ -61,8 +58,7 @@ services:
     command: pytest
     volumes:
       - .:/cont_prj_folder  # Монтируем весь каталог проекта, чтобы видеть все файлы проекта и использовать их
-    environment:
-      DATABASE_URL: "postgresql+psycopg2://chemuser:password@postgres:5432/chemdb"
+    env_file: ".env"
     depends_on:
       - postgres
 
