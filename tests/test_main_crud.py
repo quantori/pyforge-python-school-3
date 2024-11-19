@@ -14,7 +14,7 @@ from src.models import Molecule
 
 # Подключение к тестовой базе данных
 # TEST_DATABASE_URL = os.getenv("DATABASE_URL")
-TEST_DATABASE_URL="postgresql+psycopg2://chemuser:password@postgres:5432/chemdb"
+TEST_DATABASE_URL="postgresql+psycopg2://chemuser:password@localhost:5432/chemdb"
 print(TEST_DATABASE_URL)
 
 engine = create_engine(TEST_DATABASE_URL) # объект подключения к базе данных
