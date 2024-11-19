@@ -19,6 +19,7 @@ services:
     # Это означает, что теперь контейнер получает доступ только к содержимому папки src из моего проекта
     environment:
       SERVER_ID: "SERVER-1"
+    env_file: ".env"
     ports:
       - "8020:8010" # host machine port:container port
     depends_on:
@@ -31,6 +32,7 @@ services:
       - .:/cont_prj_folder  # Монтируем весь каталог проекта в /cont_prj_folder
     environment:
       SERVER_ID: "SERVER-2"
+    env_file: ".env"
     ports:
       - "8021:8010" # host machine port:container port
     depends_on:
