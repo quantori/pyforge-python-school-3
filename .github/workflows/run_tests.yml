@@ -12,43 +12,15 @@ jobs:
   run-tests:
     runs-on: ubuntu-latest
 
-#    services:
-#      postgres:
-#        image: postgres:13
-#        ports:
-#          - 5432:5432
-#        env:
-#          POSTGRES_USER: chemuser
-#          POSTGRES_PASSWORD: password
-#          POSTGRES_DB: chemdb
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
-
-#    - name: Set up Python 3.12
-#      uses: actions/setup-python@v4
-#      with:
-#        python-version: 3.12
-
-#    - name: Install system dependencies
-#      run: |
-#        sudo apt-get update
-#        sudo apt-get install -y libsystemd-dev pkg-config gcc python3-dev
 
     - name: Set up PostgreSQL connection
       run: |
         echo "DATABASE_URL=postgresql+psycopg2://chemuser:password@postgres:5432/chemdb" >> .env
 
-#    - name: Install dependencies
-#      run: |
-#        python -m venv venv_for_rdkit
-#        source venv_for_rdkit/bin/activate
-#        pip install --upgrade pip
-#        pip install -r requirements.txt
-
     - name: Run tests
       run: |
         docker compose build 
         docker compose up tests
-#        pytest
