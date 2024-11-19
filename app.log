@@ -206,3 +206,10 @@ pip install python-multipart
 2024-11-17 15:54:36,991 | root | INFO | Adding molecule: test
 2024-11-17 15:54:36,993 | root | WARNING | Molecule already exists: test
 2024-11-18 09:05:27,585 | root | INFO | List of molecules successfully added to cache with skip=0 and limit=100.
+2024-11-18 09:41:57,049 | root | INFO | List of molecules successfully added to cache with skip=0 and limit=100.
+2024-11-18 09:42:15,499 | root | INFO | Adding molecule: ffff
+2024-11-18 09:42:15,526 | root | INFO | Molecule added successfully: ffff
+2024-11-18 09:42:16,676 | root | INFO | Adding molecule: ffff
+2024-11-18 09:42:16,679 | root | WARNING | Molecule already exists: ffff
+2024-11-18 09:42:50,268 | root | INFO | Adding molecule: s;epirgjrepgl
+2024-11-18 09:42:50,277 | root | INFO | Molecule added successfully: s;epirgjrepgl
