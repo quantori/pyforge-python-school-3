@@ -27,5 +27,4 @@ jobs:
     - name: Run tests
       run: |
         docker compose build 
-        docker compose up tests redis
-        docker compose down tests redis
+        docker compose up tests
