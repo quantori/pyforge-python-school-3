@@ -40,7 +40,8 @@ services:
     image: "redis:alpine"
     ports:
       - "6379:6379"
-# redis-cli -h localhost -p 6379
+
+  # redis-cli -h localhost -p 6379
 # KEYS *
 
   nginx:
@@ -61,6 +62,7 @@ services:
     env_file: ".env"
     depends_on:
       - postgres
+      - redis
 
 volumes:
   pg-data:
