@@ -1,19 +1,19 @@
-# 1. Используем базовый образ с Python 3.12
+# 1. Using a base image with Python 3.12
 FROM python:3.12
 
-# 2. Создаем рабочую директорию
-WORKDIR /cont_prj_folder
+# 2. Create a working directory
+WORKDIR /fastapi_app
 
-# 3. Копируем requirements.txt и устанавливаем зависимости через pip, включая RDKit
-COPY requirements.txt /cont_prj_folder/
+# 3. Copy requirements.txt and install dependencies via pip, including RDKit
+COPY requirements.txt /fastapi_app/
 RUN pip install --upgrade pip && \
-    pip install -r requirements.txt
+    pip install --no-cache-dir -r requirements.txt
 
-# 4. Копируем код приложения в контейнер
-COPY . /cont_prj_folder
+# 4. Copy the application code into the container
+COPY . /fastapi_app
 
-# 5. Открываем порт для приложения
+# 5. Opening a port for the application
 EXPOSE 8010
 
-# 6. Запускаем сервер FastAPI с Uvicorn, доступный на порту 8010, с автоматической перезагрузкой
+# 6. Launching FastAPI server with Uvicorn, available on port 8010, with automatic reboot
 CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8010", "--reload"]

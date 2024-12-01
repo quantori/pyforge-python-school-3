@@ -1,6 +1,7 @@
 import json
 import os
 import logging
+import time
 
 from fastapi import FastAPI, File, UploadFile, HTTPException, Depends
 from sqlalchemy.orm import Session
@@ -10,14 +11,18 @@ import redis
 from src import crud, models, schemas
 from src.database import engine, get_db
 
+from src.tasks import async_substructure_search_task
+from celery.result import AsyncResult
+from src.celery_worker import celery
+
 
 FORMAT = '%(asctime)s | %(name)s | %(levelname)s | %(message)s'
 logging.basicConfig(
-    level=logging.INFO, # INFO и выше (INFO, WARNING, ERROR, CRITICAL)
+    level=logging.INFO, # INFO and above (INFO, WARNING, ERROR, CRITICAL).
     format=FORMAT,
     handlers=[
-        logging.FileHandler('app.log'), # логируем в файл
-        logging.StreamHandler(), # логируем в консоль
+        logging.FileHandler('app.log'), # logging to the file.
+        logging.StreamHandler(), # logging to the console.
     ]
 )
 
@@ -34,7 +39,7 @@ def get_cached_result(key: str):
         return json.loads(result)
     return None
 
-def set_cache(key: str, value: dict, expiration: int = 3600): # 3600 = 1 час
+def set_cache(key: str, value: dict, expiration: int = 3600): # 3600 = 1 hour
     redis_client.setex(key, expiration, json.dumps(value))
 # Redis End
 
@@ -187,8 +192,8 @@ def delete_molecule(molecule_id: int, db: Session = Depends(get_db)):
     return {"detail": f"Molecule with id {molecule_id} deleted successfully."}
 
 
-@app.get("/substructure_search")
-def substructure_search(substructure: str, db: Session = Depends(get_db)):
+@app.get("/sync_substructure_search")
+def sync_substructure_search(substructure: str, db: Session = Depends(get_db)):
     """
     SMILES (Simplified Molecular Input Line Entry System) is a textual representation
     of the structure of a molecule, convenient for storing and transmitting information.
@@ -258,16 +263,30 @@ def upload_image(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f'Error: {str(e)}')
 
-
-# @app.get("/")
-# def get_server():
-#     server_id = os.getenv("SERVER_ID", "1")
-#     logging.info(f'Accessed server with {server_id} ID.')
-#     return {"server_id": server_id}
-
-
 @app.get("/")
-def read_main():
-    return {"msg": "Hello World"}
+def get_server():
+    server_id = os.getenv("SERVER_ID", "1")
+    logging.info(f'Accessed server with {server_id} ID.')
+    return {"server_id": server_id}
 
 # Start the server using: uvicorn src.main:app --reload --port 8015
+
+@app.post("/tasks/async_substructure_search")
+async def create_async_substructure_search_task(substructure: str):
+    """
+    We send a request to start the substructure search task and then
+    in get_async_substructure_search_task_result we can send request
+    to get results if it is ready as shown in the example.
+    """
+    task = async_substructure_search_task.delay(substructure)
+    return {"task_id": task.id, "status": task.status}
+
+@app.get("/tasks/{task_id}")
+async def get_async_substructure_search_task_result(task_id: str):
+    task_result = AsyncResult(task_id, app=celery)
+    if task_result.state == 'PENDING':
+        return {"task_id": task_id, "status": "Task is still processing"}
+    elif task_result.state == 'SUCCESS':
+        return {"task_id": task_id, "status": "Task completed", "result": task_result.result}
+    else:
+        return {"task_id": task_id, "status": task_result.state}
