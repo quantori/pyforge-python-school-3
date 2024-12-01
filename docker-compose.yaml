@@ -8,33 +8,33 @@ services:
       - pg-data:/var/lib/postgresql/data
 
   web1:
-    build: .
+    build: . # based on Dockerfile from current directory (.)
     volumes:
-      - .:/cont_prj_folder  # Монтируем весь каталог проекта в /cont_prj_folder
-    # В старом варианте весь текущий каталог с хостовой машины (где расположен docker-compose.yaml) монтировался в контейнер в папку /app.
-    # В новом варианте теперь на хостовой машине монтируется только папка src, которая находится в том же каталоге, где расположен docker-compose.yaml. В контейнере эта папка монтируется в директорию /src
-    # Это означает, что теперь контейнер получает доступ только к содержимому папки src из моего проекта
+      - .:/fastapi_app  # Mount the entire project directory to /fastapi_app
     environment:
       SERVER_ID: "SERVER-1"
     env_file: ".env"
     ports:
       - "8020:8010" # host machine port:container port
     depends_on:
+      - web2
       - postgres
       - redis
+      - celery_worker
 
   web2:
     build: .
     volumes:
-      - .:/cont_prj_folder  # Монтируем весь каталог проекта в /cont_prj_folder
+      - .:/fastapi_app
     environment:
       SERVER_ID: "SERVER-2"
     env_file: ".env"
     ports:
-      - "8021:8010" # host machine port:container port
+      - "8021:8010"
     depends_on:
       - postgres
       - redis
+      - celery_worker
 
   redis:
     image: "redis:alpine"
@@ -55,14 +55,23 @@ services:
       - web2
 
   tests:
-    build: . # на основе Dockerfile из текущего каталога (.)
-    command: pytest -v
+    build: .
+    command: pytest -v -s
     volumes:
-      - .:/cont_prj_folder  # Монтируем весь каталог проекта, чтобы видеть все файлы проекта и использовать их
+      - .:/fastapi_app  # Mount the entire project directory to see all project files and use them
     env_file: ".env"
     depends_on:
       - postgres
       - redis
+
+  celery_worker:
+    build: .
+    command: celery -A src.celery_worker worker --loglevel=info
+    depends_on:
+      - redis
+    volumes:
+      - .:/fastapi_app
+    env_file: ".env"
 
 volumes:
   pg-data:

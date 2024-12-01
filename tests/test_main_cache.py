@@ -11,18 +11,18 @@ from src.models import Molecule
 
 TEST_DATABASE_URL = os.getenv("DATABASE_URL")
 
-engine = create_engine(TEST_DATABASE_URL)  # объект подключения к базе данных
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)  # создаёт фабрику сессий для взаимодействия с базой
+engine = create_engine(TEST_DATABASE_URL)  # database connection object
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)  # creates a session factory to interact with the database
 
 
 @pytest.fixture
 def test_db():
-    connection = engine.connect()  # создаёт прямое соединение с базой
-    transaction = connection.begin()  # открывает транзакцию, чтобы откатить все изменения после тестов
-    session = TestingSessionLocal(bind=connection)  # создаёт объект сессии для взаимодействия с базой
+    connection = engine.connect()  # creates direct connection to the database
+    transaction = connection.begin()  # opens a transaction to roll back all changes after the tests
+    session = TestingSessionLocal(bind=connection)  # creates a session object to interact with the database
 
     try:
-        yield session  # возвращает сессию тесту
+        yield session  # returns the session to the test
     finally:
         transaction.rollback()
         connection.close()
@@ -30,29 +30,29 @@ def test_db():
 
 @pytest.fixture
 def client(test_db):
-    def override_get_db():  # заменяет зависимость get_db на фикстуру test_db для тестирования
+    def override_get_db():  # replaces get_db dependency with test_db fixture for testing
         try:
             yield test_db
         finally:
             test_db.close()
 
-    app.dependency_overrides[get_db] = override_get_db  # переопределяет зависимости в приложении
-    return TestClient(app)  # клиент для отправки HTTP-запросов
+    app.dependency_overrides[get_db] = override_get_db  # overrides dependencies in the application
+    return TestClient(app)  # client for sending HTTP requests
 
 
 @pytest.fixture
 def clear_redis():
-    redis_client.flushdb()  # очищает Redis перед каждым тестом
-    yield # отдать контроль управления пайтесту
-    redis_client.flushdb()  # очищает Redis после каждого теста
+    redis_client.flushdb()  # clears Redis before each test
+    yield # give control to pytest
+    redis_client.flushdb()  # clears Redis after each test
 
 
 def test_get_molecule_by_id_with_cache(client, test_db, clear_redis):
-    # Очистка таблицы Molecule
+    # Clears Molecule table:
     test_db.query(Molecule).delete()
     test_db.commit()
 
-    # Создание тестового молекулы
+    # Creates test molecule:
     test_molecule = Molecule(
         name="Water", smiles="O", weight=18.015, formula="H2O"
     )
@@ -72,6 +72,7 @@ def test_get_molecule_by_id_with_cache(client, test_db, clear_redis):
     assert data["smiles"] == "O"
     assert data["weight"] == 18.015
     assert data["formula"] == "H2O"
+
 
     # Проверяем, что данные закешировались
     cache_key = f"molecule:{molecule_id}"

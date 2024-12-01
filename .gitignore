@@ -1,3 +1,6 @@
 .idea/
 src/uploads/
 .env
+app.log
+logfile
+Notes
