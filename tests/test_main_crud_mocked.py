@@ -6,24 +6,32 @@ from src.database import get_db
 from src.models import Molecule
 
 
-# Mock database fixture
 @pytest.fixture
-def mock_db(mocker):
+def mock_postgres(mocker):
+    """Fixture for mocking an SQLAlchemy session.
+
+    Creates a MagicMock object that replaces the real database session
+    for testing interactions with SQLAlchemy without accessing the actual database.
+    """
     mock_session = mocker.MagicMock()
     return mock_session
 
 
-# Client fixture with overridden database dependency
 @pytest.fixture
-def client(mock_db):
-    def override_get_db():  # Replaces the get_db dependency with the test mock database
-        try:
-            yield mock_db
-        finally:
-            pass
+def fastapi_client(mock_postgres):
+    """Fixture for creating a FastAPI client.
 
-    app.dependency_overrides[get_db] = override_get_db  # Overrides dependencies in the app
-    return TestClient(app)  # Creates a client to send HTTP requests
+    Creates a FastAPI client (TestClient) with mocked dependencies:
+    - The SQLAlchemy session is replaced by mock_postgres.
+    - The Redis client is replaced by mock_redis.
+
+    This allows testing endpoints without interacting with real external services.
+    """
+    def override_get_db(): # Replaces the get_db dependency with the test mock database
+        yield mock_postgres
+
+    app.dependency_overrides[get_db] = override_get_db
+    return TestClient(app)
 
 
 @pytest.fixture
@@ -63,11 +71,11 @@ def sample_molecules():
 
 
 # Test retrieving all molecules
-def test_get_all_molecules(client, mock_db, sample_molecules):
+def test_get_all_molecules(fastapi_client, mock_postgres, sample_molecules):
     # Mock database query to return a list of molecules
-    mock_db.query.return_value.offset.return_value.limit.return_value.all.return_value = sample_molecules
+    mock_postgres.query.return_value.offset.return_value.limit.return_value.all.return_value = sample_molecules
 
-    response = client.get(f"/molecules_list?skip=0&limit=100")
+    response = fastapi_client.get(f"/molecules_list?skip=0&limit=100")
     assert response.status_code == 200
 
     data = response.json()
@@ -75,12 +83,12 @@ def test_get_all_molecules(client, mock_db, sample_molecules):
     assert len(data) == 18
 
 
-def test_add_molecule(client, mock_db):
+def test_add_molecule(fastapi_client, mock_postgres):
     # Mock database query for checking molecule existence
-    mock_db.query.return_value.filter.return_value.first.return_value = None
+    mock_postgres.query.return_value.filter.return_value.first.return_value = None
 
     # Mock method for refreshing the molecule
-    mock_db.refresh.side_effect = lambda obj: setattr(obj, "id", 1)
+    mock_postgres.refresh.side_effect = lambda obj: setattr(obj, "id", 1)
 
     molecule_data = {
         "name": "Benzene",
@@ -89,7 +97,7 @@ def test_add_molecule(client, mock_db):
         "formula": "C6H6"
     }
 
-    response = client.post("/add/molecule", json=molecule_data)
+    response = fastapi_client.post("/add/molecule", json=molecule_data)
     assert response.status_code == 200
 
     data = response.json()
@@ -101,10 +109,10 @@ def test_add_molecule(client, mock_db):
     assert data["message"] == "Molecule added successfully."
 
 
-def test_get_molecule_by_id(client, mock_db, sample_molecule):
-    mock_db.query.return_value.filter.return_value.first.return_value = sample_molecule
+def test_get_molecule_by_id(fastapi_client, mock_postgres, sample_molecule):
+    mock_postgres.query.return_value.filter.return_value.first.return_value = sample_molecule
 
-    response = client.get(f"/molecule/{sample_molecule.id}")
+    response = fastapi_client.get(f"/molecule/{sample_molecule.id}")
     assert response.status_code == 200
 
     data = response.json()
@@ -115,9 +123,9 @@ def test_get_molecule_by_id(client, mock_db, sample_molecule):
     assert data["formula"] == sample_molecule.formula
 
 
-def test_update_molecule(client, mock_db, sample_molecule):
+def test_update_molecule(fastapi_client, mock_postgres, sample_molecule):
     original_molecule = sample_molecule
-    mock_db.query.return_value.filter.return_value.first.return_value = original_molecule
+    mock_postgres.query.return_value.filter.return_value.first.return_value = original_molecule
 
     updated_molecule = {
         "name": "Benzene Updated",
@@ -126,7 +134,7 @@ def test_update_molecule(client, mock_db, sample_molecule):
         "formula": "C6H6"
     }
 
-    response = client.put(f"/update/molecule/{original_molecule.id}", json=updated_molecule)
+    response = fastapi_client.put(f"/update/molecule/{original_molecule.id}", json=updated_molecule)
     assert response.status_code == 200
 
     data = response.json()
@@ -134,11 +142,11 @@ def test_update_molecule(client, mock_db, sample_molecule):
     assert data["molecule"]["smiles"] == updated_molecule["smiles"]
 
 
-def test_delete_molecule(client, mock_db, sample_molecule):
+def test_delete_molecule(fastapi_client, mock_postgres, sample_molecule):
     # Mock database query to return an existing molecule
-    mock_db.query.return_value.filter.return_value.first.return_value = sample_molecule
+    mock_postgres.query.return_value.filter.return_value.first.return_value = sample_molecule
 
-    response = client.delete(f"/delete/molecule/{sample_molecule.id}")
+    response = fastapi_client.delete(f"/delete/molecule/{sample_molecule.id}")
     assert response.status_code == 200
 
     data = response.json()

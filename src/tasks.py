@@ -20,13 +20,11 @@ def async_substructure_search_task(substructure: str):
     session = SessionLocal()
 
     try:
-        # Проверка валидности подструктуры
         desired_substructure = Chem.MolFromSmiles(substructure)
         if not desired_substructure:
             logging.warning(f'Substructure {substructure} is not valid.')
             raise ValueError("Invalid substructure SMILES")
 
-        # Выполняем поиск
         molecules = get_all_molecules(session)
         result = []
 
