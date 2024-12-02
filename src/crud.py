@@ -3,7 +3,7 @@ from . import models, schemas
 
 
 def add_molecule(db: Session, molecule: schemas.MoleculeCreate):
-    db_molecule = models.Molecule(**molecule.dict())
+    db_molecule = models.Molecule(**molecule.model_dump())
     db.add(db_molecule)
     db.commit()
     db.refresh(db_molecule)
@@ -29,7 +29,7 @@ def update_molecule(
 ):
     db_molecule = get_molecule_by_id(db, molecule_id)
     if db_molecule:
-        for key, value in molecule_data.dict().items():
+        for key, value in molecule_data.model_dump().items():
             setattr(db_molecule, key, value)
         db.commit()
         db.refresh(db_molecule)
